@@ -418,8 +418,11 @@ const attachFile = require("../assets/icons/attach-file.png") as string;
 const noVol = require("../assets/icons/no-vol.png") as string;
 const report = require("../assets/icons/report.png") as string;
 const deletePng = require("../assets/icons/delete.png") as string;
-const gallery = require("../assets/icons/gallery.png") as string;
 const hourGlass = require("../assets/icons/hour-glass.png") as string;
+  require('../assets/icons/map_location.png') as ImageURISource;
+const threeDots = require('../assets/icons/bi_three-dots.png') as string;
+const gallery = require('../assets/icons/gallery.png') as string;
+const bitCoin = require('../assets/icons/bitCoin.png') as string;
 // const eyeFill = require('../assets/icons/eyefill.png') as string;
 
 const icons = {
@@ -429,6 +432,8 @@ const icons = {
   report,
   deletePng,
   addFileOutline,
+  threeDots,
+  bitCoin,
   addFile,
   attachFile,
   arrowBack,

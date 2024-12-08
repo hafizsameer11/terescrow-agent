@@ -27,6 +27,7 @@ const chatLogo = require("../assets/images/chat-logo.png");
 const chatLogo2 = require("../assets/images/chat-logo2.png");
 const chatLogo3 = require("../assets/images/chat-logo3.png");
 const mashGroup = require("../assets/images/mask-group.png");
+const tereSecrow = require('../assets/images/teresecrow.png');
 
 const images = {
   mashGroup,
@@ -36,6 +37,7 @@ const images = {
   coverImage,
   mxlogo,
   logo,
+  tereSecrow,
   eyefill,
   onboardingSplash,
   onboardingSplashDark,
