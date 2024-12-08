@@ -73,7 +73,6 @@ const TransactionChat = () => {
   };
 
   const handleConfirm = () => {
-    // Handle confirmation logic here
     console.log("Transaction Confirmed!");
     closeModal();
     setIsProcessed(false);
@@ -240,9 +239,7 @@ const TransactionChat = () => {
       )}
       {!isAccepted && isRejected && (
         <View style={styles.userInfo}>
-          <Text style={{ color: COLORS.greyscale600 }}>
-            Declined the trade
-          </Text>
+          <Text style={{ color: COLORS.greyscale600 }}>Declined the trade</Text>
         </View>
       )}
       {isAccepted && (
@@ -286,19 +283,26 @@ const TransactionChat = () => {
         onRequestClose={closeModal}
       >
         <View style={styles.overlay}>
-          <View style={styles.modalContainer}>
+          <View
+            style={[
+              styles.modalContainer,
+              dark && { backgroundColor: COLORS.black },
+            ]}
+          >
             <View style={styles.header}>
               <TouchableOpacity
                 onPress={closeModal}
-                style={{
-                  backgroundColor: COLORS.black,
-                  padding: 5,
-                  borderRadius: 50,
-                }}
+                style={[
+                  styles.closeModalButtom,
+                  dark && { backgroundColor: COLORS.white },
+                ]}
               >
                 <Image
-                  source={icons.close2}
-                  style={{ width: 10, height: 10, tintColor: COLORS.white }}
+                  source={[icons.close2]}
+                  style={[
+                    { width: 10, height: 10, tintColor: COLORS.white },
+                    dark && { tintColor: COLORS.black },
+                  ]}
                 />
               </TouchableOpacity>
             </View>
@@ -313,7 +317,14 @@ const TransactionChat = () => {
               >
                 <Text style={styles.icon}>?</Text>
               </View>
-              <Text style={styles.title}>Complete transaction?</Text>
+              <Text
+                style={[
+                  styles.title,
+                  dark ? { color: COLORS.white } : { color: COLORS.black },
+                ]}
+              >
+                Complete transaction?
+              </Text>
               <Text style={styles.message}>
                 Are you sure you want to confirm this giftcard transaction?
               </Text>
@@ -533,7 +544,7 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 14,
-    color: "#555",
+    color: COLORS.greyscale600,
     textAlign: "center",
   },
   footer: {
@@ -545,5 +556,10 @@ const styles = StyleSheet.create({
     marginRight: 12,
     padding: 5,
     borderRadius: 10,
+  },
+  closeModalButtom: {
+    backgroundColor: COLORS.black,
+    padding: 5,
+    borderRadius: 50,
   },
 });
