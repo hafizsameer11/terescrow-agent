@@ -1,23 +1,37 @@
-import { StyleSheet, Text, View, TextInput, FlatList } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  FlatList,
+  Pressable,
+} from "react-native";
 import { useTheme } from "@/contexts/themeContext";
 import { Image } from "expo-image";
 import { COLORS, icons } from "@/constants";
 import { DUMMY_CHAT } from "../../utils/dummyChat";
 import { useState } from "react";
 import ChatContactList from "@/components/ChatContactList";
+import TransFilter from "@/components/TransFilter";
 const chat = () => {
   const { dark } = useTheme();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
-  const filterDataHandler = (selectedItem: string) => {
+  const [dropDownVisibility, setDropDownVisibility] = useState(false);
+  const filterDataHandler = () => {
     let filteredData = DUMMY_CHAT;
     // Filter by category
-    // if (selectedItem === "Group") {
-    //   filteredData = filteredData.filter((item) => item.group);
-    // } else if (selectedItem === "Unread") {
-    //   filteredData = filteredData.filter((item) => !item.seen);
-    // }
-
+    if (selectedCategory === "Pending") {
+      filteredData = filteredData.filter((item) => item.status === "PENDING");
+    } else if (selectedCategory === "Unanswered") {
+      filteredData = filteredData.filter(
+        (item) => item.status === "UNANSWERED"
+      );
+    } else if (selectedCategory === "Completed") {
+      filteredData = filteredData.filter((item) => item.status === "COMPLETED");
+    } else if (selectedCategory === "Declined") {
+      filteredData = filteredData.filter((item) => item.status === "DECLINED");
+    }
     // Filter by search term
     if (searchTerm) {
       filteredData = filteredData.filter((item) =>
@@ -29,8 +43,16 @@ const chat = () => {
   };
 
   const handleSearchChange = (searchTerm: string) => {
-    setSearchTerm(searchTerm); // Update the search term state
+    setSearchTerm(searchTerm);
   };
+  const selectedCategoryHandler = (categoryName: string) => {
+    setSelectedCategory(categoryName);
+  };
+
+  const toggleDropDownVisibility = () => {
+    setDropDownVisibility(!dropDownVisibility);
+  };
+
   return (
     <View style={[styles.container, dark && { backgroundColor: COLORS.black }]}>
       <View style={styles.header}>
@@ -44,7 +66,10 @@ const chat = () => {
       <View style={styles.filterInput}>
         <View style={styles.filter}>
           <Text style={styles.filterHeading}>Filter by:</Text>
-          <View style={styles.filterCategory}>
+          <Pressable
+            style={styles.filterCategory}
+            onPress={toggleDropDownVisibility}
+          >
             <Text style={[styles.allText, dark && { color: COLORS.white }]}>
               All
             </Text>
@@ -52,7 +77,20 @@ const chat = () => {
               source={icons.arrowDown}
               style={[styles.arrowDown, dark && { tintColor: COLORS.white }]}
             />
-          </View>
+          </Pressable>
+          {dropDownVisibility && (
+            <View
+              style={[
+                styles.dropDown,
+                dark && { backgroundColor: COLORS.dark3 },
+              ]}
+            >
+              <TransFilter
+                isDarkMode={dark}
+                onSelect={selectedCategoryHandler}
+              />
+            </View>
+          )}
         </View>
         <View style={styles.searchContainer}>
           <Image source={icons.search} style={styles.searchIcon} />
@@ -65,7 +103,7 @@ const chat = () => {
         </View>
       </View>
       <FlatList
-        data={filterDataHandler(selectedCategory)}
+        data={filterDataHandler()}
         style={styles.chatList}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
@@ -91,7 +129,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 16,
-    backgroundColor: COLORS.white
+    backgroundColor: COLORS.white,
   },
   header: {
     marginTop: 20,
@@ -156,5 +194,18 @@ const styles = StyleSheet.create({
   },
   chatList: {
     marginTop: 20,
+  },
+  dropDown: {
+    position: "absolute",
+    top: 32,
+    padding: 10,
+    zIndex: 1,
+    elevation: 5,
+    borderRadius: 5,
+    shadowRadius: 5,
+    shadowOpacity: 0.5,
+    shadowColor: COLORS.greyscale900,
+    backgroundColor: COLORS.white,
+    shadowOffset: { width: 0, height: 2 },
   },
 });
