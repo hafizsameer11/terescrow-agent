@@ -415,10 +415,16 @@ const airbnb = require('../assets/icons/airbnb.png') as string;
 const amazon = require('../assets/icons/amazon.png') as string;
 const upOutlined = require('../assets/icons/upoutline.png') as string;
 const attachFile = require('../assets/icons/attach-file.png') as string;
+const threeDots = require('../assets/icons/bi_three-dots.png') as string;
+const gallery = require('../assets/icons/gallery.png') as string;
+const bitCoin = require('../assets/icons/bitCoin.png') as string;
 // const eyeFill = require('../assets/icons/eyefill.png') as string;
 
 const icons = {
   addFileOutline,
+  threeDots,
+  bitCoin,
+  gallery,
   addFile,
   attachFile,
   arrowBack,
