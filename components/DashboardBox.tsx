@@ -9,7 +9,7 @@ type BoxProps = {
   value: string;
   percentage?: number;
   simpleText?: string;
-  condition: boolean;
+  condition?: boolean;
 };
 
 const Box: React.FC<BoxProps> = ({ title, value, percentage, condition, simpleText }) => {

@@ -42,6 +42,7 @@ export default function RootLayout() {
         <Stack.Screen name="log" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
         <Stack.Screen name="userchat" options={{ headerShown: false }} />
+        <Stack.Screen name="users" options={{ headerShown: false }} />
         <Stack.Screen name="editteamchat" options={{ headerShown: false }} />
         <Stack.Screen name="transactionchat" options={{ headerShown: false }} />
       </Stack>
