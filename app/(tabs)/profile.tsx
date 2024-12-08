@@ -13,15 +13,11 @@ const Profile = () => {
   const [user, setUser] = useState({
     name: "Qamardeen Abulmalik",
     username: "@Alucard",
-    email: "admin@gmail.com",
-    owner: "Owner",
-    gender: "M",
-    date: "Nov 7, 2024",
     tier: "Tier 2",
   });
 
   const { name } = user;
-  const [activeBtn, setActiveBtn] = useState("profile");
+  const [activeBtn, setActiveBtn] = useState("customerDetails");
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState<String | null>(null);
   const [mode, setMode] = useState("editProfile");
@@ -55,10 +51,10 @@ const Profile = () => {
           ]}
         >
           <TouchableOpacity
-            onPress={() => handlePress("profile")}
+            onPress={() => handlePress("customerDetails")}
             style={[
               styles.button,
-              activeBtn === "profile" && styles.activeButton,
+              activeBtn === "customerDetails" && styles.activeButton,
             ]}
           >
             <Text
@@ -66,7 +62,7 @@ const Profile = () => {
                 styles.buttonText,
                 {
                   color:
-                    activeBtn === "profile"
+                    activeBtn === "customerDetails"
                       ? COLORS.white
                       : dark
                       ? COLORS.white
@@ -74,14 +70,14 @@ const Profile = () => {
                 },
               ]}
             >
-              Profile
+              Customer Details
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => handlePress("roleManagement")}
+            onPress={() => handlePress("transactionActivities")}
             style={[
               styles.button,
-              activeBtn === "roleManagement" && styles.activeButton,
+              activeBtn === "transactionActivities" && styles.activeButton,
             ]}
           >
             <Text
@@ -89,7 +85,7 @@ const Profile = () => {
                 styles.buttonText,
                 {
                   color:
-                    activeBtn === "roleManagement"
+                    activeBtn === "transactionActivities"
                       ? COLORS.white
                       : dark
                       ? COLORS.white
@@ -97,7 +93,7 @@ const Profile = () => {
                 },
               ]}
             >
-              Role Management
+              Transaction Activities
             </Text>
           </TouchableOpacity>
         </View>
@@ -114,7 +110,9 @@ const Profile = () => {
           </View>
           <View style={styles.profileDetails}>
             <Text style={styles.profileName}>{user.name}</Text>
-            <Text style={styles.profileSubDetails}>{user.owner}</Text>
+            <Text style={styles.profileSubDetails}>
+              {user.username} - {user.tier}
+            </Text>
           </View>
           <TouchableOpacity
             style={[
@@ -126,57 +124,8 @@ const Profile = () => {
             <Text style={styles.profileEditButtonText}>Edit Profile</Text>
           </TouchableOpacity>
         </View>
-        <View
-          style={[
-            styles.accountActivitiesContainer,
-            { backgroundColor: dark ? COLORS.dark2 : COLORS.white },
-          ]}
-        >
-          <Text
-            style={[
-              {
-                color: dark ? COLORS.white : COLORS.black,
-              },
-              styles.details,
-            ]}
-          >
-            Personal Details
-          </Text>
-          <View style={styles.accountActivitiesSubContainer}>
-            <Text
-              style={[
-                styles.accountActivitiesSubTitle,
-                {
-                  color: dark ? COLORS.white : COLORS.black,
-                  fontWeight: "400",
-                },
-              ]}
-            >
-              <Text style={{ fontWeight: "bold" }}>Email:</Text> {user.email}
-            </Text>
-            <Text
-              style={[
-                styles.accountActivitiesSubTitle,
-                {
-                  color: dark ? COLORS.white : COLORS.black,
-                  fontWeight: "400",
-                },
-              ]}
-            >
-              <Text style={{ fontWeight: "bold" }}>Gender:</Text> {user.gender}
-            </Text>
-            <Text
-              style={[
-                styles.accountActivitiesSubTitle,
-                {
-                  color: dark ? COLORS.white : COLORS.black,
-                  fontWeight: "400",
-                },
-              ]}
-            >
-              <Text style={{ fontWeight: "bold" }}>Date Added:</Text> {user.date}
-            </Text>
-          </View>
+        <View style={{ marginTop: 10 }}>
+          {activeBtn === "customerDetails" && <ProfileDetails />}
         </View>
         <View
           style={[
@@ -242,13 +191,6 @@ export default Profile;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-  },
-  details: {
-    fontWeight: "bold",
-    fontSize: 16,
-    borderBottomWidth: 1,
-    paddingVertical: 10,
-    borderColor: "#ccc",
   },
   scrollContainer: {
     paddingHorizontal: 13,

@@ -23,11 +23,13 @@ const mxlogo = require('../assets/images/mxlogo.png');
 const eyefill = require('../assets/images/eyefill.png');
 const infoCircleFilled = require('../assets/images/infocirclefilled.png');
 const coverImage = require('../assets/images/coverImg.jpg');
+const tereSecrow = require('../assets/images/teresecrow.png');
 
 const images = {
   coverImage,
   mxlogo,
   logo,
+  tereSecrow,
   eyefill,
   onboardingSplash,
   onboardingSplashDark,
