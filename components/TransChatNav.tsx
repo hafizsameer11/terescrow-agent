@@ -16,6 +16,7 @@ const TransChatNav: React.FC<{
   onProcess: () => void;
   onAccept: () => void;
   onDecline: () => void;
+  showNotes: () => void;
 }> = (props) => {
   const { dark } = useTheme();
   const router = useRouter();
@@ -86,6 +87,14 @@ const TransChatNav: React.FC<{
                   onPress={!props.isCurrentlyConfirmed ? props.onProcess : null}
                 >
                   <Image source={icons.hourGlass} style={styles.iconStyle} />
+                </Pressable>
+              </View>
+              <View style={styles.iconContainer}>
+                <Pressable
+                  style={styles.pressIcon}
+                  onPress={props.showNotes}
+                >
+                  <Image source={icons.notification2} style={styles.iconStyle} />
                 </Pressable>
               </View>
             </>

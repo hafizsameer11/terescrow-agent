@@ -19,6 +19,11 @@ import MessageInput from "@/components/MessageInput";
 import { DUMMY_CHAT } from "@/utils/dummyChat";
 import { useLocalSearchParams } from "expo-router";
 import TransChatNav from "@/components/TransChatNav";
+import SelectService from "@/components/Transaction Chat/SelectService";
+import ChatNotes from "@/components/Transaction Chat/ChatNotes";
+import RenderMsgUserDecision from "@/components/Transaction Chat/RenderMsgUserDecision";
+import ConfirmationModal from "@/components/Transaction Chat/ConfirmationModal";
+import RenderMsg from "@/components/Transaction Chat/RenderMsg";
 
 type Message = {
   id: string;
@@ -38,6 +43,8 @@ const TransactionChat = () => {
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [modalVisibility, setmodalVisibility] = useState(false);
   const [isRejected, setIsrejected] = useState(false);
+  const [isShowNotes, setIsShowNotes] = useState(false);
+  const [selectServices, setSelectServices] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -51,20 +58,30 @@ const TransactionChat = () => {
     setIsAccepted(true);
   };
 
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const onProcessHandler = () => {
     setIsProcessed(true);
-    setTimeout(() => {
-      openModal();
-    }, 3000);
+    openModal();
   };
 
   const onProcessCancelHandler = () => {
     setIsProcessed(false);
     setmodalVisibility(false);
+
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
   };
 
   const openModal = () => {
-    setmodalVisibility(true);
+    if (!modalVisibility) {
+      timeoutRef.current = setTimeout(() => {
+        setmodalVisibility(true);
+        timeoutRef.current = null;
+      }, 2000);
+    }
   };
 
   const closeModal = () => {
@@ -76,6 +93,7 @@ const TransactionChat = () => {
     console.log("Transaction Confirmed!");
     closeModal();
     setIsProcessed(false);
+    servicesShowHandler();
     setIsConfirmed(true);
   };
 
@@ -86,6 +104,21 @@ const TransactionChat = () => {
 
   const scrollToBottom = () => {
     flatListRef.current?.scrollToEnd({ animated: true });
+  };
+
+  const servicesShowHandler = () => {
+    console.log("services");
+    setTimeout(() => {
+      setSelectServices(true);
+    }, 3000);
+  };
+
+  const showNotesHandler = () => {
+    setIsShowNotes(true);
+  };
+
+  const closeNotesHandler = () => {
+    setIsShowNotes(false);
   };
 
   const sendMessage = (message?: string, image?: any) => {
@@ -228,169 +261,52 @@ const TransactionChat = () => {
         isCurrentlyConfirmed={isConfirmed}
         onDecline={onDeclineHandler}
         isDeclined={isRejected}
+        showNotes={showNotesHandler}
       />
       {/* if user accepted */}
       {!isAccepted && !isRejected && (
-        <View style={styles.userInfo}>
-          <Text style={{ color: COLORS.greyscale600 }}>
-            Click on the tick icon above to accept the order
-          </Text>
-        </View>
+        <RenderMsg text="Click on the tick icon above to accept the order" />
       )}
-      {!isAccepted && isRejected && (
-        <View style={styles.userInfo}>
-          <Text style={{ color: COLORS.greyscale600 }}>Declined the trade</Text>
-        </View>
-      )}
-      {isAccepted && (
-        <View style={styles.userInfo}>
-          <Text style={{ color: COLORS.greyscale600 }}>Accepted by - You</Text>
-        </View>
-      )}
+      {!isAccepted && isRejected && <RenderMsg text="Declined the trade" />}
+      {isAccepted && <RenderMsg text="Accepted by - You" />}
       {/* if user have started processing */}
       {isProcessed && (
-        <View style={styles.processContainer}>
-          <View
-            style={[
-              styles.processing,
-              {
-                justifyContent: "center",
-                alignItems: "center",
-                borderColor: "#D6DA2B",
-                backgroundColor: "#FEFFD7",
-              },
-            ]}
-          >
-            <Image
-              source={icons.hourGlass}
-              style={{ width: 10, height: 12, marginRight: 8 }}
-            />
-            <Text>This trade is currently being proceed you</Text>
-            <Pressable
-              onPress={onProcessCancelHandler}
-              style={{ marginLeft: 14 }}
-            >
-              <Text>CANCEL</Text>
-            </Pressable>
-          </View>
-        </View>
+        <RenderMsgUserDecision
+          text="This trade is currently being proceed you"
+          icon={icons.hourGlass}
+          bgColor="#FEFFD7"
+          isProcess={true}
+          OnCancel={onProcessCancelHandler}
+        />
       )}
       {/* Modal of confirmation */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={modalVisibility}
-        onRequestClose={closeModal}
-      >
-        <View style={styles.overlay}>
-          <View
-            style={[
-              styles.modalContainer,
-              dark && { backgroundColor: COLORS.black },
-            ]}
-          >
-            <View style={styles.header}>
-              <TouchableOpacity
-                onPress={closeModal}
-                style={[
-                  styles.closeModalButtom,
-                  dark && { backgroundColor: COLORS.white },
-                ]}
-              >
-                <Image
-                  source={[icons.close2]}
-                  style={[
-                    { width: 10, height: 10, tintColor: COLORS.white },
-                    dark && { tintColor: COLORS.black },
-                  ]}
-                />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.body}>
-              <View
-                style={{
-                  backgroundColor: COLORS.primary,
-                  paddingVertical: 10,
-                  paddingHorizontal: 30,
-                  borderRadius: 50,
-                }}
-              >
-                <Text style={styles.icon}>?</Text>
-              </View>
-              <Text
-                style={[
-                  styles.title,
-                  dark ? { color: COLORS.white } : { color: COLORS.black },
-                ]}
-              >
-                Complete transaction?
-              </Text>
-              <Text style={styles.message}>
-                Are you sure you want to confirm this giftcard transaction?
-              </Text>
-            </View>
-
-            <View style={styles.footer}>
-              <TouchableOpacity style={styles.button} onPress={handleConfirm}>
-                <Text style={styles.buttonText}>Continue</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <ConfirmationModal
+        isDarkMode={dark}
+        onCLose={closeModal}
+        OnConfirm={handleConfirm}
+        modalState={modalVisibility}
+      />
       {isConfirmed && (
-        <View style={styles.processContainer}>
-          <View
-            style={[
-              styles.processing,
-              {
-                backgroundColor: "#EBFFF3",
-                borderRadius: 10,
-                borderColor: COLORS.black,
-                alignItems: "center",
-              },
-            ]}
-          >
-            <View style={styles.checkIconContainer}>
-              <Image
-                source={icons.check2}
-                style={{
-                  width: 8,
-                  height: 8,
-                  tintColor: COLORS.white,
-                }}
-              />
-            </View>
-            <Text>This trade is completed by you</Text>
-          </View>
-        </View>
+        <RenderMsgUserDecision
+          text="This trade is completed by you"
+          icon={icons.check2}
+          bgColor="#EBFFF3"
+          isProcess={false}
+          OnCancel={() => null}
+        />
       )}
       {isRejected && (
-        <View style={styles.processContainer}>
-          <View
-            style={[
-              styles.processing,
-              {
-                backgroundColor: "#FF7F7F",
-                borderRadius: 10,
-                borderColor: COLORS.black,
-                alignItems: "center",
-              },
-            ]}
-          >
-            <View style={styles.checkIconContainer}>
-              <Image
-                source={icons.close2}
-                style={{
-                  width: 8,
-                  height: 8,
-                  tintColor: COLORS.white,
-                }}
-              />
-            </View>
-            <Text>This trade is declined by you</Text>
-          </View>
-        </View>
+        <RenderMsgUserDecision
+          text="This trade is declined by you"
+          icon={icons.close2}
+          bgColor="#FFD7D7"
+          isProcess={false}
+          OnCancel={() => null}
+        />
+      )}
+      <SelectService showServices={selectServices} />
+      {isShowNotes && (
+        <ChatNotes closeNotes={closeNotesHandler} showNotesSate={isShowNotes} />
       )}
       {renderAgentChat()}
     </SafeAreaView>
