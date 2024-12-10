@@ -8,9 +8,14 @@ import { useTheme } from "@/contexts/themeContext";
 import Box from "@/components/DashboardBox";
 import RecentChats from "@/components/RecentChats";
 
+
 export default function HomeScreen() {
   const [selectedOption, setSelectedOption] = useState("Year");
+  const [menuVisible, setMenuVisible] = useState<number | null>(null);
   const { dark } = useTheme();
+  const handleMenuToggle = (index: number) => {
+    setMenuVisible(menuVisible === index ? null : index);
+  };
   return (
     <SafeAreaView
       style={[

@@ -19,7 +19,6 @@ const TeamProfile: React.FC<{
   const { dark } = useTheme();
   return (
     <View style={[styles.container, dark && { backgroundColor: COLORS.black }]}>
-      {/* Header with Menu Icon */}
       <View style={styles.header}>
         <Pressable
           onPress={() => router.back()}

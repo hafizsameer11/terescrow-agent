@@ -5,10 +5,15 @@ import { COLORS, icons } from "@/constants";
 import { Image } from "expo-image";
 import { useTheme } from "@/contexts/themeContext";
 import { TouchableOpacity } from "react-native-gesture-handler";
+import uuid from "react-native-uuid";
 import Button from "@/components/Button";
 import FilterModal from "@/components/FilterModal";
+import FullTransactionModal from "@/components/TransactionDetailModal";
+import { transactionsData } from "@/utils/usersData";
+import FullEditTransactionModal from "@/components/FullEditTransactionModal";
 
 const dummyData = Array(15).fill({
+  id: uuid.v4(),
   name: "Razer Gold",
   location: "United States",
   type: "E-Code",
@@ -24,6 +29,9 @@ const Log = () => {
   const [activeBtn, setActiveBtn] = useState("giftCard");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [menuVisible, setMenuVisible] = useState<number | null>(null);
+  const [transactionModalVisible, setTransactionModalVisible] = useState(false);
+  const [editTransactionModalVisible, setEditTransactionModalVisible] =
+    useState(false);
 
   const textColor = {
     color: dark ? COLORS.white : COLORS.black,
@@ -32,6 +40,11 @@ const Log = () => {
     setMenuVisible(menuVisible === index ? null : index);
   };
 
+  const handleEditTransactionModal = () =>
+    setEditTransactionModalVisible(!editTransactionModalVisible);
+
+  const handleTransactionModal = () =>
+    setTransactionModalVisible(!transactionModalVisible);
   const handlePressModal = () => {
     setIsModalVisible(!isModalVisible);
   };
@@ -66,12 +79,23 @@ const Log = () => {
           />
         </TouchableOpacity>
         {menuVisible === index && (
-          <View style={[tableHeader.dropdownMenu, { backgroundColor: dark ? COLORS.dark2 : COLORS.white }]}>
-            <TouchableOpacity style={[tableHeader.dropdownItem]}>
+          <View
+            style={[
+              tableHeader.dropdownMenu,
+              { backgroundColor: dark ? COLORS.dark2 : COLORS.white },
+            ]}
+          >
+            <TouchableOpacity
+              style={[tableHeader.dropdownItem]}
+              onPress={handleEditTransactionModal}
+            >
               <Text style={textColor}>Edit Log</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[tableHeader.dropdownItem]}>
-              <Text style={textColor}>Export to CSV</Text>
+            <TouchableOpacity
+              style={[tableHeader.dropdownItem]}
+              onPress={handleTransactionModal}
+            >
+              <Text style={textColor}>View Transaction Details</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[tableHeader.dropdownItem]}>
               <Text style={{ color: "red" }}>Delete Transaction</Text>
@@ -210,6 +234,16 @@ const Log = () => {
             {dummyData.map((item, index) => renderRow(item, index))}
           </ScrollView>
         </View>
+        <FullTransactionModal
+          visible={transactionModalVisible}
+          onClose={() => setTransactionModalVisible(false)}
+          transactionId={transactionsData[0].id}
+        />
+        <FullEditTransactionModal
+          visible={editTransactionModalVisible}
+          onClose={() => setEditTransactionModalVisible(false)}
+          transactionId={transactionsData[0].id}
+        />
       </ScrollView>
     </SafeAreaView>
   );

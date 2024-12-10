@@ -51,7 +51,7 @@ export default function TabLayout() {
             marginBottom: 30,
           }}
         >
-          <TouchableOpacity onPress={() => {router.push("/profile")}}>
+          <TouchableOpacity>
             <Image
               source={images.user1}
               style={{ width: 74, height: 74, borderRadius: 50 }}

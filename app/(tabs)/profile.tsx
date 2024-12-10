@@ -1,28 +1,40 @@
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTheme } from "@/contexts/themeContext";
-import { COLORS } from "@/constants";
+import { COLORS, icons } from "@/constants";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import ProfileDetails from "@/components/ProfileDetails";
 import EditProfileModal from "@/components/EditProfileModal";
 import { Image } from "expo-image";
-import * as ImagePicker from "expo-image-picker";
+import { useLocalSearchParams } from "expo-router";
+import { useRoute } from "@react-navigation/native";
+import { usersData } from "@/utils/usersData";
+import KYCModal from "@/components/KYCModal";
+import Transactions from "./transactions";
+import FullTransactionModal from "@/components/TransactionDetailModal";
+
+interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  image: string;
+  gender: string;
+  mobileNumber: string;
+  country: string;
+}
 
 const Profile = () => {
-  const [user, setUser] = useState({
-    name: "Qamardeen Abulmalik",
-    username: "@Alucard",
-    tier: "Tier 2",
-  });
-
-  const { name } = user;
+  const { id } = useLocalSearchParams();
   const [activeBtn, setActiveBtn] = useState("customerDetails");
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState<String | null>(null);
   const [mode, setMode] = useState("editProfile");
+  const [customerData, setCustomerData] = useState<Customer | null>(null);
+  const [kycModalVisible, setKYCModalVisible] = useState(false);
   const { dark } = useTheme();
-  const userInitial = name.charAt(0).toUpperCase();
+
+  const customer = usersData.find((item) => item.id === id);
 
   const handlePress = (btn: string) => {
     setActiveBtn(btn);
@@ -30,6 +42,9 @@ const Profile = () => {
 
   const handlePressModal = () => {
     setModalVisible(true);
+  };
+  const handleKYCModal = () => {
+    setKYCModalVisible(true);
   };
 
   const handleImageSelect = (uri: string) => {
@@ -97,89 +112,131 @@ const Profile = () => {
             </Text>
           </TouchableOpacity>
         </View>
-        <View style={styles.profileContainer}>
-          <View style={styles.profileAvatar}>
-            {selectedImage ? (
-              <Image
-                source={{ uri: selectedImage }}
-                style={styles.profileAvatarImage}
-              />
-            ) : (
-              <Text style={styles.profileAvatarText}>{userInitial}</Text>
-            )}
-          </View>
-          <View style={styles.profileDetails}>
-            <Text style={styles.profileName}>{user.name}</Text>
-            <Text style={styles.profileSubDetails}>
-              {user.username} - {user.tier}
-            </Text>
-          </View>
-          <TouchableOpacity
-            style={[
-              styles.profileEditButton,
-              { backgroundColor: dark ? COLORS.dark2 : COLORS.white },
-            ]}
-            onPress={handlePressModal}
-          >
-            <Text style={styles.profileEditButtonText}>Edit Profile</Text>
-          </TouchableOpacity>
-        </View>
         <View style={{ marginTop: 10 }}>
-          {activeBtn === "customerDetails" && <ProfileDetails />}
+          {activeBtn === "customerDetails" && (
+            <>
+              <View style={styles.profileContainer}>
+                <View style={styles.profileAvatar}>
+                  {selectedImage ? (
+                    <Image
+                      source={{ uri: selectedImage }}
+                      style={styles.profileAvatarImage}
+                    />
+                  ) : (
+                    <Text style={styles.profileAvatarText}>
+                      {customer?.name.charAt(0).toUpperCase()}
+                    </Text>
+                  )}
+                </View>
+                <View style={styles.profileDetails}>
+                  <Text style={styles.profileName}>{customer?.name}</Text>
+                  <Text style={styles.profileSubDetails}>
+                    {customer?.usernameTag} - {"Tier 2"}
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "flex-end",
+                    gap: 10,
+                  }}
+                >
+                  <TouchableOpacity
+                    style={[
+                      styles.profileEditButton,
+                      { backgroundColor: dark ? COLORS.dark2 : COLORS.white },
+                    ]}
+                    onPress={handlePressModal}
+                  >
+                    <Image
+                      source={icons.edit}
+                      style={[
+                        styles.editIcon,
+                        { tintColor: dark ? COLORS.white : COLORS.black },
+                      ]}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.profileEditButton,
+                      { backgroundColor: dark ? COLORS.dark2 : COLORS.white },
+                    ]}
+                    onPress={handleKYCModal}
+                  >
+                    <Image
+                      source={icons.menu}
+                      style={[
+                        styles.editIcon,
+                        { tintColor: dark ? COLORS.white : COLORS.black },
+                      ]}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+              <ProfileDetails />
+              <View
+                style={[
+                  styles.accountActivitiesContainer,
+                  { backgroundColor: dark ? COLORS.dark2 : COLORS.white },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.accountActivitiesTitle,
+                    { color: dark ? COLORS.white : COLORS.black },
+                  ]}
+                >
+                  Account Activities
+                </Text>
+                <View
+                  style={[
+                    styles.accountActivitiesSubContainer,
+                    { borderBottomWidth: 1, borderColor: "#ccc" },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.accountActivitiesSubTitle,
+                      { color: dark ? COLORS.white : COLORS.black },
+                    ]}
+                  >
+                    Date Joined
+                  </Text>
+                  <Text style={{ color: dark ? COLORS.white : COLORS.black }}>
+                    Nov 7, 2024 - 4:30PM
+                  </Text>
+                </View>
+                <View style={styles.accountActivitiesSubContainer}>
+                  <Text
+                    style={[
+                      styles.accountActivitiesSubTitle,
+                      { color: dark ? COLORS.white : COLORS.black },
+                    ]}
+                  >
+                    Password Reset
+                  </Text>
+                  <Text style={{ color: dark ? COLORS.white : COLORS.black }}>
+                    Nov 7, 2024 - 4:30PM
+                  </Text>
+                </View>
+              </View>
+            </>
+          )}
+
+          {activeBtn === "transactionActivities" && <Transactions isShown={false} />}
         </View>
-        <View
-          style={[
-            styles.accountActivitiesContainer,
-            { backgroundColor: dark ? COLORS.dark2 : COLORS.white },
-          ]}
-        >
-          <Text
-            style={[
-              styles.accountActivitiesTitle,
-              { color: dark ? COLORS.white : COLORS.black },
-            ]}
-          >
-            Account Activities
-          </Text>
-          <View
-            style={[
-              styles.accountActivitiesSubContainer,
-              { borderBottomWidth: 1, borderColor: "#ccc" },
-            ]}
-          >
-            <Text
-              style={[
-                styles.accountActivitiesSubTitle,
-                { color: dark ? COLORS.white : COLORS.black },
-              ]}
-            >
-              Date Joined
-            </Text>
-            <Text style={{ color: dark ? COLORS.white : COLORS.black }}>
-              Nov 7, 2024 - 4:30PM
-            </Text>
-          </View>
-          <View style={styles.accountActivitiesSubContainer}>
-            <Text
-              style={[
-                styles.accountActivitiesSubTitle,
-                { color: dark ? COLORS.white : COLORS.black },
-              ]}
-            >
-              Password Reset
-            </Text>
-            <Text style={{ color: dark ? COLORS.white : COLORS.black }}>
-              Nov 7, 2024 - 4:30PM
-            </Text>
-          </View>
-        </View>
+
         <EditProfileModal
           visible={isModalVisible}
           onClose={() => setModalVisible(false)}
-          userName={user.name}
+          userName={customer?.name}
           mode="editProfile"
           onImageSelect={handleImageSelect}
           setMode={setMode}
+        />
+        <KYCModal
+          visible={kycModalVisible}
+          onClose={() => setKYCModalVisible(false)}
         />
       </ScrollView>
     </SafeAreaView>
@@ -194,6 +251,10 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     paddingHorizontal: 13,
+  },
+  editIcon: {
+    width: 15,
+    height: 15,
   },
   headerButtonsContainer: {
     flexDirection: "row",
@@ -218,12 +279,11 @@ const styles = StyleSheet.create({
   buttonText: {
     fontWeight: "bold",
   },
-
   profileContainer: {
     backgroundColor: COLORS.primary,
     borderRadius: 15,
     padding: 20,
-    height: 130,
+    height: 135,
     position: "relative",
     flexDirection: "row",
     alignItems: "center",
@@ -239,6 +299,7 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     flex: 1,
     marginLeft: 15,
+    marginBottom: 5,
   },
   profileName: {
     fontSize: 18,
@@ -254,9 +315,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 8,
     borderRadius: 10,
-    position: "absolute",
-    right: 0,
-    top: 15,
+    justifyContent: "flex-end",
+    marginTop: 60,
   },
   profileEditButtonText: {
     color: COLORS.primary,
@@ -282,25 +342,18 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 3,
-    elevation: 2,
-    marginBottom: 30,
+    marginBottom: 20,
+    elevation: 5,
   },
   accountActivitiesTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: "bold",
-    marginBottom: 10,
-    borderBottomWidth: 1,
-    borderColor: "#ccc",
-    paddingVertical: 10,
+    marginBottom: 5,
   },
-
   accountActivitiesSubContainer: {
-    paddingBottom: 15,
+    paddingVertical: 12,
   },
-
   accountActivitiesSubTitle: {
-    fontSize: 15,
     fontWeight: "bold",
-    marginVertical: 10,
   },
 });
