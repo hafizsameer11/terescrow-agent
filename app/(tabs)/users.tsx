@@ -16,35 +16,40 @@ import Button from "@/components/Button";
 import FilterModal from "@/components/FilterModal";
 import RNPickerSelect from "react-native-picker-select";
 import Box from "@/components/DashboardBox";
+import FullTransactionModal from "@/components/TransactionDetailModal";
+import { transactionsData } from "@/utils/usersData";
+import { Route, router } from "expo-router";
+import NewNotificationModal from "@/components/NewNotification";
+import uuid from "react-native-uuid";
+import EditProfileModal from "@/components/EditProfileModal";
 
 const getRandomStatus = () => {
   const statuses = ["successfull", "failed", "pending"];
   return statuses[Math.floor(Math.random() * statuses.length)];
 };
 
-const dummyData = Array(15)
-  .fill(3)
-  .map(() => ({
-    name: "Razer Gold",
-    status: getRandomStatus(),
-    subTitle: "Adam",
-    email: "admin@12.com",
-    categary: "Team",
-    gender: "Male",
-    joined: "Nov 7, 2024",
-  }));
-
 const Users = () => {
-  const { name } = dummyData[0];
+  const { name } = transactionsData[0];
   const { dark } = useTheme();
   const [activeBtn, setActiveBtn] = useState("All");
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [filteredData, setFilteredData] = useState(dummyData);
+  const [filteredData, setFilteredData] = useState(transactionsData);
   const [selectedOption, setSelectedOption] = useState("Last 30 days");
   const [selectedOption2, setSelectedOption2] = useState("All");
   const [query, setQuery] = useState("");
   const [menuVisible, setMenuVisible] = useState<number | null>(null);
   const userInitial = name.charAt(0).toUpperCase();
+  const [notificationsModalVisible, setNotificationsModalVisible] =
+    useState(false);
+  const [transactionModalVisible, setTransactionModalVisible] = useState(false);
+
+  const handleTransactionModal = () => {
+    setTransactionModalVisible(!transactionModalVisible);
+  };
+
+  const handleNotificationModal = () => {
+    setNotificationsModalVisible(!notificationsModalVisible);
+  };
 
   const textColor = {
     color: dark ? COLORS.white : COLORS.black,
@@ -56,9 +61,9 @@ const Users = () => {
   const handleSearch = (text: string) => {
     setQuery(text);
     if (query === "") {
-      setFilteredData(dummyData);
+      setFilteredData(transactionsData);
     } else {
-      const filterData = dummyData.filter((item) =>
+      const filterData = transactionsData.filter((item) =>
         item.name.toLowerCase().includes(text.toLowerCase())
       );
       setFilteredData(filterData);
@@ -77,7 +82,16 @@ const Users = () => {
     item,
     index,
   }: {
-    item: (typeof dummyData)[0];
+    item: {
+      id: string;
+      name: string;
+      subTitle: string;
+      email: string;
+      joined: string;
+      category: string;
+      gender: string;
+      status: string;
+    };
     index: number;
   }) => {
     const getStatusBgColor = (status: string) => {
@@ -101,7 +115,7 @@ const Users = () => {
 
         <Text style={[tableHeader.cell, textColor]}>{item.email}</Text>
         <Text style={[tableHeader.cell, textColor]}>{item.joined}</Text>
-        <Text style={[tableHeader.cell, textColor]}>{item.categary}</Text>
+        <Text style={[tableHeader.cell, textColor]}>{item.category}</Text>
         <Text style={[tableHeader.cell, textColor]}>{item.gender}</Text>
         <Text
           style={[
@@ -134,13 +148,22 @@ const Users = () => {
                 { backgroundColor: dark ? COLORS.dark2 : COLORS.white },
               ]}
             >
-              <TouchableOpacity style={[tableHeader.dropdownItem]}>
+              <TouchableOpacity
+                style={[tableHeader.dropdownItem]}
+                onPress={() => router.push(`/profile?id=${item.id}`)}
+              >
                 <Text style={textColor}>View Customer Details</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[tableHeader.dropdownItem]}>
+              <TouchableOpacity
+                style={[tableHeader.dropdownItem]}
+                onPress={handleTransactionModal}
+              >
                 <Text style={textColor}>View Transaction Details</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[tableHeader.dropdownItem]}>
+              <TouchableOpacity
+                style={[tableHeader.dropdownItem]}
+                onPress={handleNotificationModal}
+              >
                 <Text
                   style={[
                     textColor,
@@ -297,7 +320,14 @@ const Users = () => {
             </Text>
           </TouchableOpacity>
         </View>
-        <View style={{ flexDirection: "row", paddingHorizontal: 10, gap: 5, alignItems:"center" }}>
+        <View
+          style={{
+            flexDirection: "row",
+            paddingHorizontal: 10,
+            gap: 5,
+            alignItems: "center",
+          }}
+        >
           <View
             style={[
               styles.searchContainer,
@@ -394,6 +424,16 @@ const Users = () => {
             />
           </View>
         </ScrollView>
+        <FullTransactionModal
+          visible={transactionModalVisible}
+          onClose={() => setTransactionModalVisible(false)}
+          transactionId={transactionsData}
+        />
+        <EditProfileModal
+          visible={notificationsModalVisible}
+          onClose={() => setNotificationsModalVisible(false)}
+          mode="notifications"
+        />
       </ScrollView>
     </SafeAreaView>
   );
