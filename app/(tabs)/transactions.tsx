@@ -9,41 +9,33 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS, icons } from "@/constants";
+import { transactionsData } from "@/utils/usersData";
 import { Image } from "expo-image";
 import { useTheme } from "@/contexts/themeContext";
 import { TouchableOpacity } from "react-native-gesture-handler";
-import Button from "@/components/Button";
 import FilterModal from "@/components/FilterModal";
 import RNPickerSelect from "react-native-picker-select";
 import Box from "@/components/DashboardBox";
+import { Route, router } from "expo-router";
+import FullTransactionModal from "@/components/TransactionDetailModal";
 
 const getRandomStatus = () => {
   const statuses = ["successfull", "failed", "pending"];
   return statuses[Math.floor(Math.random() * statuses.length)];
 };
 
-const dummyData = Array(15)
-  .fill(3)
-  .map(() => ({
-    name: "Razer Gold",
-    status: getRandomStatus(),
-    subTitle: "Adam",
-    serviceType: "Gift Card",
-    transctionType: "Sell - BTC",
-    amount: "$1,000",
-    date: "Nov 7, 2024",
-  }));
 
-const Transactions = () => {
-  const { name } = dummyData[0];
+const Transactions: React.FC<{ isShown: boolean }> = ({ isShown = true }) => {
+  const { name } = transactionsData[0];
   const { dark } = useTheme();
   const [activeBtn, setActiveBtn] = useState("All");
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [filteredData, setFilteredData] = useState(dummyData);
+  const [filteredData, setFilteredData] = useState(transactionsData);
   const [selectedOption, setSelectedOption] = useState("Last 30 days");
   const [query, setQuery] = useState("");
   const [menuVisible, setMenuVisible] = useState<number | null>(null);
   const userInitial = name.charAt(0).toUpperCase();
+  const [transactionModalVisible, setTransactionModalVisible] = useState(false);
 
   const textColor = {
     color: dark ? COLORS.white : COLORS.black,
@@ -52,12 +44,16 @@ const Transactions = () => {
     setMenuVisible(menuVisible === index ? null : index);
   };
 
+  const handleTransactionModal = (transactionId: string) => {
+    setTransactionModalVisible(!transactionModalVisible);
+  };
+
   const handleSearch = (text: string) => {
     setQuery(text);
     if (query === "") {
-      setFilteredData(dummyData);
+      setFilteredData(transactionsData);
     } else {
-      const filterData = dummyData.filter((item) =>
+      const filterData = transactionsData.filter((item) =>
         item.name.toLowerCase().includes(text.toLowerCase())
       );
       setFilteredData(filterData);
@@ -72,11 +68,13 @@ const Transactions = () => {
     setActiveBtn(btn);
   };
 
+  let transactionId;
+
   const renderRow = ({
     item,
     index,
   }: {
-    item: (typeof dummyData)[0];
+    item: (typeof filteredData)[0];
     index: number;
   }) => {
     const getStatusBgColor = (status: string) => {
@@ -135,10 +133,20 @@ const Transactions = () => {
                 { backgroundColor: dark ? COLORS.dark2 : COLORS.white },
               ]}
             >
-              <TouchableOpacity style={[tableHeader.dropdownItem]}>
-                <Text style={textColor}>View Customer Details</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[tableHeader.dropdownItem]}>
+              {isShown && (
+                <TouchableOpacity style={[tableHeader.dropdownItem]}>
+                  <Text
+                    style={textColor}
+                    onPress={() => router.push(`/profile?id=${item.id}`)}
+                  >
+                    View Customer Details
+                  </Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                style={[tableHeader.dropdownItem]}
+                onPress={() => handleTransactionModal(item.id)}
+              >
                 <Text style={textColor}>View Transaction Details</Text>
               </TouchableOpacity>
             </View>
@@ -344,6 +352,11 @@ const Transactions = () => {
             />
           </View>
         </ScrollView>
+        <FullTransactionModal
+          transactionId="4"
+          visible={transactionModalVisible}
+          onClose={() => setTransactionModalVisible(false)}
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -498,7 +511,7 @@ const tableHeader = StyleSheet.create({
     borderRadius: 50,
     alignItems: "center",
   },
-  
+
   nameSubTitleContainer: {
     flex: 1,
     flexDirection: "column",
