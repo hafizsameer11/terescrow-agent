@@ -1,30 +1,30 @@
-import { ScrollView, StyleSheet, Text, View } from "react-native";
-import React, { useState } from "react";
-import { useTheme } from "@/contexts/themeContext";
-import { COLORS } from "@/constants";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { TouchableOpacity } from "react-native-gesture-handler";
-import ProfileDetails from "@/components/ProfileDetails";
-import EditProfileModal from "@/components/EditProfileModal";
-import { Image } from "expo-image";
-import * as ImagePicker from "expo-image-picker";
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { useTheme } from '@/contexts/themeContext';
+import { COLORS } from '@/constants';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { TouchableOpacity } from 'react-native-gesture-handler';
+import ProfileDetails from '@/components/ProfileDetails';
+import EditProfileModal from '@/components/EditProfileModal';
+import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
 
 const Profile = () => {
   const [user, setUser] = useState({
-    name: "Qamardeen Abulmalik",
-    username: "@Alucard",
-    email: "admin@gmail.com",
-    owner: "Owner",
-    gender: "M",
-    date: "Nov 7, 2024",
-    tier: "Tier 2",
+    name: 'Qamardeen Abulmalik',
+    username: '@Alucard',
+    email: 'admin@gmail.com',
+    owner: 'Owner',
+    gender: 'M',
+    date: 'Nov 7, 2024',
+    tier: 'Tier 2',
   });
 
   const { name } = user;
-  const [activeBtn, setActiveBtn] = useState("profile");
+  const [activeBtn, setActiveBtn] = useState('profile');
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState<String | null>(null);
-  const [mode, setMode] = useState("editProfile");
+  const [mode, setMode] = useState('editProfile');
   const { dark } = useTheme();
   const userInitial = name.charAt(0).toUpperCase();
 
@@ -41,7 +41,7 @@ const Profile = () => {
   };
 
   return (
-    <SafeAreaView
+    <View
       style={[
         styles.safeArea,
         { backgroundColor: dark ? COLORS.dark1 : COLORS.transparentWhite },
@@ -51,14 +51,14 @@ const Profile = () => {
         <View
           style={[
             styles.headerButtonsContainer,
-            { borderColor: dark ? COLORS.dark2 : "#ccc" },
+            { borderColor: dark ? COLORS.dark2 : '#ccc' },
           ]}
         >
           <TouchableOpacity
-            onPress={() => handlePress("profile")}
+            onPress={() => handlePress('profile')}
             style={[
               styles.button,
-              activeBtn === "profile" && styles.activeButton,
+              activeBtn === 'profile' && styles.activeButton,
             ]}
           >
             <Text
@@ -66,7 +66,7 @@ const Profile = () => {
                 styles.buttonText,
                 {
                   color:
-                    activeBtn === "profile"
+                    activeBtn === 'profile'
                       ? COLORS.white
                       : dark
                       ? COLORS.white
@@ -78,10 +78,10 @@ const Profile = () => {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => handlePress("roleManagement")}
+            onPress={() => handlePress('roleManagement')}
             style={[
               styles.button,
-              activeBtn === "roleManagement" && styles.activeButton,
+              activeBtn === 'roleManagement' && styles.activeButton,
             ]}
           >
             <Text
@@ -89,7 +89,7 @@ const Profile = () => {
                 styles.buttonText,
                 {
                   color:
-                    activeBtn === "roleManagement"
+                    activeBtn === 'roleManagement'
                       ? COLORS.white
                       : dark
                       ? COLORS.white
@@ -148,33 +148,34 @@ const Profile = () => {
                 styles.accountActivitiesSubTitle,
                 {
                   color: dark ? COLORS.white : COLORS.black,
-                  fontWeight: "400",
+                  fontWeight: '400',
                 },
               ]}
             >
-              <Text style={{ fontWeight: "bold" }}>Email:</Text> {user.email}
+              <Text style={{ fontWeight: 'bold' }}>Email:</Text> {user.email}
             </Text>
             <Text
               style={[
                 styles.accountActivitiesSubTitle,
                 {
                   color: dark ? COLORS.white : COLORS.black,
-                  fontWeight: "400",
+                  fontWeight: '400',
                 },
               ]}
             >
-              <Text style={{ fontWeight: "bold" }}>Gender:</Text> {user.gender}
+              <Text style={{ fontWeight: 'bold' }}>Gender:</Text> {user.gender}
             </Text>
             <Text
               style={[
                 styles.accountActivitiesSubTitle,
                 {
                   color: dark ? COLORS.white : COLORS.black,
-                  fontWeight: "400",
+                  fontWeight: '400',
                 },
               ]}
             >
-              <Text style={{ fontWeight: "bold" }}>Date Added:</Text> {user.date}
+              <Text style={{ fontWeight: 'bold' }}>Date Added:</Text>{' '}
+              {user.date}
             </Text>
           </View>
         </View>
@@ -195,7 +196,7 @@ const Profile = () => {
           <View
             style={[
               styles.accountActivitiesSubContainer,
-              { borderBottomWidth: 1, borderColor: "#ccc" },
+              { borderBottomWidth: 1, borderColor: '#ccc' },
             ]}
           >
             <Text
@@ -233,7 +234,7 @@ const Profile = () => {
           setMode={setMode}
         />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -244,20 +245,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   details: {
-    fontWeight: "bold",
+    fontWeight: 'bold',
     fontSize: 16,
     borderBottomWidth: 1,
     paddingVertical: 10,
-    borderColor: "#ccc",
+    borderColor: '#ccc',
   },
   scrollContainer: {
     paddingHorizontal: 13,
   },
   headerButtonsContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     borderRadius: 10,
     borderWidth: 1,
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
   },
   profileAvatarImage: {
     width: 70,
@@ -267,14 +268,14 @@ const styles = StyleSheet.create({
   button: {
     paddingVertical: 12,
     paddingHorizontal: 10,
-    backgroundColor: "transparent",
+    backgroundColor: 'transparent',
   },
   activeButton: {
     backgroundColor: COLORS.primary,
     borderRadius: 10,
   },
   buttonText: {
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
 
   profileContainer: {
@@ -282,25 +283,25 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: 20,
     height: 130,
-    position: "relative",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    position: 'relative',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginVertical: 20,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 3,
     elevation: 5,
   },
   profileDetails: {
-    flexDirection: "column",
+    flexDirection: 'column',
     flex: 1,
     marginLeft: 15,
   },
   profileName: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     color: COLORS.white,
   },
   profileSubDetails: {
@@ -312,31 +313,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 8,
     borderRadius: 10,
-    position: "absolute",
+    position: 'absolute',
     right: 0,
     top: 15,
   },
   profileEditButtonText: {
     color: COLORS.primary,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   profileAvatar: {
     width: 50,
     height: 50,
     borderRadius: 25,
     backgroundColor: COLORS.white,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   profileAvatarText: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     color: COLORS.primary,
   },
   accountActivitiesContainer: {
     padding: 13,
     borderRadius: 10,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 3,
@@ -345,10 +346,10 @@ const styles = StyleSheet.create({
   },
   accountActivitiesTitle: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 10,
     borderBottomWidth: 1,
-    borderColor: "#ccc",
+    borderColor: '#ccc',
     paddingVertical: 10,
   },
 
@@ -358,7 +359,7 @@ const styles = StyleSheet.create({
 
   accountActivitiesSubTitle: {
     fontSize: 15,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginVertical: 10,
   },
 });

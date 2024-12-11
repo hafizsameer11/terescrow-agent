@@ -1,16 +1,72 @@
-import { COLORS, icons, images } from "@/constants";
-import { Image } from "expo-image";
-import { ScrollView, View, StyleSheet, Text } from "react-native";
-import Button from "@/components/Button";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useTheme } from "@/contexts/themeContext";
-import { Formik } from "formik";
-import { validationSignIn } from "@/components/Validation";
-import Input from "@/components/CustomInput";
-import { router } from "expo-router";
+import { COLORS, icons, images } from '@/constants';
+import { Image } from 'expo-image';
+import { ScrollView, View, StyleSheet, Text } from 'react-native';
+import Button from '@/components/Button';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from '@/contexts/themeContext';
+import { Formik } from 'formik';
+import { validationSignIn } from '@/components/Validation';
+import Input from '@/components/CustomInput';
+import { router, useNavigation } from 'expo-router';
+import { useMutation } from '@tanstack/react-query';
+import { loginUser } from '@/utils/mutations/commonMutations';
+import { useAuth } from '@/contexts/authContext';
+import { NavigationProp } from '@react-navigation/native';
+import { ApiError } from '@/utils/customApiCalls';
+import { showTopToast } from '@/utils/helpers';
 
 const Login = () => {
   const { dark } = useTheme();
+  const { setToken, setUserData } = useAuth();
+  const { navigate, reset } = useNavigation<NavigationProp<any>>();
+
+  const { mutate, isPending } = useMutation({
+    mutationKey: ['login'],
+    mutationFn: loginUser,
+    onSuccess: async (data) => {
+      setToken(data.token)
+        .then((res) => {
+          const {
+            email,
+            firstname,
+            lastname,
+            profilePicture,
+            id,
+            role,
+            username,
+          } = data.data;
+          setUserData({
+            email,
+            firstname,
+            lastname,
+            profilePicture: profilePicture || undefined,
+            id,
+            role,
+            username,
+          });
+          reset({
+            index: 0,
+            routes: [{ name: '(tabs)' }],
+          });
+          navigate('(tabs)');
+        })
+        .catch((error) => {
+          showTopToast({
+            type: 'error',
+            text1: 'Error',
+            text2: error.message,
+          });
+        });
+    },
+    onError: (error: ApiError) => {
+      showTopToast({
+        type: 'error',
+        text1: 'Error',
+        text2: error.message,
+      });
+    },
+  });
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <ScrollView
@@ -35,7 +91,7 @@ const Login = () => {
           >
             <Text
               style={[
-                { fontSize: 20, fontWeight: "bold" },
+                { fontSize: 20, fontWeight: 'bold' },
                 { color: dark ? COLORS.white : COLORS.black },
               ]}
             >
@@ -45,9 +101,11 @@ const Login = () => {
               Login to your admin dashboard
             </Text>
             <Formik
-              initialValues={{ email: "", password: "" }}
+              initialValues={{ email: '', password: '' }}
               validationSchema={validationSignIn}
-              onSubmit={() => router.push('/(tabs)')}
+              onSubmit={(values) =>
+                mutate({ email: values.email, password: values.password })
+              }
             >
               {({
                 handleChange,
@@ -57,35 +115,43 @@ const Login = () => {
                 errors,
                 touched,
               }) => {
-                return <View>
-                  <Input
-                    value={values.email}
-                    onChangeText={handleChange("email")}
-                    onBlur={handleBlur("email")}
-                    label="Email"
-                    keyboardType="email-address"
-                    errorText={
-                      touched.email && errors.email ? errors.email : ""
-                    }
-                    showCheckbox={false}
-                    prefilledValue={values.email}
-                    id="email"
-                  />
-                  <Input
-                    id="password"
-                    value={values.password}
-                    onChangeText={handleChange("password")}
-                    onBlur={handleBlur("password")}
-                    label="Password"
-                    secureTextEntry
-                    errorText={
-                      touched.password && errors.password ? errors.password : ""
-                    }
-                    showCheckbox={false}
-                    prefilledValue={values.password}
-                  />
-                  <Button title="Login" onPress={handleSubmit as any} />
-                </View>
+                return (
+                  <View>
+                    <Input
+                      value={values.email}
+                      onChangeText={handleChange('email')}
+                      onBlur={handleBlur('email')}
+                      label="Email"
+                      keyboardType="email-address"
+                      errorText={
+                        touched.email && errors.email ? errors.email : ''
+                      }
+                      showCheckbox={false}
+                      prefilledValue={values.email}
+                      id="email"
+                    />
+                    <Input
+                      id="password"
+                      value={values.password}
+                      onChangeText={handleChange('password')}
+                      onBlur={handleBlur('password')}
+                      label="Password"
+                      secureTextEntry
+                      errorText={
+                        touched.password && errors.password
+                          ? errors.password
+                          : ''
+                      }
+                      showCheckbox={false}
+                      prefilledValue={values.password}
+                    />
+                    <Button
+                      title="Login"
+                      onPress={handleSubmit as any}
+                      isLoading={isPending}
+                    />
+                  </View>
+                );
               }}
             </Formik>
           </View>
@@ -102,14 +168,14 @@ const styles = StyleSheet.create({
   },
 
   container: {
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     flex: 1,
   },
 
   subContainer: {
     borderRadius: 20,
-    width: "100%",
+    width: '100%',
     paddingVertical: 20,
     paddingHorizontal: 18,
     gap: 10,

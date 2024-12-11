@@ -1,15 +1,15 @@
-import { useState } from "react";
-import { View, StyleSheet, Text, ScrollView } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { COLORS } from "@/constants";
-import { TouchableOpacity } from "react-native-gesture-handler";
-import { useTheme } from "@/contexts/themeContext";
+import { useState } from 'react';
+import { View, StyleSheet, Text, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { COLORS } from '@/constants';
+import { TouchableOpacity } from 'react-native-gesture-handler';
+import { useTheme } from '@/contexts/themeContext';
 
 const dummyNotifications = Array(7).fill({
   id: 1,
-  person: "Agent Sarah",
-  description: "sent you a chat...",
-  time: "Nov 7, 2024 - 10:22 am",
+  person: 'Agent Sarah',
+  description: 'sent you a chat...',
+  time: 'Nov 7, 2024 - 10:22 am',
 });
 
 const Notifications = () => {
@@ -17,9 +17,9 @@ const Notifications = () => {
   const textColor = {
     color: dark ? COLORS.white : COLORS.black,
   };
-  const [activeBtn, setActiveBtn] = useState("notification");
+  const [activeBtn, setActiveBtn] = useState('notification');
   const [activeNotification, setActiveNotification] =
-    useState("teamNotification");
+    useState('teamNotification');
 
   const handlePressNotification = (btn: string) => {
     setActiveBtn(btn);
@@ -30,21 +30,26 @@ const Notifications = () => {
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: dark ? COLORS.dark1 : COLORS.transparentWhite }]}>
+    <View
+      style={[
+        styles.safeArea,
+        { backgroundColor: dark ? COLORS.dark1 : COLORS.transparentWhite },
+      ]}
+    >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.row}>
           <Text style={[styles.subHeader, textColor]}>Notifications</Text>
           <View
             style={[
               styles.headerButtonsContainer,
-              { borderColor: dark ? COLORS.dark2 : "#ccc", borderWidth: 1 },
+              { borderColor: dark ? COLORS.dark2 : '#ccc', borderWidth: 1 },
             ]}
           >
             <TouchableOpacity
-              onPress={() => handlePressNotification("notification")}
+              onPress={() => handlePressNotification('notification')}
               style={[
                 styles.button,
-                activeBtn === "notification" && styles.activeButton,
+                activeBtn === 'notification' && styles.activeButton,
               ]}
             >
               <Text
@@ -52,7 +57,7 @@ const Notifications = () => {
                   styles.buttonText,
                   {
                     color:
-                      activeBtn === "notification"
+                      activeBtn === 'notification'
                         ? COLORS.white
                         : dark
                         ? COLORS.white
@@ -64,10 +69,10 @@ const Notifications = () => {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => handlePressNotification("inAppNotification")}
+              onPress={() => handlePressNotification('inAppNotification')}
               style={[
                 styles.button,
-                activeBtn === "inAppNotification" && styles.activeButton,
+                activeBtn === 'inAppNotification' && styles.activeButton,
               ]}
             >
               <Text
@@ -75,7 +80,7 @@ const Notifications = () => {
                   styles.buttonText,
                   {
                     color:
-                      activeBtn === "inAppNotification"
+                      activeBtn === 'inAppNotification'
                         ? COLORS.white
                         : dark
                         ? COLORS.white
@@ -92,14 +97,18 @@ const Notifications = () => {
         <View
           style={[
             styles.headerButtonsContainer,
-            { borderColor: dark ? COLORS.dark2 : "#ccc", borderWidth: 1, marginBottom: 20 },
+            {
+              borderColor: dark ? COLORS.dark2 : '#ccc',
+              borderWidth: 1,
+              marginBottom: 20,
+            },
           ]}
         >
           <TouchableOpacity
-            onPress={() => handlePressContent("teamNotification")}
+            onPress={() => handlePressContent('teamNotification')}
             style={[
               styles.button,
-              activeNotification === "teamNotification" && styles.activeButton,
+              activeNotification === 'teamNotification' && styles.activeButton,
             ]}
           >
             <Text
@@ -107,22 +116,22 @@ const Notifications = () => {
                 styles.buttonText,
                 {
                   color:
-                  activeNotification === "teamNotification"
-                  ? COLORS.white
-                  : dark
-                  ? COLORS.white
-                  : COLORS.black,
-                }
+                    activeNotification === 'teamNotification'
+                      ? COLORS.white
+                      : dark
+                      ? COLORS.white
+                      : COLORS.black,
+                },
               ]}
             >
               Team Notification
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => handlePressContent("customerNotification")}
+            onPress={() => handlePressContent('customerNotification')}
             style={[
               styles.button,
-              activeNotification === "customerNotification" &&
+              activeNotification === 'customerNotification' &&
                 styles.activeButton,
             ]}
           >
@@ -131,7 +140,7 @@ const Notifications = () => {
                 styles.buttonText,
                 {
                   color:
-                    activeNotification === "customerNotification"
+                    activeNotification === 'customerNotification'
                       ? COLORS.white
                       : dark
                       ? COLORS.white
@@ -148,9 +157,11 @@ const Notifications = () => {
             contentContainerStyle={styles.itemsScrollCont}
             style={{ backgroundColor: dark ? COLORS.dark2 : COLORS.white }}
           >
-            {activeNotification === "teamNotification" && (
+            {activeNotification === 'teamNotification' && (
               <>
-                <Text style={[styles.subHeader, { paddingBottom: 10 }, textColor]}>
+                <Text
+                  style={[styles.subHeader, { paddingBottom: 10 }, textColor]}
+                >
                   Team Notification
                 </Text>
                 {dummyNotifications.map((notification, index) => (
@@ -158,7 +169,7 @@ const Notifications = () => {
                     <Text style={[styles.person, textColor]}>
                       {notification.person}
                       <Text style={styles.description}>
-                        {"  "}
+                        {'  '}
                         {notification.description}
                         <TouchableOpacity>
                           <Text style={styles.viewChat}>View Chat</Text>
@@ -170,9 +181,11 @@ const Notifications = () => {
                 ))}
               </>
             )}
-            {activeNotification === "customerNotification" && (
+            {activeNotification === 'customerNotification' && (
               <>
-                <Text style={[styles.subHeader, { paddingBottom: 10 }, textColor]}>
+                <Text
+                  style={[styles.subHeader, { paddingBottom: 10 }, textColor]}
+                >
                   Customer Notification
                 </Text>
                 {dummyNotifications.map((notification, index) => (
@@ -180,7 +193,7 @@ const Notifications = () => {
                     <Text style={[styles.person, textColor]}>
                       {notification.person}
                       <Text style={styles.description}>
-                        {"  "}
+                        {'  '}
                         {notification.description}
                         <TouchableOpacity>
                           <Text style={styles.viewChat}>View Chat</Text>
@@ -195,7 +208,7 @@ const Notifications = () => {
           </ScrollView>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -216,38 +229,38 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   items: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     gap: 10,
     marginVertical: 10,
-    alignItems: "center",
+    alignItems: 'center',
   },
   description: {
-    fontWeight: "400",
+    fontWeight: '400',
   },
   subHeader: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     paddingHorizontal: 10,
-    width: "100%",
+    width: '100%',
     gap: 10,
     marginVertical: 10,
-    alignItems: "center",
+    alignItems: 'center',
   },
   headerButtonsContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     borderRadius: 10,
-    alignSelf: "flex-start",
-    alignItems: "center",
+    alignSelf: 'flex-start',
+    alignItems: 'center',
   },
   button: {
     paddingVertical: 12,
     paddingHorizontal: 10,
-    backgroundColor: "transparent",
+    backgroundColor: 'transparent',
   },
   activeButton: {
     backgroundColor: COLORS.primary,
@@ -255,15 +268,15 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 11,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
 
   person: {
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginVertical: 7,
   },
   time: {
     fontSize: 12,
     color: COLORS.gray,
-  }
+  },
 });

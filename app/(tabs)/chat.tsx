@@ -5,46 +5,86 @@ import {
   TextInput,
   FlatList,
   Pressable,
-} from "react-native";
-import { useTheme } from "@/contexts/themeContext";
-import { Image } from "expo-image";
-import { COLORS, icons } from "@/constants";
-import { DUMMY_CHAT } from "../../utils/dummyChat";
-import { useState } from "react";
-import ChatContactList from "@/components/ChatContactList";
-import TransFilter from "@/components/TransFilter";
+} from 'react-native';
+import { useTheme } from '@/contexts/themeContext';
+import { Image } from 'expo-image';
+import { COLORS, icons } from '@/constants';
+import { DUMMY_CHAT } from '../../utils/dummyChat';
+import { useEffect, useState } from 'react';
+import ChatContactList from '@/components/ChatContactList';
+import TransFilter from '@/components/TransFilter';
+import { QueryClient, useQuery } from '@tanstack/react-query';
+import { getAllChatsWithCustomer } from '@/utils/queries/agentQueries';
+import { useAuth } from '@/contexts/authContext';
+import LoadingOverlay from '@/components/LoadingOverlay';
+import { useSocket } from '@/contexts/socketContext';
+import { showTopToast } from '@/utils/helpers';
 const chat = () => {
   const { dark } = useTheme();
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [searchTerm, setSearchTerm] = useState("");
+  const { token } = useAuth();
+  const { socket } = useSocket();
+  const queryClient = new QueryClient();
+  const {
+    data: allChatsData,
+    isLoading: allChatsLoading,
+    isError: isAllChatsError,
+    error: allChatsError,
+  } = useQuery({
+    queryKey: ['all-chats-with-customer'],
+    queryFn: () => getAllChatsWithCustomer(token),
+  });
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchTerm, setSearchTerm] = useState('');
   const [dropDownVisibility, setDropDownVisibility] = useState(false);
-  const filterDataHandler = () => {
-    let filteredData = DUMMY_CHAT;
-    // Filter by category
-    if (selectedCategory === "Pending") {
-      filteredData = filteredData.filter((item) => item.status === "PENDING");
-    } else if (selectedCategory === "Unanswered") {
-      filteredData = filteredData.filter(
-        (item) => item.status === "UNANSWERED"
-      );
-    } else if (selectedCategory === "Completed") {
-      filteredData = filteredData.filter((item) => item.status === "COMPLETED");
-    } else if (selectedCategory === "Declined") {
-      filteredData = filteredData.filter((item) => item.status === "DECLINED");
-    }
-    // Filter by search term
-    if (searchTerm) {
-      filteredData = filteredData.filter((item) =>
-        item.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+  // const filterDataHandler = () => {
+  //   let filteredData = DUMMY_CHAT;
+  //   // Filter by category
+  //   if (selectedCategory === 'Pending') {
+  //     filteredData = filteredData.filter((item) => item.status === 'PENDING');
+  //   } else if (selectedCategory === 'Unanswered') {
+  //     filteredData = filteredData.filter(
+  //       (item) => item.status === 'UNANSWERED'
+  //     );
+  //   } else if (selectedCategory === 'Completed') {
+  //     filteredData = filteredData.filter((item) => item.status === 'COMPLETED');
+  //   } else if (selectedCategory === 'Declined') {
+  //     filteredData = filteredData.filter((item) => item.status === 'DECLINED');
+  //   }
+  //   // Filter by search term
+  //   if (searchTerm) {
+  //     filteredData = filteredData.filter((item) =>
+  //       item.name.toLowerCase().includes(searchTerm.toLowerCase())
+  //     );
+  //   }
+
+  //   return filteredData;
+  // };
+
+  useEffect(() => {
+    if (socket) {
+      socket.on('customerAssigned', () => {
+        showTopToast({
+          type: 'success',
+          text1: 'Alert!',
+          text2: 'A new customer has been assigned',
+        });
+        queryClient.refetchQueries({
+          queryKey: ['all-chats-with-customer'],
+        });
+      });
     }
 
-    return filteredData;
-  };
+    return () => {
+      if (socket) {
+        socket.off('customerAssigned');
+      }
+    };
+  }, [socket]);
 
   const handleSearchChange = (searchTerm: string) => {
     setSearchTerm(searchTerm);
   };
+
   const selectedCategoryHandler = (categoryName: string) => {
     setSelectedCategory(categoryName);
     setDropDownVisibility(false);
@@ -54,8 +94,10 @@ const chat = () => {
     setDropDownVisibility(!dropDownVisibility);
   };
 
+  //hi bro
   return (
     <View style={[styles.container, dark && { backgroundColor: COLORS.black }]}>
+      <LoadingOverlay visible={allChatsLoading} />
       <View style={styles.header}>
         <Text style={[styles.mainHeading, dark && { color: COLORS.white }]}>
           Gifcard transactions
@@ -104,19 +146,18 @@ const chat = () => {
         </View>
       </View>
       <FlatList
-        data={filterDataHandler()}
+        data={allChatsData?.data}
         style={styles.chatList}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <ChatContactList
             id={item.id.toString()}
-            pfp={item.pfp}
-            name={item.name}
-            icon={item.icon}
-            time={item.timestamp}
-            msg={item.message}
-            status={item.status}
-            isDarkMode={dark}
+            pfp={item.customer.profilePicture}
+            name={item.customer.firstname + ' ' + item.customer.lastname}
+            icon={icons.gallery}
+            time={item.recentMessageTimestamp}
+            msg={item.recentMessage}
+            status={item.chatStatus}
           />
         )}
       />
@@ -133,39 +174,39 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
   },
   header: {
-    marginTop: 20,
+    marginTop: 5,
     marginBottom: 24,
   },
   mainHeading: {
     fontSize: 18,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   textDetail: {
     fontSize: 14,
     color: COLORS.greyscale600,
   },
   filterInput: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 10,
   },
   filter: {
     flex: 0.7,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   filterHeading: {
     fontSize: 14,
     color: COLORS.greyscale600,
   },
   filterCategory: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   allText: {
     fontSize: 12,
-    fontWeight: "500",
+    fontWeight: '500',
     marginLeft: 5,
   },
   arrowDown: {
@@ -175,11 +216,11 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     flex: 1,
-    position: "relative",
-    justifyContent: "center",
+    position: 'relative',
+    justifyContent: 'center',
   },
   searchIcon: {
-    position: "absolute",
+    position: 'absolute',
     width: 13,
     height: 13,
     left: 16,
@@ -198,7 +239,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   dropDown: {
-    position: "absolute",
+    position: 'absolute',
     top: 32,
     padding: 10,
     zIndex: 1,

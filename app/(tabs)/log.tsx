@@ -1,32 +1,32 @@
-import React, { useState } from "react";
-import { View, StyleSheet, Text, ScrollView } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { COLORS, icons } from "@/constants";
-import { Image } from "expo-image";
-import { useTheme } from "@/contexts/themeContext";
-import { TouchableOpacity } from "react-native-gesture-handler";
-import uuid from "react-native-uuid";
-import Button from "@/components/Button";
-import FilterModal from "@/components/FilterModal";
-import FullTransactionModal from "@/components/TransactionDetailModal";
-import { transactionsData } from "@/utils/usersData";
-import FullEditTransactionModal from "@/components/FullEditTransactionModal";
+import React, { useState } from 'react';
+import { View, StyleSheet, Text, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { COLORS, icons } from '@/constants';
+import { Image } from 'expo-image';
+import { useTheme } from '@/contexts/themeContext';
+import { TouchableOpacity } from 'react-native-gesture-handler';
+import uuid from 'react-native-uuid';
+import Button from '@/components/Button';
+import FilterModal from '@/components/FilterModal';
+import FullTransactionModal from '@/components/TransactionDetailModal';
+import { transactionsData } from '@/utils/usersData';
+import FullEditTransactionModal from '@/components/FullEditTransactionModal';
 
 const dummyData = Array(15).fill({
   id: uuid.v4(),
-  name: "Razer Gold",
-  location: "United States",
-  type: "E-Code",
-  amountUSD: "$100",
-  amountNGN: "NGN170,000",
-  profit: "NGN3,000",
-  paid: "NGN,000",
-  loggedBy: "Dave",
+  name: 'Razer Gold',
+  location: 'United States',
+  type: 'E-Code',
+  amountUSD: '$100',
+  amountNGN: 'NGN170,000',
+  profit: 'NGN3,000',
+  paid: 'NGN,000',
+  loggedBy: 'Dave',
 });
 
 const Log = () => {
   const { dark } = useTheme();
-  const [activeBtn, setActiveBtn] = useState("giftCard");
+  const [activeBtn, setActiveBtn] = useState('giftCard');
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [menuVisible, setMenuVisible] = useState<number | null>(null);
   const [transactionModalVisible, setTransactionModalVisible] = useState(false);
@@ -98,7 +98,7 @@ const Log = () => {
               <Text style={textColor}>View Transaction Details</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[tableHeader.dropdownItem]}>
-              <Text style={{ color: "red" }}>Delete Transaction</Text>
+              <Text style={{ color: 'red' }}>Delete Transaction</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -107,7 +107,7 @@ const Log = () => {
   );
 
   return (
-    <SafeAreaView
+    <View
       style={[
         styles.safeArea,
         { backgroundColor: dark ? COLORS.dark1 : COLORS.transparentWhite },
@@ -153,14 +153,14 @@ const Log = () => {
         <View
           style={[
             styles.headerButtonsContainer,
-            { borderColor: dark ? COLORS.dark2 : "#ccc", borderWidth: 1 },
+            { borderColor: dark ? COLORS.dark2 : '#ccc', borderWidth: 1 },
           ]}
         >
           <TouchableOpacity
-            onPress={() => handlePress("giftCard")}
+            onPress={() => handlePress('giftCard')}
             style={[
               styles.button,
-              activeBtn === "giftCard" && styles.activeButton,
+              activeBtn === 'giftCard' && styles.activeButton,
             ]}
           >
             <Text
@@ -168,7 +168,7 @@ const Log = () => {
                 styles.buttonText,
                 {
                   color:
-                    activeBtn === "giftCard"
+                    activeBtn === 'giftCard'
                       ? COLORS.white
                       : dark
                       ? COLORS.white
@@ -180,10 +180,10 @@ const Log = () => {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => handlePress("crypto")}
+            onPress={() => handlePress('crypto')}
             style={[
               styles.button,
-              activeBtn === "crypto" && styles.activeButton,
+              activeBtn === 'crypto' && styles.activeButton,
             ]}
           >
             <Text
@@ -191,7 +191,7 @@ const Log = () => {
                 styles.buttonText,
                 {
                   color:
-                    activeBtn === "crypto"
+                    activeBtn === 'crypto'
                       ? COLORS.white
                       : dark
                       ? COLORS.white
@@ -215,7 +215,7 @@ const Log = () => {
               tableHeader.headerRow,
               {
                 backgroundColor: dark ? COLORS.dark2 : COLORS.grayscale200,
-                borderColor: dark ? COLORS.dark2 : "#ccc",
+                borderColor: dark ? COLORS.dark2 : '#ccc',
               },
             ]}
           >
@@ -245,7 +245,7 @@ const Log = () => {
           transactionId={transactionsData[0].id}
         />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -261,19 +261,19 @@ const styles = StyleSheet.create({
   },
   subHeader: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   headerButtonsContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     borderRadius: 10,
-    alignSelf: "flex-start",
-    alignItems: "center",
+    alignSelf: 'flex-start',
+    alignItems: 'center',
   },
   row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     gap: 10,
-    width: "100%",
+    width: '100%',
     marginVertical: 15,
   },
   customBtn: {
@@ -282,29 +282,29 @@ const styles = StyleSheet.create({
   button: {
     paddingVertical: 12,
     paddingHorizontal: 10,
-    backgroundColor: "transparent",
+    backgroundColor: 'transparent',
   },
   activeButton: {
     backgroundColor: COLORS.primary,
     borderRadius: 10,
   },
   buttonText: {
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   headerContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 20,
     paddingHorizontal: 10,
   },
   headerText: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 10,
   },
   iconContainer: {
-    position: "absolute",
+    position: 'absolute',
     left: 10,
     top: 5,
     paddingRight: 10,
@@ -326,36 +326,36 @@ const tableHeader = StyleSheet.create({
     padding: 10,
   },
   headerRow: {
-    flexDirection: "row",
+    flexDirection: 'row',
     paddingVertical: 10,
     borderBottomWidth: 1,
     backgroundColor: COLORS.grayscale200,
   },
   headerCell: {
-    fontWeight: "bold",
+    fontWeight: 'bold',
     flex: 1,
     paddingHorizontal: 10,
-    textAlign: "center",
+    textAlign: 'center',
   },
   tableBody: {
-    maxHeight: "85%",
+    maxHeight: '85%',
     paddingTop: 10,
   },
   row: {
-    flexDirection: "row",
+    flexDirection: 'row',
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderColor: "#ccc",
+    borderColor: '#ccc',
   },
   cell: {
     flex: 1,
     paddingHorizontal: 10,
-    textAlign: "center",
+    textAlign: 'center',
   },
   actionCell: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   location: {
     fontSize: 12,
@@ -365,10 +365,10 @@ const tableHeader = StyleSheet.create({
   },
   nameLocationCell: {
     flex: 1,
-    flexDirection: "column",
+    flexDirection: 'column',
   },
   dropdownMenu: {
-    position: "absolute",
+    position: 'absolute',
     top: 30,
     right: 20,
     elevation: 5,

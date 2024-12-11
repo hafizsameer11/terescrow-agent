@@ -1,18 +1,18 @@
-import { ScrollView, StyleSheet, Text, View } from "react-native";
-import React, { useEffect, useState } from "react";
-import { useTheme } from "@/contexts/themeContext";
-import { COLORS, icons } from "@/constants";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { TouchableOpacity } from "react-native-gesture-handler";
-import ProfileDetails from "@/components/ProfileDetails";
-import EditProfileModal from "@/components/EditProfileModal";
-import { Image } from "expo-image";
-import { useLocalSearchParams } from "expo-router";
-import { useRoute } from "@react-navigation/native";
-import { usersData } from "@/utils/usersData";
-import KYCModal from "@/components/KYCModal";
-import Transactions from "./transactions";
-import FullTransactionModal from "@/components/TransactionDetailModal";
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { useTheme } from '@/contexts/themeContext';
+import { COLORS, icons } from '@/constants';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { TouchableOpacity } from 'react-native-gesture-handler';
+import ProfileDetails from '@/components/ProfileDetails';
+import EditProfileModal from '@/components/EditProfileModal';
+import { Image } from 'expo-image';
+import { useLocalSearchParams } from 'expo-router';
+import { useRoute } from '@react-navigation/native';
+import { usersData } from '@/utils/usersData';
+import KYCModal from '@/components/KYCModal';
+import Transactions from './transactions';
+import FullTransactionModal from '@/components/TransactionDetailModal';
 
 interface Customer {
   id: string;
@@ -26,10 +26,10 @@ interface Customer {
 
 const Profile = () => {
   const { id } = useLocalSearchParams();
-  const [activeBtn, setActiveBtn] = useState("customerDetails");
+  const [activeBtn, setActiveBtn] = useState('customerDetails');
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState<String | null>(null);
-  const [mode, setMode] = useState("editProfile");
+  const [mode, setMode] = useState('editProfile');
   const [customerData, setCustomerData] = useState<Customer | null>(null);
   const [kycModalVisible, setKYCModalVisible] = useState(false);
   const { dark } = useTheme();
@@ -52,7 +52,7 @@ const Profile = () => {
   };
 
   return (
-    <SafeAreaView
+    <View
       style={[
         styles.safeArea,
         { backgroundColor: dark ? COLORS.dark1 : COLORS.transparentWhite },
@@ -62,14 +62,14 @@ const Profile = () => {
         <View
           style={[
             styles.headerButtonsContainer,
-            { borderColor: dark ? COLORS.dark2 : "#ccc" },
+            { borderColor: dark ? COLORS.dark2 : '#ccc' },
           ]}
         >
           <TouchableOpacity
-            onPress={() => handlePress("customerDetails")}
+            onPress={() => handlePress('customerDetails')}
             style={[
               styles.button,
-              activeBtn === "customerDetails" && styles.activeButton,
+              activeBtn === 'customerDetails' && styles.activeButton,
             ]}
           >
             <Text
@@ -77,7 +77,7 @@ const Profile = () => {
                 styles.buttonText,
                 {
                   color:
-                    activeBtn === "customerDetails"
+                    activeBtn === 'customerDetails'
                       ? COLORS.white
                       : dark
                       ? COLORS.white
@@ -89,10 +89,10 @@ const Profile = () => {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => handlePress("transactionActivities")}
+            onPress={() => handlePress('transactionActivities')}
             style={[
               styles.button,
-              activeBtn === "transactionActivities" && styles.activeButton,
+              activeBtn === 'transactionActivities' && styles.activeButton,
             ]}
           >
             <Text
@@ -100,7 +100,7 @@ const Profile = () => {
                 styles.buttonText,
                 {
                   color:
-                    activeBtn === "transactionActivities"
+                    activeBtn === 'transactionActivities'
                       ? COLORS.white
                       : dark
                       ? COLORS.white
@@ -113,7 +113,7 @@ const Profile = () => {
           </TouchableOpacity>
         </View>
         <View style={{ marginTop: 10 }}>
-          {activeBtn === "customerDetails" && (
+          {activeBtn === 'customerDetails' && (
             <>
               <View style={styles.profileContainer}>
                 <View style={styles.profileAvatar}>
@@ -131,13 +131,13 @@ const Profile = () => {
                 <View style={styles.profileDetails}>
                   <Text style={styles.profileName}>{customer?.name}</Text>
                   <Text style={styles.profileSubDetails}>
-                    {customer?.usernameTag} - {"Tier 2"}
+                    {customer?.usernameTag} - {'Tier 2'}
                   </Text>
                 </View>
                 <View
                   style={{
-                    flexDirection: "row",
-                    justifyContent: "flex-end",
+                    flexDirection: 'row',
+                    justifyContent: 'flex-end',
                     gap: 10,
                   }}
                 >
@@ -191,7 +191,7 @@ const Profile = () => {
                 <View
                   style={[
                     styles.accountActivitiesSubContainer,
-                    { borderBottomWidth: 1, borderColor: "#ccc" },
+                    { borderBottomWidth: 1, borderColor: '#ccc' },
                   ]}
                 >
                   <Text
@@ -223,7 +223,9 @@ const Profile = () => {
             </>
           )}
 
-          {activeBtn === "transactionActivities" && <Transactions isShown={false} />}
+          {activeBtn === 'transactionActivities' && (
+            <Transactions isShown={false} />
+          )}
         </View>
 
         <EditProfileModal
@@ -239,7 +241,7 @@ const Profile = () => {
           onClose={() => setKYCModalVisible(false)}
         />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -257,10 +259,10 @@ const styles = StyleSheet.create({
     height: 15,
   },
   headerButtonsContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     borderRadius: 10,
     borderWidth: 1,
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
   },
   profileAvatarImage: {
     width: 70,
@@ -270,40 +272,40 @@ const styles = StyleSheet.create({
   button: {
     paddingVertical: 12,
     paddingHorizontal: 10,
-    backgroundColor: "transparent",
+    backgroundColor: 'transparent',
   },
   activeButton: {
     backgroundColor: COLORS.primary,
     borderRadius: 10,
   },
   buttonText: {
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   profileContainer: {
     backgroundColor: COLORS.primary,
     borderRadius: 15,
     padding: 20,
     height: 135,
-    position: "relative",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    position: 'relative',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginVertical: 20,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 3,
     elevation: 5,
   },
   profileDetails: {
-    flexDirection: "column",
+    flexDirection: 'column',
     flex: 1,
     marginLeft: 15,
     marginBottom: 5,
   },
   profileName: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     color: COLORS.white,
   },
   profileSubDetails: {
@@ -315,30 +317,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 8,
     borderRadius: 10,
-    justifyContent: "flex-end",
+    justifyContent: 'flex-end',
     marginTop: 60,
   },
   profileEditButtonText: {
     color: COLORS.primary,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   profileAvatar: {
     width: 50,
     height: 50,
     borderRadius: 25,
     backgroundColor: COLORS.white,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   profileAvatarText: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     color: COLORS.primary,
   },
   accountActivitiesContainer: {
     padding: 13,
     borderRadius: 10,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 3,
@@ -347,13 +349,13 @@ const styles = StyleSheet.create({
   },
   accountActivitiesTitle: {
     fontSize: 17,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 5,
   },
   accountActivitiesSubContainer: {
     paddingVertical: 12,
   },
   accountActivitiesSubTitle: {
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
 });

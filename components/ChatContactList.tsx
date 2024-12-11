@@ -1,41 +1,41 @@
-import { Text, View, StyleSheet, Pressable } from "react-native";
-import { Image } from "expo-image";
-import { COLORS } from "@/constants";
-import { Colors } from "@/constants/Colors";
-import { useRouter } from "expo-router";
+import { Text, View, StyleSheet, Pressable } from 'react-native';
+import { Image } from 'expo-image';
+import { COLORS, icons } from '@/constants';
+import { Colors } from '@/constants/Colors';
+import { useRouter } from 'expo-router';
+import { useTheme } from '@/contexts/themeContext';
+import { ChatStatus } from '@/utils/queries/agentQueries';
+import { timeFormatter } from '@/utils/helpers';
 
 const ChatContactList: React.FC<{
-  pfp: string;
+  pfp: string | null;
   name: string;
-  time: string;
-  msg: string;
+  time: Date | null;
+  msg: string | null;
   icon: string;
-  status: string;
-  isDarkMode: boolean;
+  status: ChatStatus;
   id: string;
 }> = (props) => {
   const router = useRouter();
+  const { dark } = useTheme();
   return (
     <Pressable
       onPress={() => router.push(`/transactionchat?id=${props.id}`)}
       style={styles.container}
     >
       {/* Profile Image */}
-      <Image source={props.pfp} style={styles.profileImage} />
+      <Image source={props.pfp || icons.profile} style={styles.profileImage} />
 
       {/* Right Section */}
       <View style={styles.rightContainer}>
         {/* Name and Date Row */}
         <View style={styles.nameTimeRow}>
-          <Text
-            style={[
-              styles.nameText,
-              props.isDarkMode && { color: Colors.dark.text },
-            ]}
-          >
+          <Text style={[styles.nameText, dark && { color: Colors.dark.text }]}>
             {props.name}
           </Text>
-          <Text style={styles.time}>{props.time}</Text>
+          <Text style={styles.time}>
+            {props.time && timeFormatter(props.time)}
+          </Text>
         </View>
 
         {/* Recent Message and Unread Messages Row */}
@@ -43,10 +43,7 @@ const ChatContactList: React.FC<{
           <View style={styles.iconMessage}>
             <Image source={props.icon} style={styles.galleryIcon} />
             <Text
-              style={[
-                styles.message,
-                props.isDarkMode && { color: COLORS.grayscale400 },
-              ]}
+              style={[styles.message, dark && { color: COLORS.grayscale400 }]}
             >
               {props.msg}
             </Text>
@@ -58,11 +55,11 @@ const ChatContactList: React.FC<{
         <View
           style={[
             styles.status,
-            props.status === "PENDING" || props.status === "UNANSWERED"
-              ? { backgroundColor: "#FDFFA3" }
-              : props.status === "COMPLETED"
-              ? { backgroundColor: "#A3FFBC" }
-              : { backgroundColor: "#FFA3A3" },
+            props.status === ChatStatus.pending
+              ? { backgroundColor: '#FDFFA3' }
+              : props.status === ChatStatus.successful
+              ? { backgroundColor: '#A3FFBC' }
+              : { backgroundColor: '#FFA3A3' },
           ]}
         >
           <Text>{props.status}</Text>
@@ -74,7 +71,7 @@ const ChatContactList: React.FC<{
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "row",
+    flexDirection: 'row',
     marginBottom: 23,
   },
   profileImage: {
@@ -90,24 +87,24 @@ const styles = StyleSheet.create({
     borderBottomColor: COLORS.grayscale400,
   },
   nameTimeRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 3,
   },
   nameText: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   time: {
     fontSize: 12,
-    color: "#888",
+    color: '#888',
   },
   messageRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   iconMessage: {
-    flexDirection: "row",
+    flexDirection: 'row',
   },
   galleryIcon: {
     width: 16,
@@ -116,14 +113,14 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 12,
-    color: "#555",
+    color: '#555',
   },
   unreadMsgContainer: {
     width: 20,
     height: 20,
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
     borderRadius: 50,
     backgroundColor: COLORS.primary,
   },
@@ -132,7 +129,7 @@ const styles = StyleSheet.create({
     color: COLORS.white,
   },
   status: {
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
     paddingVertical: 4,
     marginTop: 6,
     paddingHorizontal: 8,

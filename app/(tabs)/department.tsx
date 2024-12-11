@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -6,33 +6,33 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import RNPickerSelect from "react-native-picker-select";
-import { COLORS, icons } from "@/constants";
-import { Image } from "expo-image";
-import { useTheme } from "@/contexts/themeContext";
-import Box from "@/components/DashboardBox";
-import RecentChats from "@/components/RecentChats";
-import Button from "@/components/Button";
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import RNPickerSelect from 'react-native-picker-select';
+import { COLORS, icons } from '@/constants';
+import { Image } from 'expo-image';
+import { useTheme } from '@/contexts/themeContext';
+import Box from '@/components/DashboardBox';
+import RecentChats from '@/components/RecentChats';
+import Button from '@/components/Button';
 
 const getRandomStatus = () => {
-  const statuses = ["active", "offline"];
+  const statuses = ['active', 'offline'];
   return statuses[Math.floor(Math.random() * statuses.length)];
 };
 
 const dummyData = Array(15)
   .fill(3)
   .map(() => ({
-    name: "Razer Gold",
-    type: "E-Code",
+    name: 'Razer Gold',
+    type: 'E-Code',
     status: getRandomStatus(),
     noOfAgents: 3,
-    description: "Buying of cryptocurrency",
+    description: 'Buying of cryptocurrency',
   }));
 
 export default function Department() {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
   const { dark } = useTheme();
   const [filteredData, setFilteredData] = useState(dummyData);
   const textColor = {
@@ -40,7 +40,7 @@ export default function Department() {
   };
   const handleSearch = (text: string) => {
     setQuery(text);
-    if (query === "") {
+    if (query === '') {
       setFilteredData(dummyData);
     } else {
       const filterData = dummyData.filter((item) =>
@@ -52,8 +52,8 @@ export default function Department() {
 
   const renderRow = (item: (typeof dummyData)[0], index: number) => {
     const getStatusBgColor = (status: string) => {
-      if (status === "active") return COLORS.primary;
-      if (status === "offline") return COLORS.warning;
+      if (status === 'active') return COLORS.primary;
+      if (status === 'offline') return COLORS.warning;
       return COLORS.transparentWhite;
     };
     return (
@@ -91,7 +91,7 @@ export default function Department() {
             style={{
               height: 35,
               borderRadius: 10,
-              backgroundColor: "transparent",
+              backgroundColor: 'transparent',
               borderWidth: 1,
               borderColor: COLORS.primary,
             }}
@@ -119,7 +119,7 @@ export default function Department() {
     );
   };
   return (
-    <SafeAreaView
+    <View
       style={[
         styles.safeArea,
         { backgroundColor: dark ? COLORS.dark1 : COLORS.transparentWhite },
@@ -194,7 +194,7 @@ export default function Department() {
               tableHeader.headerRow,
               {
                 backgroundColor: dark ? COLORS.dark2 : COLORS.grayscale200,
-                borderColor: dark ? COLORS.dark2 : "#ccc",
+                borderColor: dark ? COLORS.dark2 : '#ccc',
               },
             ]}
           >
@@ -211,7 +211,7 @@ export default function Department() {
           </ScrollView>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   iconContainer: {
-    position: "absolute",
+    position: 'absolute',
     left: 15,
     top: 12,
     paddingRight: 10,
@@ -230,16 +230,16 @@ const styles = StyleSheet.create({
     marginBottom: 300,
   },
   container: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 10,
-    width: "100%",
+    width: '100%',
     marginBottom: 10,
   },
   searchContainer: {
-    alignItems: "center",
+    alignItems: 'center',
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 10,
@@ -247,11 +247,11 @@ const styles = StyleSheet.create({
   },
   searchBar: {
     height: 40,
-    width: "80%",
+    width: '80%',
   },
   title: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   pickerContainer: {
     borderWidth: 1,
@@ -260,10 +260,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     gap: 10,
-    width: "100%",
+    width: '100%',
   },
   boxContainer: {
     padding: 15,
@@ -271,9 +271,9 @@ const styles = StyleSheet.create({
   iconButton: {
     padding: 10,
     marginHorizontal: 5,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#ccc",
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ccc',
     borderRadius: 10,
   },
   icon: {
@@ -288,11 +288,11 @@ const tableHeader = StyleSheet.create({
     padding: 10,
   },
   nameCell: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   headerRow: {
-    flexDirection: "row",
+    flexDirection: 'row',
     paddingVertical: 10,
     borderBottomWidth: 1,
     gap: 10,
@@ -300,29 +300,29 @@ const tableHeader = StyleSheet.create({
     backgroundColor: COLORS.grayscale200,
   },
   headerCell: {
-    fontWeight: "bold",
-    textAlign: "center",
+    fontWeight: 'bold',
+    textAlign: 'center',
     paddingHorizontal: 10,
   },
   tableBody: {
-    maxHeight: "85%",
+    maxHeight: '85%',
     paddingTop: 10,
   },
   row: {
-    flexDirection: "row",
+    flexDirection: 'row',
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderColor: "#ccc",
+    borderColor: '#ccc',
   },
   cell: {
     flex: 1,
     paddingHorizontal: 10,
-    textAlign: "center",
+    textAlign: 'center',
   },
   actionCell: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   location: {
     fontSize: 12,
@@ -332,10 +332,10 @@ const tableHeader = StyleSheet.create({
   },
   nameLocationCell: {
     flex: 1,
-    flexDirection: "column",
+    flexDirection: 'column',
   },
   dropdownMenu: {
-    position: "absolute",
+    position: 'absolute',
     top: 30,
     right: 20,
     elevation: 5,

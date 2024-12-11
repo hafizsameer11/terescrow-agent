@@ -1,31 +1,33 @@
-import { router, Tabs } from "expo-router";
-import React from "react";
+import { router, Tabs } from 'expo-router';
+import React from 'react';
 import {
   ImageSourcePropType,
   Platform,
   Text,
   TouchableOpacity,
   View,
-} from "react-native";
-import { HapticTab } from "@/components/HapticTab";
-import { IconSymbol } from "@/components/ui/IconSymbol";
-import TabBarBackground from "@/components/ui/TabBarBackground";
-import { Colors } from "@/constants/Colors";
-import { useColorScheme } from "@/hooks/useColorScheme";
-import { Drawer } from "expo-router/drawer";
-import { COLORS, icons, images } from "@/constants";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+} from 'react-native';
+import { HapticTab } from '@/components/HapticTab';
+import { IconSymbol } from '@/components/ui/IconSymbol';
+import TabBarBackground from '@/components/ui/TabBarBackground';
+import { Colors } from '@/constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { Drawer } from 'expo-router/drawer';
+import { COLORS, icons, images } from '@/constants';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
   DrawerContentComponentProps,
   DrawerContentScrollView,
   DrawerItem,
   DrawerItemList,
-} from "@react-navigation/drawer";
-import { Image } from "expo-image";
-import { bottomMenuItems, topMenuItems } from "@/utils/data";
+} from '@react-navigation/drawer';
+import { Image } from 'expo-image';
+import { bottomMenuItems, topMenuItems } from '@/utils/data';
+import Header from '@/components/Header';
+import { useTheme } from '@/contexts/themeContext';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const { dark } = useTheme();
 
   const Separater = () => {
     return (
@@ -45,7 +47,7 @@ export default function TabLayout() {
       <DrawerContentScrollView {...props}>
         <View
           style={{
-            flexDirection: "row",
+            flexDirection: 'row',
             marginLeft: 27,
             marginTop: 25,
             marginBottom: 30,
@@ -58,12 +60,12 @@ export default function TabLayout() {
               contentFit="contain"
             />
           </TouchableOpacity>
-          <View style={{ padding: 12, justifyContent: "space-between" }}>
-            <Text style={{ fontSize: 20, fontWeight: "400", lineHeight: 22.8 }}>
+          <View style={{ padding: 12, justifyContent: 'space-between' }}>
+            <Text style={{ fontSize: 20, fontWeight: '400', lineHeight: 22.8 }}>
               Welcome
             </Text>
-            <Text style={{ fontSize: 14, fontWeight: "400", lineHeight: 16 }}>
-              {"Mehmood"}
+            <Text style={{ fontSize: 14, fontWeight: '400', lineHeight: 16 }}>
+              {'Mehmood'}
             </Text>
           </View>
         </View>
@@ -84,7 +86,7 @@ export default function TabLayout() {
                 tintColor={color}
               />
             )}
-            labelStyle={{ fontSize: 16, fontWeight: "700", lineHeight: 18.2 }}
+            labelStyle={{ fontSize: 16, fontWeight: '700', lineHeight: 18.2 }}
             activeTintColor={COLORS.primary}
             activeBackgroundColor="transparent"
             focused={props.state?.routes[props.state?.index]?.name == item.name}
@@ -109,7 +111,7 @@ export default function TabLayout() {
                 tintColor={color}
               />
             )}
-            labelStyle={{ fontSize: 16, fontWeight: "700", lineHeight: 18.2 }}
+            labelStyle={{ fontSize: 16, fontWeight: '700', lineHeight: 18.2 }}
             activeTintColor={COLORS.primary}
             activeBackgroundColor="transparent"
             focused={props.state?.routes[props.state?.index]?.name == item.name}
@@ -126,6 +128,13 @@ export default function TabLayout() {
         screenOptions={{
           drawerActiveTintColor: COLORS.primary,
           drawerActiveBackgroundColor: COLORS.white,
+          // headerShown: false,
+          // headerStyle: {
+          //   backgroundColor: dark ? COLORS.dark1 : COLORS.transparentWhite,
+          // },
+          header: (props) => (
+            <Header onPress={() => props.navigation.openDrawer()} />
+          ),
         }}
         drawerContent={(props) => <CustomDrawer {...props} />}
       />

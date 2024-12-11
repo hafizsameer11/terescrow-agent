@@ -1,29 +1,30 @@
-import React, { useState } from "react";
-import { View, StyleSheet, Text, ScrollView } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import RNPickerSelect from "react-native-picker-select";
-import { COLORS, icons } from "@/constants";
-import { Image } from "expo-image";
-import { useTheme } from "@/contexts/themeContext";
-import Box from "@/components/DashboardBox";
-import RecentChats from "@/components/RecentChats";
-
+import React, { useState } from 'react';
+import { View, StyleSheet, Text, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import RNPickerSelect from 'react-native-picker-select';
+import { COLORS, icons } from '@/constants';
+import { Image } from 'expo-image';
+import { useTheme } from '@/contexts/themeContext';
+import Box from '@/components/DashboardBox';
+import RecentChats from '@/components/RecentChats';
+import Header from '@/components/Header';
 
 export default function HomeScreen() {
-  const [selectedOption, setSelectedOption] = useState("Year");
+  const [selectedOption, setSelectedOption] = useState('Year');
   const [menuVisible, setMenuVisible] = useState<number | null>(null);
   const { dark } = useTheme();
   const handleMenuToggle = (index: number) => {
     setMenuVisible(menuVisible === index ? null : index);
   };
   return (
-    <SafeAreaView
+    <View
       style={[
         styles.safeArea,
         { backgroundColor: dark ? COLORS.dark1 : COLORS.transparentWhite },
       ]}
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {/* <Header /> */}
         <View style={styles.container}>
           <Text
             style={[
@@ -43,9 +44,9 @@ export default function HomeScreen() {
               onValueChange={(value) => setSelectedOption(value)}
               value={selectedOption}
               items={[
-                { label: "Year", value: "Year" },
-                { label: "Month", value: "Month" },
-                { label: "Day", value: "Day" },
+                { label: 'Year', value: 'Year' },
+                { label: 'Month', value: 'Month' },
+                { label: 'Day', value: 'Day' },
               ]}
               style={pickerSelectStyles}
               useNativeAndroidPickerStyle={false}
@@ -56,7 +57,7 @@ export default function HomeScreen() {
                     width: 20,
                     height: 20,
                     padding: 10,
-                    position: "absolute",
+                    position: 'absolute',
                     right: -5,
                     top: 8,
                     tintColor: dark ? COLORS.white : COLORS.black,
@@ -83,7 +84,7 @@ export default function HomeScreen() {
           <Text
             style={{
               fontSize: 18,
-              fontWeight: "bold",
+              fontWeight: 'bold',
               marginVertical: 15,
               color: dark ? COLORS.white : COLORS.black,
             }}
@@ -123,7 +124,7 @@ export default function HomeScreen() {
           <RecentChats indexChats />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -135,17 +136,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   container: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 10,
-    width: "100%",
+    width: '100%',
     marginBottom: 10,
   },
   title: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   pickerContainer: {
     borderWidth: 1,
@@ -154,10 +155,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     gap: 10,
-    width: "100%",
+    width: '100%',
   },
   boxContainer: {
     padding: 15,
@@ -168,7 +169,7 @@ const pickerSelectStyles = StyleSheet.create({
   inputIOS: {
     fontSize: 16,
     paddingVertical: 8,
-    textAlign: "center",
+    textAlign: 'center',
   },
   inputAndroid: {
     color: COLORS.grayscale400,
