@@ -1,60 +1,67 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   FlatList,
   StyleSheet,
   TextInput,
-  GestureResponderEvent,
+  TouchableOpacity,
 } from "react-native";
 import { COLORS, icons } from "@/constants";
 import { useTheme } from "@/contexts/themeContext";
-import { useState, useRef } from "react";
+import { useRouter } from "expo-router";
 import { Image } from "expo-image";
-import { TouchableOpacity } from "react-native-gesture-handler";
 import FilterModal from "./FilterModal";
-import RNPickerSelect from "react-native-picker-select";
 import EditProfileModal from "./EditProfileModal";
-
-const data = [
-  {
-    id: "1",
-    name: "Qamardeen malik",
-    username: "Alucard",
-    status: "Failed",
-  },
-  { id: "2", name: "Adam Sandler", username: "Adam", status: "Successful" },
-  { id: "3", name: "Sasha Sloan", username: "Sasha", status: "Successful" },
-  { id: "4", name: "John Doe", username: "john", status: "Failed" },
-  { id: "5", name: "Jane Smith", username: "jane", status: "Successful" },
-  { id: "6", name: "Michael Clark", username: "mike", status: "Failed" },
-  { id: "7", name: "Emily Davis", username: "emily", status: "Successful" },
-];
+import { usersData } from "../utils/usersData";
+import { transactionsData } from "../utils/usersData";
+import FullTransactionModal from "./TransactionDetailModal";
 
 const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
   const [query, setQuery] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedOption, setSelectedOption] = useState(null);
-  const [filteredData, setFilteredData] = useState(data);
+  const [filteredData, setFilteredData] = useState(usersData);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [showPicker, setShowPicker] = useState<{ [key: string]: boolean }>({});
+  const [menuVisible, setMenuVisible] = useState<string | null>(null);
+  const [isTransactionModalVisible, setIsTransactionModalVisible] =
+    useState(false);
+  const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(
+    null
+  );
+  const { push } = useRouter();
   const { dark } = useTheme();
 
-  const handleTogglePicker = (itemId: string, value: string) => {
-    setShowPicker((prevState) => ({
-      ...prevState,
-      [itemId]: !prevState[itemId],
-    }));
-  };
   const handleSearch = (text: string) => {
     setQuery(text);
-    if (query === "") {
-      setFilteredData(data);
+    if (text === "") {
+      setFilteredData(usersData);
     } else {
-      const filterData = data.filter((item) =>
+      const filterData = usersData.filter((item) =>
         item.name.toLowerCase().includes(text.toLowerCase())
       );
       setFilteredData(filterData);
+    }
+  };
+
+  const handleModalVisible = () => {
+    setModalVisible(!modalVisible);
+  };
+
+  const handleTransactionModal = (transactionId: string) => {
+    setSelectedTransactionId(transactionId);
+    setIsTransactionModalVisible(true);
+  };
+
+  const textColor = {
+    color: dark ? COLORS.white : COLORS.black,
+  };
+
+  const handleMenuToggle = (index: string) => {
+    if (menuVisible === index) {
+      setMenuVisible(null);
+    } else {
+      setMenuVisible(index);
     }
   };
 
@@ -62,22 +69,24 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
     setIsModalVisible(true);
   };
 
-  const handleSelection = (value: any) => {
-    setSelectedOption(value);
-    if (value === "notifications") {
-      setModalVisible(true);
+  const handleViewCustomerDetails = (customerId: string) => {
+    const customer = usersData.find((item) => item.id === customerId);
+    if (customer) {
+      push(`/profile?id=${customer.id}`);
+    }
+  };
+
+  const handleViewTransactionDetails = (transactionId: string) => {
+    const transaction = transactionsData.find((item) => item.id === transactionId);
+    if (transaction) {
+      setSelectedTransactionId(transaction.id);
+      setIsTransactionModalVisible(true);
     }
   };
 
   return (
     <View style={styles.container}>
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
+      <View style={styles.searchFilterContainer}>
         <View
           style={[
             styles.searchContainer,
@@ -130,9 +139,8 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
       </View>
       <FlatList
         data={filteredData}
-        keyExtractor={(item) => item.id}
-        style={{ borderRadius: 10 }}
         scrollEnabled={false}
+        keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View
             style={[
@@ -152,7 +160,7 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
                   { color: dark ? COLORS.white : COLORS.black },
                 ]}
               >
-                {item.name.charAt(0)}
+                {item.name.charAt(0).toUpperCase()}
               </Text>
             </View>
             <View style={styles.textContainer}>
@@ -166,8 +174,9 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
               </Text>
               <Text style={styles.username}>{item.username}</Text>
             </View>
+
             {indexChats ? (
-              <View style={styles.statusContainer}>
+              <View style={[styles.statusContainer, { flexDirection: "row" }]}>
                 <Text
                   style={
                     item.status === "Failed"
@@ -177,11 +186,44 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
                 >
                   {item.status}
                 </Text>
+                <View style={styles.menuContainer}>
+                  <TouchableOpacity onPress={() => handleMenuToggle(item.id)}>
+                    <Image
+                      source={icons.threeDots}
+                      style={[
+                        styles.dotsImage,
+                        { tintColor: dark ? COLORS.white : COLORS.black },
+                      ]}
+                    />
+                  </TouchableOpacity>
+
+                  {menuVisible === item.id && (
+                    <View
+                      style={[
+                        styles.dropdownMenu,
+                        { backgroundColor: dark ? COLORS.dark2 : COLORS.white },
+                      ]}
+                    >
+                      <TouchableOpacity
+                        onPress={() => handleViewCustomerDetails(item.id)}
+                      >
+                        <Text style={[styles.dropdownItem, textColor]}>
+                          View Customer Details
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => handleTransactionModal(item.id)}
+                      >
+                        <Text style={[styles.dropdownItem, textColor]}>
+                          View Transaction Details
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
               </View>
             ) : (
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
-              >
+              <View style={styles.menuContainer}>
                 <Text
                   style={[
                     styles.statusCircle,
@@ -190,13 +232,8 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
                         item.status === "Failed" ? COLORS.red : COLORS.primary,
                     },
                   ]}
-                >
-                  {" "}
-                </Text>
-
-                <TouchableOpacity
-                  onPress={() => handleTogglePicker(item.id, "")}
-                >
+                />
+                <TouchableOpacity onPress={() => handleMenuToggle(item.id)}>
                   <Image
                     source={icons.threeDots}
                     style={[
@@ -206,44 +243,32 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
                   />
                 </TouchableOpacity>
 
-                {showPicker[item.id] && (
-                  <View style={styles.pickerContainer}>
-                    <RNPickerSelect
-                      onValueChange={handleSelection}
-                      key={item.id}
-                      value={""}
-                      items={[
-                        {
-                          label: "View Customer Details",
-                          value: "customerDetails",
-                        },
-                        {
-                          label: "View Transaction Details",
-                          value: "transactionDetails",
-                        },
-                        { label: "Notifications", value: "notifications" },
-                      ]}
-                      placeholder={{ label: "Select an option", value: null }}
-                      useNativeAndroidPickerStyle={false}
-                      style={{
-                        inputAndroid: {
-                          color: dark ? COLORS.white : COLORS.black,
-                          padding: 10,
-                          borderRadius: 8,
-                          backgroundColor: dark ? COLORS.dark2 : COLORS.white,
-                        },
-                        inputIOS: {
-                          color: dark ? COLORS.white : COLORS.black,
-                          padding: 10,
-                          borderRadius: 8,
-                          backgroundColor: dark ? COLORS.dark2 : COLORS.white,
-                        },
-                        iconContainer: {
-                          top: 10,
-                          right: 10,
-                        },
-                      }}
-                    />
+                {menuVisible === item.id && (
+                  <View
+                    style={[
+                      styles.dropdownMenu,
+                      { backgroundColor: dark ? COLORS.dark2 : COLORS.white },
+                    ]}
+                  >
+                    <TouchableOpacity
+                      onPress={() => handleViewCustomerDetails(item.id)}
+                    >
+                      <Text style={[styles.dropdownItem, textColor]}>
+                        View Customer Details
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => handleTransactionModal(item.id)}
+                    >
+                      <Text style={[styles.dropdownItem, textColor]}>
+                        View Transaction Details
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={handleModalVisible}>
+                      <Text style={[styles.dropdownItem, textColor]}>
+                        Notifications
+                      </Text>
+                    </TouchableOpacity>
                   </View>
                 )}
               </View>
@@ -261,6 +286,11 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
         onClose={() => setModalVisible(false)}
         mode="notifications"
       />
+      <FullTransactionModal
+        visible={isTransactionModalVisible}
+        onClose={() => setIsTransactionModalVisible(false)}
+        transactionId={selectedTransactionId}
+      />
     </View>
   );
 };
@@ -270,20 +300,22 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 10,
   },
-  dotsImage: {
-    width: 20,
-    height: 20,
+  searchFilterContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  pickerContainer: {
-    position: "absolute",
-    right: 20,
-    width: 200,
-    top: 10,
-    backgroundColor: COLORS.white,
+  searchContainer: {
+    alignItems: "center",
+    borderWidth: 1,
     borderRadius: 8,
-    padding: 10,
-    elevation: 5,
-    zIndex: 1000,
+    paddingHorizontal: 10,
+    marginBottom: 15,
+    width: "85%",
+  },
+  searchBar: {
+    height: 40,
+    width: "80%",
   },
   iconContainer: {
     position: "absolute",
@@ -297,25 +329,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 13,
   },
-
-  statusCircle: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 5,
-  },
-
-  searchContainer: {
-    alignItems: "center",
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    marginBottom: 15,
-    width: "85%",
-  },
-  searchBar: {
-    height: 40,
-    width: "80%",
+  dropdownItem: {
+    padding: 10,
   },
   filterIcon: {
     width: 20,
@@ -377,6 +392,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     paddingVertical: 3,
     borderRadius: 8,
+  },
+  menuContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  statusCircle: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginRight: 5,
+  },
+  dotsImage: {
+    width: 20,
+    height: 20,
+    zIndex: 2,
+  },
+  dropdownMenu: {
+    position: "absolute",
+    top: 30,
+    right: 20,
+    elevation: 5,
+    borderRadius: 5,
+    padding: 10,
+    width: 200,
+    zIndex: 200,
   },
 });
 

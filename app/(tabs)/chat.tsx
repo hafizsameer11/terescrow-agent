@@ -47,6 +47,7 @@ const chat = () => {
   };
   const selectedCategoryHandler = (categoryName: string) => {
     setSelectedCategory(categoryName);
+    setDropDownVisibility(false);
   };
 
   const toggleDropDownVisibility = () => {
@@ -71,7 +72,7 @@ const chat = () => {
             onPress={toggleDropDownVisibility}
           >
             <Text style={[styles.allText, dark && { color: COLORS.white }]}>
-              All
+              {selectedCategory}
             </Text>
             <Image
               source={icons.arrowDown}
@@ -152,6 +153,7 @@ const styles = StyleSheet.create({
   filter: {
     flex: 0.7,
     flexDirection: "row",
+    alignItems: "center",
   },
   filterHeading: {
     fontSize: 14,
@@ -162,9 +164,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   allText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "500",
-    marginLeft: 8,
+    marginLeft: 5,
   },
   arrowDown: {
     width: 12,

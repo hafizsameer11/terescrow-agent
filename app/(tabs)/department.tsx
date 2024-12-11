@@ -98,7 +98,7 @@ export default function Department() {
             textColor={COLORS.primary}
           />
           <TouchableOpacity style={styles.iconButton}>
-            <Image source={icons.eye2} style={styles.icon} />
+            <Image source={icons.eye2} style={[styles.icon]} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.iconButton}>

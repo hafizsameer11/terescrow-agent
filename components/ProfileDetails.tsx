@@ -5,10 +5,12 @@ import {
   View,
   TouchableOpacity,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Image } from "expo-image";
 import { useTheme } from "@/contexts/themeContext";
-import { COLORS, icons } from "@/constants"; // Assuming icons object contains image URLs or require statements
+import { usersData } from "@/utils/usersData";
+import { COLORS, icons } from "@/constants";
+import { useLocalSearchParams } from "expo-router";
 
 interface userDetailsProps {
   label: string;
@@ -18,46 +20,56 @@ interface userDetailsProps {
 }
 
 const ProfileDetails = () => {
+  const { id } = useLocalSearchParams();
+  const customer = usersData.find((item) => item.id === id);
+  const { dark } = useTheme();
+
   const [userDetails, setUserDetails] = useState<userDetailsProps[]>([
-    {
-      label: "Email Address",
-      value: "johndoe@me.com",
-      icon: icons.email,
-      alignRight: false,
-    },
-    {
-      label: "Phone Number",
-      value: "234703456",
-      icon: icons.call,
-      alignRight: true,
-    },
+    { label: "Email Address", value: "", icon: icons.email, alignRight: false },
+    { label: "Phone Number", value: "", icon: icons.call, alignRight: true },
     {
       label: "Password",
       value: "********",
       icon: icons.lock,
       alignRight: false,
     },
-    {
-      label: "Gender",
-      value: "Male",
-      icon: icons.userDefault,
-      alignRight: true,
-    },
+    { label: "Gender", value: "", icon: icons.userDefault, alignRight: true },
     {
       label: "Referral Code",
-      value: "None",
+      value: "",
       icon: icons.bookmark,
       alignRight: false,
     },
-    {
-      label: "Country",
-      value: "Nigeria",
-      icon: icons.calendar,
-      alignRight: true,
-    },
+    { label: "Country", value: "", icon: icons.calendar, alignRight: true },
   ]);
 
-  const { dark } = useTheme();
+  useEffect(() => {
+    if (customer) {
+      setUserDetails((prevDetails) =>
+        prevDetails.map((detail) => {
+          let value = "N/A";
+          switch (detail.label) {
+            case "Email Address":
+              value = customer.email || "N/A";
+              break;
+            case "Phone Number":
+              value = customer.phoneNumber || "N/A";
+              break;
+            case "Gender":
+              value = customer.gender || "N/A";
+              break;
+            case "Referral Code":
+              value = customer.referralCode || "N/A";
+              break;
+            case "Country":
+              value = customer.country || "N/A";
+              break;
+          }
+          return { ...detail, value };
+        })
+      );
+    }
+  }, [customer]);
 
   const chunkedDetails = (details: userDetailsProps[]) => {
     let result: userDetailsProps[][] = [];
@@ -66,6 +78,16 @@ const ProfileDetails = () => {
     }
     return result;
   };
+
+  if (!customer) {
+    return (
+      <View style={styles.container}>
+        <Text style={{ color: dark ? COLORS.white : COLORS.black }}>
+          User not found.
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container}>
@@ -152,11 +174,8 @@ const styles = StyleSheet.create({
   label: {
     fontWeight: "bold",
   },
-  value: {},
-  editButton: {
-    marginLeft: 10,
-    color: COLORS.primary,
-    textDecorationLine: "underline",
+  value: {
+    fontSize: 13,
   },
 });
 
