@@ -1,5 +1,6 @@
 import { apiCall } from '../customApiCalls';
 import { API_ENDPOINTS } from '../apiConfig';
+import { UserRoles } from '@/contexts/socketContext';
 
 export const loginUser = async (data: {
   email: string;
@@ -7,12 +8,6 @@ export const loginUser = async (data: {
 }): Promise<ILoginResponse> => {
   return await apiCall(API_ENDPOINTS.COMMON.login, 'POST', data);
 };
-
-export enum UserRoles {
-  admin = 'admin',
-  customer = 'customer',
-  agent = 'agent',
-}
 
 interface ILoginResponse {
   message: string;

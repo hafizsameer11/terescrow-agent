@@ -15,6 +15,70 @@ export const sendMessageToCustomer = async (
   );
 };
 
+export const changeChatStatus = async (
+  data: { chatId: string; setStatus: ChatStatus },
+  token: string
+): Promise<ApiResponse> => {
+  return apiCall(API_ENDPOINTS.AGENT.ChangeChatStatus, 'POST', data, token);
+};
+
+export const createCryptoTransaction = async ({
+  data,
+  token,
+}: {
+  data: ICryptoTransactionReq;
+  token: string;
+}): Promise<ApiResponse> => {
+  return await apiCall(
+    API_ENDPOINTS.AGENT.CreateCryptoTransaction,
+    'POST',
+    data,
+    token
+  );
+};
+
+export const createCardTransaction = async ({
+  data,
+  token,
+}: {
+  data: ICardTransactionReq;
+  token: string;
+}): Promise<ApiResponse> => {
+  return await apiCall(
+    API_ENDPOINTS.AGENT.CreateCardTransaction,
+    'POST',
+    data,
+    token
+  );
+};
+
 interface IMesssageToCustomer extends ApiResponse {
   data: IResMessage;
+}
+
+export enum ChatStatus {
+  pending,
+  successful,
+  declined,
+}
+
+interface ITransactionReq {
+  departmentId: number;
+  categoryId: number;
+  subCategoryId: number;
+  countryId: number;
+  customerId: number;
+  amount: number;
+  exchangeRate: number;
+  amountNaira: number;
+}
+interface ICryptoTransactionReq extends ITransactionReq {
+  cryptoAmount: number;
+  toAddress: string;
+  fromAddress: string;
+}
+
+interface ICardTransactionReq extends ITransactionReq {
+  cardType: string;
+  cardNumber: string;
 }

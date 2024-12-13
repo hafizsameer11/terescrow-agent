@@ -14,7 +14,10 @@ import { useEffect, useState } from 'react';
 import ChatContactList from '@/components/ChatContactList';
 import TransFilter from '@/components/TransFilter';
 import { QueryClient, useQuery } from '@tanstack/react-query';
-import { getAllChatsWithCustomer } from '@/utils/queries/agentQueries';
+import {
+  ChatStatus,
+  getAllChatsWithCustomer,
+} from '@/utils/queries/agentQueries';
 import { useAuth } from '@/contexts/authContext';
 import LoadingOverlay from '@/components/LoadingOverlay';
 import { useSocket } from '@/contexts/socketContext';
@@ -33,60 +36,19 @@ const chat = () => {
     queryKey: ['all-chats-with-customer'],
     queryFn: () => getAllChatsWithCustomer(token),
   });
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState<ChatStatus | 'All'>(
+    'All'
+  );
   const [searchTerm, setSearchTerm] = useState('');
   const [dropDownVisibility, setDropDownVisibility] = useState(false);
-  // const filterDataHandler = () => {
-  //   let filteredData = DUMMY_CHAT;
-  //   // Filter by category
-  //   if (selectedCategory === 'Pending') {
-  //     filteredData = filteredData.filter((item) => item.status === 'PENDING');
-  //   } else if (selectedCategory === 'Unanswered') {
-  //     filteredData = filteredData.filter(
-  //       (item) => item.status === 'UNANSWERED'
-  //     );
-  //   } else if (selectedCategory === 'Completed') {
-  //     filteredData = filteredData.filter((item) => item.status === 'COMPLETED');
-  //   } else if (selectedCategory === 'Declined') {
-  //     filteredData = filteredData.filter((item) => item.status === 'DECLINED');
-  //   }
-  //   // Filter by search term
-  //   if (searchTerm) {
-  //     filteredData = filteredData.filter((item) =>
-  //       item.name.toLowerCase().includes(searchTerm.toLowerCase())
-  //     );
-  //   }
-
-  //   return filteredData;
-  // };
-
-  useEffect(() => {
-    if (socket) {
-      socket.on('customerAssigned', () => {
-        showTopToast({
-          type: 'success',
-          text1: 'Alert!',
-          text2: 'A new customer has been assigned',
-        });
-        queryClient.refetchQueries({
-          queryKey: ['all-chats-with-customer'],
-        });
-      });
-    }
-
-    return () => {
-      if (socket) {
-        socket.off('customerAssigned');
-      }
-    };
-  }, [socket]);
 
   const handleSearchChange = (searchTerm: string) => {
     setSearchTerm(searchTerm);
   };
 
   const selectedCategoryHandler = (categoryName: string) => {
-    setSelectedCategory(categoryName);
+    // setSelectedCategory(categoryName);
+
     setDropDownVisibility(false);
   };
 

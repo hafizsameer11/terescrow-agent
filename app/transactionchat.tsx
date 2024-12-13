@@ -26,13 +26,21 @@ import ConfirmationModal from '@/components/Transaction Chat/ConfirmationModal';
 import RenderMsg from '@/components/Transaction Chat/RenderMsg';
 import { useAuth } from '@/contexts/authContext';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { getChatDetails, IResMessage } from '@/utils/queries/agentQueries';
+import {
+  ChatStatus,
+  getChatDetails,
+  IResMessage,
+} from '@/utils/queries/agentQueries';
 import MessageCom from '@/components/chat/MessageCom';
-import { sendMessageToCustomer } from '@/utils/mutations/agentMutations';
-import { ApiError } from '@/utils/customApiCalls';
+import {
+  changeChatStatus,
+  sendMessageToCustomer,
+} from '@/utils/mutations/agentMutations';
+import { ApiError, ApiResponse } from '@/utils/customApiCalls';
 import { showTopToast } from '@/utils/helpers';
 import { useSocket } from '@/contexts/socketContext';
 import chat from './(tabs)/chat';
+import LoadingOverlay from '@/components/LoadingOverlay';
 
 export type IRenderMessage = {
   id: string;
@@ -45,16 +53,10 @@ export type IRenderMessage = {
 const TransactionChat = () => {
   const { dark } = useTheme();
   const { id: chatId } = useLocalSearchParams() as { id: string };
-  // const userData = DUMMY_CHAT.filter((item) => item.id === chatId);
   const flatListRef = useRef<FlatList>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [isAccepted, setIsAccepted] = useState(false);
-  const [isProcessed, setIsProcessed] = useState(false);
-  const [isConfirmed, setIsConfirmed] = useState(false);
   const [modalVisibility, setmodalVisibility] = useState(false);
-  const [isRejected, setIsrejected] = useState(false);
   const [isShowNotes, setIsShowNotes] = useState(false);
-  const [selectServices, setSelectServices] = useState(false);
   const [messages, setMessages] = useState<IRenderMessage[]>([]);
 
   const { token, userData } = useAuth();
@@ -65,8 +67,28 @@ const TransactionChat = () => {
     isError: isChatDetailsError,
     error: chatDetailsError,
   } = useQuery({
-    queryKey: ['chat-details', chatId],
+    queryKey: ['customer-chat-details'],
     queryFn: () => getChatDetails(chatId, token),
+  });
+
+  const { mutate: changeStatus, isPending: changeStatusPending } = useMutation({
+    mutationFn: (data: { chatId: string; setStatus: ChatStatus }) =>
+      changeChatStatus(data, token),
+    mutationKey: ['change-chat-status'],
+    onSuccess: (data: ApiResponse) => {
+      showTopToast({
+        type: 'success',
+        text1: 'Success',
+        text2: data?.message || 'Status changed successfully',
+      });
+    },
+    onError: (error: ApiError) => {
+      showTopToast({
+        type: 'error',
+        text1: 'Error',
+        text2: error.message,
+      });
+    },
   });
 
   const { mutate: postMessage, isPending: messsageSending } = useMutation({
@@ -147,63 +169,20 @@ const TransactionChat = () => {
     };
   }, [socket]);
 
-  const onAcceptHandler = () => {
-    setIsAccepted(true);
-  };
-
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const onProcessHandler = () => {
-    setIsProcessed(true);
-    openModal();
-  };
-
-  const onProcessCancelHandler = () => {
-    setIsProcessed(false);
-    setmodalVisibility(false);
-
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
+  const handleChangeStatus = (status: ChatStatus) => {
+    if (changeStatusPending) return;
+    if (status == ChatStatus.declined) {
+      changeStatus({ chatId, setStatus: status });
     }
-  };
-
-  const openModal = () => {
-    if (!modalVisibility) {
-      timeoutRef.current = setTimeout(() => {
+    if (status == ChatStatus.successful) {
+      if (!modalVisibility) {
         setmodalVisibility(true);
-        timeoutRef.current = null;
-      }, 2000);
+      }
     }
-  };
-
-  const closeModal = () => {
-    setmodalVisibility(false);
-    setIsProcessed(false);
-  };
-
-  const handleConfirm = () => {
-    console.log('Transaction Confirmed!');
-    closeModal();
-    setIsProcessed(false);
-    servicesShowHandler();
-    setIsConfirmed(true);
-  };
-
-  const onDeclineHandler = () => {
-    setIsrejected(true);
-    setIsAccepted(false);
   };
 
   const scrollToBottom = () => {
     flatListRef.current?.scrollToEnd({ animated: true });
-  };
-
-  const servicesShowHandler = () => {
-    console.log('services');
-    setTimeout(() => {
-      setSelectServices(true);
-    }, 3000);
   };
 
   const showNotesHandler = () => {
@@ -215,9 +194,8 @@ const TransactionChat = () => {
   };
 
   const sendMessage = (message?: string, image?: any) => {
-    if (!image && !message) return;
+    if (!message) return;
 
-    let newMessage: IRenderMessage;
     if (message) {
       postMessage({
         chatId,
@@ -238,7 +216,7 @@ const TransactionChat = () => {
     };
   }, []);
 
-  messages.map((item) => console.log(item.text));
+  // messages.map((item) => console.log(item.text));
   const renderAgentChat = () => {
     return (
       <KeyboardAvoidingView
@@ -260,12 +238,12 @@ const TransactionChat = () => {
           contentContainerStyle={styles.chatContainer}
           onContentSizeChange={scrollToBottom}
         />
-        {isAccepted && !isConfirmed && (
-          <MessageInput
-            sendMessage={sendMessage}
-            sendingMessage={messsageSending}
-          />
-        )}
+        {/* {isAccepted && !isConfirmed && ( */}
+        <MessageInput
+          sendMessage={sendMessage}
+          sendingMessage={messsageSending}
+        />
+        {/* // )} */}
 
         {imagePreview && (
           <Modal transparent={true} visible={!!imagePreview}>
@@ -293,7 +271,8 @@ const TransactionChat = () => {
           : { backgroundColor: COLORS.white },
       ]}
     >
-      {chatDetailsData &&
+      <LoadingOverlay visible={chatDetailsLoading} />
+      {chatDetailsData?.data &&
         (() => {
           const { firstname, lastname, id, username, profilePicture } =
             chatDetailsData.data.customer;
@@ -302,58 +281,38 @@ const TransactionChat = () => {
               name={firstname + ' ' + lastname}
               userName={username}
               image={profilePicture || images.avatar}
-              onAccept={onAcceptHandler}
-              currentState={isAccepted}
-              onProcess={onProcessHandler}
-              isCurrentlyConfirmed={isConfirmed}
-              onDecline={onDeclineHandler}
-              isDeclined={isRejected}
+              changeChatStatus={handleChangeStatus}
               showNotes={showNotesHandler}
             />
           );
         })()}
-      {/* if user accepted */}
-      {!isAccepted && !isRejected && (
-        <RenderMsg text="Click on the tick icon above to accept the order" />
-      )}
-      {!isAccepted && isRejected && <RenderMsg text="Declined the trade" />}
-      {isAccepted && <RenderMsg text="Accepted by - You" />}
-      {/* if user have started processing */}
-      {isProcessed && (
-        <RenderMsgUserDecision
-          text="This trade is currently being proceed you"
-          icon={icons.hourGlass}
-          bgColor="#FEFFD7"
-          isProcess={true}
-          OnCancel={onProcessCancelHandler}
-        />
-      )}
-      {/* Modal of confirmation */}
+
       <ConfirmationModal
-        isDarkMode={dark}
-        onCLose={closeModal}
-        OnConfirm={handleConfirm}
+        setModalState={setmodalVisibility}
         modalState={modalVisibility}
       />
-      {isConfirmed && (
-        <RenderMsgUserDecision
-          text="This trade is completed by you"
-          icon={icons.check2}
-          bgColor="#EBFFF3"
-          isProcess={false}
-          OnCancel={() => null}
-        />
-      )}
-      {isRejected && (
-        <RenderMsgUserDecision
-          text="This trade is declined by you"
-          icon={icons.close2}
-          bgColor="#FFD7D7"
-          isProcess={false}
-          OnCancel={() => null}
-        />
-      )}
-      <SelectService showServices={selectServices} />
+
+      {chatDetailsData?.data?.chatDetails?.status &&
+        (chatDetailsData.data.chatDetails.status === ChatStatus.declined ||
+        chatDetailsData.data.chatDetails.status === ChatStatus.successful ? (
+          <RenderMsgUserDecision
+            text={`This trade is ${
+              chatDetailsData.data.chatDetails.status === ChatStatus.successful
+                ? 'completed'
+                : 'declined'
+            } by you`}
+            icon={icons.close2}
+            bgColor={
+              chatDetailsData.data.chatDetails.status === ChatStatus.declined
+                ? '#FFD7D7'
+                : '#EBFFF3'
+            }
+            isProcess={false}
+            OnCancel={() => null}
+          />
+        ) : null)}
+
+      {/* <SelectService showServices={selectServices} /> */}
       {isShowNotes && (
         <ChatNotes closeNotes={closeNotesHandler} showNotesSate={isShowNotes} />
       )}

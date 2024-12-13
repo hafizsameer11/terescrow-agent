@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import * as SecureStore from 'expo-secure-store';
+import { UserRoles } from './socketContext';
 // Define the AuthContextType interface
 interface AuthContextType {
   token: string;
@@ -9,8 +10,8 @@ interface AuthContextType {
     lastname: string;
     username: string;
     email: string;
-    role: string;
-    profilePicture?: string;
+    role: UserRoles;
+    profilePicture: string | null;
   } | null;
   setToken: (token: string) => Promise<void>;
   setUserData: (userData: AuthContextType['userData']) => void;

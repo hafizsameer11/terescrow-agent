@@ -1,22 +1,19 @@
-import { StyleSheet, View, Text } from "react-native";
-import { Image } from "expo-image";
-import { COLORS, icons } from "@/constants";
-import { Pressable } from "react-native";
-import { useRouter } from "expo-router";
-import { useTheme } from "@/contexts/themeContext";
-import { Colors } from "@/constants/Colors";
+import { StyleSheet, View, Text } from 'react-native';
+import { Image } from 'expo-image';
+import { COLORS, icons } from '@/constants';
+import { Pressable } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useTheme } from '@/contexts/themeContext';
+import { Colors } from '@/constants/Colors';
+import { ChatStatus } from '@/utils/queries/agentQueries';
 
 const TransChatNav: React.FC<{
   image: string;
   name: string;
   userName: string;
-  currentState: boolean;
-  isCurrentlyConfirmed: boolean;
-  isDeclined: boolean;
-  onProcess: () => void;
-  onAccept: () => void;
-  onDecline: () => void;
+  currentState?: ChatStatus;
   showNotes: () => void;
+  changeChatStatus: (state: ChatStatus) => void;
 }> = (props) => {
   const { dark } = useTheme();
   const router = useRouter();
@@ -35,7 +32,7 @@ const TransChatNav: React.FC<{
       ]}
     >
       <View style={styles.mainContentContainer}>
-        <View style={{ justifyContent: "center", marginRight: 10 }}>
+        <View style={{ justifyContent: 'center', marginRight: 10 }}>
           <Pressable
             onPress={backPressHandler}
             style={styles.closeIconContainer}
@@ -57,7 +54,10 @@ const TransChatNav: React.FC<{
           </Pressable>
         </View>
         <View>
-          <Image source={props.image} style={{ width: 58, height: 58 }} />
+          <Image
+            source={props.image}
+            style={{ width: 50, height: 50, borderRadius: 50 }}
+          />
         </View>
         <View style={styles.mainTextContainer}>
           <Text
@@ -71,39 +71,40 @@ const TransChatNav: React.FC<{
           <Text style={[styles.agentUserName]}>{props.userName}</Text>
         </View>
         <View style={styles.iconsContainer}>
-          {props.currentState && (
-            <>
-              <View style={styles.iconContainer}>
-                <Pressable
-                  style={styles.pressIcon}
-                  onPress={!props.isCurrentlyConfirmed ? props.onDecline : null}
-                >
-                  <Image source={icons.close2} style={styles.iconStyle} />
-                </Pressable>
-              </View>
-              <View style={styles.iconContainer}>
-                <Pressable
-                  style={styles.pressIcon}
-                  onPress={!props.isCurrentlyConfirmed ? props.onProcess : null}
-                >
-                  <Image source={icons.hourGlass} style={styles.iconStyle} />
-                </Pressable>
-              </View>
-              <View style={styles.iconContainer}>
-                <Pressable
-                  style={styles.pressIcon}
-                  onPress={props.showNotes}
-                >
-                  <Image source={icons.notification2} style={styles.iconStyle} />
-                </Pressable>
-              </View>
-            </>
-          )}
+          {/* {props.currentState && (
+            <> */}
           <View style={styles.iconContainer}>
-            <Pressable style={styles.pressIcon} onPress={props.isDeclined ? null : props.onAccept}>
+            <Pressable
+              style={styles.pressIcon}
+              onPress={() => props.changeChatStatus(ChatStatus.declined)}
+              // onPress={!props.isCurrentlyConfirmed ? props.onDecline : null}
+            >
+              <Image source={icons.close2} style={styles.iconStyle} />
+            </Pressable>
+          </View>
+          {/* <View style={styles.iconContainer}>
+            <Pressable
+              style={styles.pressIcon}
+              // onPress={!props.isCurrentlyConfirmed ? props.onProcess : null}
+            >
+              <Image source={icons.hourGlass} style={styles.iconStyle} />
+            </Pressable>
+          </View> */}
+          <View style={styles.iconContainer}>
+            <Pressable style={styles.pressIcon} onPress={props.showNotes}>
+              <Image source={icons.notification2} style={styles.iconStyle} />
+            </Pressable>
+          </View>
+          <View style={styles.iconContainer}>
+            <Pressable
+              style={styles.pressIcon}
+              onPress={() => props.changeChatStatus(ChatStatus.successful)}
+            >
               <Image source={icons.check2} style={styles.iconStyle} />
             </Pressable>
           </View>
+          {/* </>
+          )} */}
         </View>
       </View>
     </View>
@@ -114,9 +115,9 @@ export default TransChatNav;
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
     backgroundColor: COLORS.white,
@@ -127,23 +128,23 @@ const styles = StyleSheet.create({
   },
   closeIcon: {
     padding: 3,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 4,
   },
   mainContentContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
   },
   mainTextContainer: {
     marginLeft: 12,
     paddingVertical: 5,
-    flexDirection: "column",
-    justifyContent: "space-between",
+    flexDirection: 'column',
+    justifyContent: 'space-between',
   },
   mainHeading: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   agentUserName: {
     fontSize: 14,
@@ -155,11 +156,11 @@ const styles = StyleSheet.create({
   },
   iconsContainer: {
     flex: 1,
-    flexDirection: "row",
-    justifyContent: "flex-end",
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
   },
   iconContainer: {
-    justifyContent: "center",
+    justifyContent: 'center',
     marginLeft: 16,
   },
   iconStyle: {
@@ -169,8 +170,8 @@ const styles = StyleSheet.create({
   pressIcon: {
     padding: 6,
     borderRadius: 50,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: COLORS.grayscale200,
   },
 });

@@ -26,24 +26,7 @@ const Login = () => {
     onSuccess: async (data) => {
       setToken(data.token)
         .then((res) => {
-          const {
-            email,
-            firstname,
-            lastname,
-            profilePicture,
-            id,
-            role,
-            username,
-          } = data.data;
-          setUserData({
-            email,
-            firstname,
-            lastname,
-            profilePicture: profilePicture || undefined,
-            id,
-            role,
-            username,
-          });
+          setUserData(data?.data);
           reset({
             index: 0,
             routes: [{ name: '(tabs)' }],
