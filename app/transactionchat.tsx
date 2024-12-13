@@ -58,6 +58,7 @@ const TransactionChat = () => {
   const [modalVisibility, setmodalVisibility] = useState(false);
   const [isShowNotes, setIsShowNotes] = useState(false);
   const [messages, setMessages] = useState<IRenderMessage[]>([]);
+  const currCustomerId = useRef<number | null>(null);
 
   const { token, userData } = useAuth();
   const { socket } = useSocket();
@@ -70,6 +71,10 @@ const TransactionChat = () => {
     queryKey: ['customer-chat-details'],
     queryFn: () => getChatDetails(chatId, token),
   });
+
+  // console.log(userData);
+
+  // console.log(chatDetailsData?.data);
 
   const { mutate: changeStatus, isPending: changeStatusPending } = useMutation({
     mutationFn: (data: { chatId: string; setStatus: ChatStatus }) =>
@@ -118,6 +123,7 @@ const TransactionChat = () => {
 
   useEffect(() => {
     if (chatDetailsData?.data.messages) {
+      currCustomerId.current = chatDetailsData?.data.customer.id;
       setMessages((prev) => {
         const newMesssages = chatDetailsData?.data.messages.map((item) => ({
           id: item.id.toString(),
@@ -139,12 +145,11 @@ const TransactionChat = () => {
       socket.on(
         'message',
         ({ from, message }: { from: number; message: IResMessage }) => {
-          console.log(from, message);
-          console.log('hgf');
-          console.log(userData?.id);
-          console.log(chatDetailsData?.data.customer.id);
-          if (from == userData?.id || from == chatDetailsData?.data.customer.id)
-            return;
+          // console.log(from, message);
+          // console.log('hgf');
+          console.log('agentId', userData?.id);
+          console.log('customerId', currCustomerId?.current);
+          if (from == userData?.id || from !== currCustomerId?.current) return;
           setMessages((prev) => {
             const newMessage = {
               id: message.id.toString(),
@@ -272,6 +277,7 @@ const TransactionChat = () => {
       ]}
     >
       <LoadingOverlay visible={chatDetailsLoading} />
+
       {chatDetailsData?.data &&
         (() => {
           const { firstname, lastname, id, username, profilePicture } =

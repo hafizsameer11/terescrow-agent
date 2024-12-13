@@ -48,7 +48,7 @@ const NewTransaction: React.FC<Proptypes> = ({ visibility, setVisibility }) => {
   const { token } = useAuth();
   const [selectedDepartmentId, setSelectedDepartmentId] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
-  const resetButtonRef = useRef<typeof TouchableOpacity>();
+  const resetButtonRef = useRef<typeof TouchableOpacity>(null);
   const queryClient = useQueryClient();
 
   const {
@@ -464,11 +464,11 @@ const NewTransaction: React.FC<Proptypes> = ({ visibility, setVisibility }) => {
                       >
                         <Text style={styles.buttonText}>Continue</Text>
                       </TouchableOpacity>
-                      <TouchableOpacity
+                      {/* <TouchableOpacity
                         ref={resetButtonRef}
                         onPress={handleReset as any}
                         style={{ display: 'none' }}
-                      ></TouchableOpacity>
+                      ></TouchableOpacity> */}
                     </View>
                   </>
                 );
