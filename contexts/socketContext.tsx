@@ -7,10 +7,10 @@ import { useQueryClient } from '@tanstack/react-query';
 
 interface SocketContextType {
   socket: Socket | null;
-  onlineAgents: { userId: string; socketId: string }[];
-  isAdminOnline: { userId: string; socketId: string } | null;
+  onlineAgents: Agent[];
+  isAdminOnline: NonAgentUser | false;
   disconnectFromSocket: () => void;
-  onlineCustomers: { userId: string; socketId: string }[];
+  onlineCustomers: NonAgentUser[];
 }
 
 export enum UserRoles {
@@ -19,22 +19,30 @@ export enum UserRoles {
   customer,
 }
 
+export interface Agent {
+  userId: string;
+  socketId: string;
+  assignedDepartments: {
+    id: string;
+  };
+}
+
+export interface NonAgentUser {
+  userId: string;
+  socketId: string;
+}
+
 const SocketContext = createContext<SocketContextType | undefined>(undefined);
 
 export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
-  const [onlineAgents, setOnlineAgents] = useState<
-    { userId: string; socketId: string }[]
-  >([]);
-  const [isAdminOnline, setIsAdminOnline] = useState<{
-    userId: string;
-    socketId: string;
-  } | null>(null);
-  const [onlineCustomers, setOnlineCustomers] = useState<
-    { userId: string; socketId: string }[]
-  >([]);
+  const [onlineAgents, setOnlineAgents] = useState<Agent[]>([]);
+  const [isAdminOnline, setIsAdminOnline] = useState<NonAgentUser | false>(
+    false
+  );
+  const [onlineCustomers, setOnlineCustomers] = useState<NonAgentUser[]>([]);
 
   const { token, userData } = useAuth();
   const queryClient = useQueryClient();
@@ -63,10 +71,30 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
         console.log('Connected to Socket.io server');
       });
 
+      newSocket.on('newAgentJoined', (agent: Agent) => {
+        setOnlineAgents((prevOnlineAgents) => [...prevOnlineAgents, agent]);
+      });
+
       newSocket.on(
-        'newAgentJoined',
-        (agent: { userId: string; socketId: string }) => {
-          setOnlineAgents((prevOnlineAgents) => [...prevOnlineAgents, agent]);
+        'onlineUsers',
+        ({
+          customers,
+          agents,
+          admin,
+        }: {
+          customers: NonAgentUser[];
+          agents: Agent[];
+          admin: NonAgentUser | null;
+        }) => {
+          if (agents?.length > 0) {
+            setOnlineAgents((previous) => [...previous, ...agents]);
+          }
+          if (userData?.role !== UserRoles.admin && admin) {
+            setIsAdminOnline(admin);
+          }
+          if (customers?.length > 0) {
+            setOnlineCustomers((prev) => [...prev, ...customers]);
+          }
         }
       );
 
@@ -83,16 +111,13 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       );
 
-      newSocket.on(
-        'customerJoined',
-        (customer: { userId: string; socketId: string }) => {
-          if (userData?.role == UserRoles.agent) return;
-          setOnlineCustomers((prevOnlineCustomers) => [
-            ...prevOnlineCustomers,
-            customer,
-          ]);
-        }
-      );
+      newSocket.on('customerJoined', (customer: NonAgentUser) => {
+        if (userData?.role == UserRoles.agent) return;
+        setOnlineCustomers((prevOnlineCustomers) => [
+          ...prevOnlineCustomers,
+          customer,
+        ]);
+      });
 
       newSocket.on('customerAssigned', async () => {
         showTopToast({
@@ -116,6 +141,31 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
           text2: 'Failed to connect to Socket server',
         });
       });
+
+      newSocket.on(
+        'user-disconnected',
+        ({ id, role }: { id: number; role: UserRoles }) => {
+          if (role == UserRoles.admin) {
+            setIsAdminOnline(false);
+          }
+          if (role == UserRoles.agent) {
+            setOnlineAgents((prevOnlineAgents) =>
+              prevOnlineAgents.filter((agent) => +agent.userId !== id)
+            );
+          }
+          if (role == UserRoles.customer) {
+            setOnlineCustomers((prevOnlineCustomers) =>
+              prevOnlineCustomers.filter((customer) => +customer.userId !== id)
+            );
+          }
+
+          showTopToast({
+            type: 'error',
+            text1: 'Alert!',
+            text2: `A ${role} has been disconnected`,
+          });
+        }
+      );
       newSocket.on('disconnect', () => {
         disconnectFromSocket();
       });

@@ -7,7 +7,8 @@ import { useState } from 'react';
 const ConfirmationModal: React.FC<{
   modalState: boolean;
   setModalState: React.Dispatch<React.SetStateAction<boolean>>;
-}> = ({ modalState, setModalState }) => {
+  currChatId?: number;
+}> = ({ modalState, setModalState, currChatId }) => {
   const [transactionModalVisibility, setTransactionModalVisibility] =
     useState(false);
   const { dark } = useTheme();
@@ -84,6 +85,7 @@ const ConfirmationModal: React.FC<{
       <NewTransaction
         visibility={transactionModalVisibility}
         setVisibility={setTransactionModalVisibility}
+        currChatId={currChatId}
       />
     </>
   );

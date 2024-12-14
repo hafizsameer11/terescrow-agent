@@ -121,6 +121,7 @@ const TransactionChat = () => {
     },
   });
 
+  //chat details handling
   useEffect(() => {
     if (chatDetailsData?.data.messages) {
       currCustomerId.current = chatDetailsData?.data.customer.id;
@@ -140,6 +141,7 @@ const TransactionChat = () => {
     };
   }, [chatDetailsData]);
 
+  //socket logic handling..
   useEffect(() => {
     if (socket) {
       socket.on(
@@ -221,6 +223,7 @@ const TransactionChat = () => {
     };
   }, []);
 
+  // console.log(ChatStatus.successful);
   // messages.map((item) => console.log(item.text));
   const renderAgentChat = () => {
     return (
@@ -244,10 +247,12 @@ const TransactionChat = () => {
           onContentSizeChange={scrollToBottom}
         />
         {/* {isAccepted && !isConfirmed && ( */}
-        <MessageInput
-          sendMessage={sendMessage}
-          sendingMessage={messsageSending}
-        />
+        {chatDetailsData?.data.chatDetails.status == ChatStatus.pending && (
+          <MessageInput
+            sendMessage={sendMessage}
+            sendingMessage={messsageSending}
+          />
+        )}
         {/* // )} */}
 
         {imagePreview && (
@@ -267,6 +272,8 @@ const TransactionChat = () => {
     );
   };
 
+  console.log(chatDetailsData?.data.chatDetails.status);
+
   return (
     <SafeAreaView
       style={[
@@ -282,6 +289,7 @@ const TransactionChat = () => {
         (() => {
           const { firstname, lastname, id, username, profilePicture } =
             chatDetailsData.data.customer;
+          // console.log(profilePicture);
           return (
             <TransChatNav
               name={firstname + ' ' + lastname}
@@ -289,6 +297,7 @@ const TransactionChat = () => {
               image={profilePicture || images.avatar}
               changeChatStatus={handleChangeStatus}
               showNotes={showNotesHandler}
+              currentState={chatDetailsData.data.chatDetails.status}
             />
           );
         })()}
@@ -296,6 +305,7 @@ const TransactionChat = () => {
       <ConfirmationModal
         setModalState={setmodalVisibility}
         modalState={modalVisibility}
+        currChatId={chatDetailsData?.data?.id}
       />
 
       {chatDetailsData?.data?.chatDetails?.status &&

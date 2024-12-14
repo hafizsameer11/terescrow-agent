@@ -27,29 +27,18 @@ export const getChatDetails = async (
 interface IAllChatsRes extends ApiResponse {
   data: {
     id: number;
-    customer: {
-      id: number;
-      username: string;
-      firstname: string;
-      lastname: string;
-      profilePicture: string | null;
-    };
+    customer: IUser;
     recentMessage: string;
     recentMessageTimestamp: Date;
     chatStatus: ChatStatus;
+    messagesCount: number;
   }[];
 }
 
 interface IChatDetailsRes extends ApiResponse {
   data: {
     id: number;
-    customer: {
-      id: number;
-      username: string;
-      firstname: string;
-      lastname: string;
-      profilePicture: string | null;
-    };
+    customer: IUser;
     messages: IResMessage[];
     chatDetails: {
       id: number;
@@ -78,13 +67,21 @@ export interface IResMessage {
 }
 
 export enum ChatStatus {
-  pending,
-  successful,
-  declined,
+  pending = 'pending',
+  successful = 'successful',
+  declined = 'declined',
 }
 
 export enum ChatType {
-  customer_to_agent,
-  team_chat,
-  group_chat,
+  customer_to_agent = 'customer_to_agent',
+  team_chat = 'team_chat',
+  group_chat = 'group_chat',
+}
+
+export interface IUser {
+  id: number;
+  username: string;
+  firstname: string;
+  lastname: string;
+  profilePicture: string | null;
 }

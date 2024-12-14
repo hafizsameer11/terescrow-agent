@@ -70,19 +70,20 @@ const TransChatNav: React.FC<{
           </Text>
           <Text style={[styles.agentUserName]}>{props.userName}</Text>
         </View>
-        <View style={styles.iconsContainer}>
-          {/* {props.currentState && (
+        {props.currentState && props.currentState == ChatStatus.pending && (
+          <View style={styles.iconsContainer}>
+            {/* {props.currentState && (
             <> */}
-          <View style={styles.iconContainer}>
-            <Pressable
-              style={styles.pressIcon}
-              onPress={() => props.changeChatStatus(ChatStatus.declined)}
-              // onPress={!props.isCurrentlyConfirmed ? props.onDecline : null}
-            >
-              <Image source={icons.close2} style={styles.iconStyle} />
-            </Pressable>
-          </View>
-          {/* <View style={styles.iconContainer}>
+            <View style={styles.iconContainer}>
+              <Pressable
+                style={styles.pressIcon}
+                onPress={() => props.changeChatStatus(ChatStatus.declined)}
+                // onPress={!props.isCurrentlyConfirmed ? props.onDecline : null}
+              >
+                <Image source={icons.close2} style={styles.iconStyle} />
+              </Pressable>
+            </View>
+            {/* <View style={styles.iconContainer}>
             <Pressable
               style={styles.pressIcon}
               // onPress={!props.isCurrentlyConfirmed ? props.onProcess : null}
@@ -90,22 +91,23 @@ const TransChatNav: React.FC<{
               <Image source={icons.hourGlass} style={styles.iconStyle} />
             </Pressable>
           </View> */}
-          <View style={styles.iconContainer}>
-            <Pressable style={styles.pressIcon} onPress={props.showNotes}>
-              <Image source={icons.notification2} style={styles.iconStyle} />
-            </Pressable>
-          </View>
-          <View style={styles.iconContainer}>
-            <Pressable
-              style={styles.pressIcon}
-              onPress={() => props.changeChatStatus(ChatStatus.successful)}
-            >
-              <Image source={icons.check2} style={styles.iconStyle} />
-            </Pressable>
-          </View>
-          {/* </>
+            <View style={styles.iconContainer}>
+              <Pressable style={styles.pressIcon} onPress={props.showNotes}>
+                <Image source={icons.notification2} style={styles.iconStyle} />
+              </Pressable>
+            </View>
+            <View style={styles.iconContainer}>
+              <Pressable
+                style={styles.pressIcon}
+                onPress={() => props.changeChatStatus(ChatStatus.successful)}
+              >
+                <Image source={icons.check2} style={styles.iconStyle} />
+              </Pressable>
+            </View>
+            {/* </>
           )} */}
-        </View>
+          </View>
+        )}
       </View>
     </View>
   );

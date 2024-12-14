@@ -1,4 +1,4 @@
-export const API_BASE_URL = 'http://192.168.1.13:8000';
+export const API_BASE_URL = 'http://192.168.18.9:8000';
 
 export const API_TEMPLATE_URL = API_BASE_URL + '/api/';
 
@@ -8,6 +8,7 @@ export const API_ENDPOINTS = {
     GetActionCatagories: API_TEMPLATE_URL + 'public/categories', //with dept id parameter
     GetActionSubacategories: API_TEMPLATE_URL + 'public/subcategories', //inside query parameter, need dept id and cat id
     GetActionDepartments: API_TEMPLATE_URL + 'public/departments',
+    GetAllTeamChats: API_TEMPLATE_URL + 'get-all-teams-chats',
   },
   AGENT: {
     GetAllChatsWithCustomer:

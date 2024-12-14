@@ -1,6 +1,6 @@
-import { View, Text, StyleSheet, Pressable } from "react-native";
-import { Image } from "expo-image";
-import { COLORS } from "@/constants";
+import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { Image } from 'expo-image';
+import { COLORS } from '@/constants';
 const RenderMsgUserDecision: React.FC<{
   text: string;
   icon: string;
@@ -16,19 +16,19 @@ const RenderMsgUserDecision: React.FC<{
           {
             backgroundColor: props.bgColor,
             borderRadius: 10,
-            alignItems: "center",
+            alignItems: 'center',
           },
-          props.isProcess && { justifyContent: "center" },
-          props.bgColor === "#FEFFD7" && { borderColor: COLORS.warning },
-          props.bgColor === "#EBFFF3" && { borderColor: COLORS.green },
-          props.bgColor === "#FFD7D7" && { borderColor: COLORS.red },
+          props.isProcess && { justifyContent: 'center' },
+          props.bgColor === '#FEFFD7' && { borderColor: COLORS.warning },
+          props.bgColor === '#EBFFF3' && { borderColor: COLORS.green },
+          props.bgColor === '#FFD7D7' && { borderColor: COLORS.red },
         ]}
       >
         <View
           style={[
             styles.iconContainer,
             props.isProcess && {
-              backgroundColor: "transparent",
+              backgroundColor: 'transparent',
               marginRight: 5,
             },
           ]}
@@ -37,7 +37,7 @@ const RenderMsgUserDecision: React.FC<{
             source={props.icon}
             style={[
               styles.icon,
-              props.isProcess && { tintColor: "none", width: 10, height: 12 },
+              props.isProcess && { tintColor: 'none', width: 10, height: 12 },
             ]}
           />
         </View>
@@ -56,18 +56,18 @@ export default RenderMsgUserDecision;
 
 const styles = StyleSheet.create({
   processContainer: {
-    width: "100%",
-    position: "absolute",
-    bottom: 110,
+    width: '100%',
+    position: 'relative',
+    bottom: 10,
     zIndex: 1,
   },
   processing: {
-    flexDirection: "row",
+    flexDirection: 'row',
     borderWidth: 1,
     borderRadius: 11,
     paddingVertical: 12,
     paddingHorizontal: 15,
-    marginHorizontal: "2%",
+    marginHorizontal: '2%',
   },
   iconContainer: {
     backgroundColor: COLORS.black,

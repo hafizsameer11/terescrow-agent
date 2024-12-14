@@ -27,19 +27,16 @@ interface InputProps extends TextInputProps {
   onEditPress?: () => void;
   showCheckbox?: boolean;
   fontWeight?: 'normal' | 'bold' | '500';
-  showModal?: boolean; 
+  showModal?: boolean;
 }
 
 const Input: FC<InputProps> = (props) => {
-  const [isFocused, setIsFocused] = useState(false);
+  const [isFocused, setIsFocused] = useState(props.readOnly ? true : false);
   const [labelPosition] = useState(new Animated.Value(18));
   const [isEditing, setIsEditing] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const { dark } = useTheme();
-  const [isChecked, setIsChecked] = useState(
-    props.showCheckbox ? false : undefined
-  ); // Initialize state for checkbox
   const inputRef = useRef<TextInput>(null);
 
   const handleFocus = () => {
@@ -117,7 +114,7 @@ const Input: FC<InputProps> = (props) => {
             style={styles.iconContainer} // Added iconContainer for the icon
           >
             <Image
-              source={isPasswordVisible ? icons.eye : icons.eyeCloseUp} 
+              source={isPasswordVisible ? icons.eye : icons.eyeCloseUp}
               style={[
                 styles.icon,
                 {
@@ -134,10 +131,10 @@ const Input: FC<InputProps> = (props) => {
               styles.label,
               {
                 top: labelPosition,
-                fontSize: isFocused || props.value ? 12 : 16,
+                fontSize: isFocused || props.value || props.readOnly ? 12 : 16,
                 color: props.errorText
                   ? COLORS.red
-                  : isFocused || props.value
+                  : isFocused || props.value || props.readOnly
                   ? COLORS.primary
                   : dark
                   ? COLORS.grayscale200
@@ -166,6 +163,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   inputContainer: {
+    paddingVertical: 4,
     borderRadius: SIZES.padding,
     borderWidth: 1,
     flexDirection: 'row',

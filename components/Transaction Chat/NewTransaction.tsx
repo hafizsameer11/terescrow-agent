@@ -36,6 +36,7 @@ import LoadingOverlay from '../LoadingOverlay';
 type Proptypes = {
   visibility: boolean;
   setVisibility: (value: boolean) => void;
+  currChatId?: number;
 };
 
 const cardTypesData = [
@@ -43,11 +44,16 @@ const cardTypesData = [
   { id: 2, title: 'Physical Card' },
 ];
 
-const NewTransaction: React.FC<Proptypes> = ({ visibility, setVisibility }) => {
+const NewTransaction: React.FC<Proptypes> = ({
+  visibility,
+  setVisibility,
+  currChatId,
+}) => {
   // const [modalVisibility, setModalVisible] = useState(true);
-  const { token } = useAuth();
+  const { token, userData } = useAuth();
   const [selectedDepartmentId, setSelectedDepartmentId] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
+  const [selectedSubCategoryId, setSelectedSubCategoryId] = useState('');
   const resetButtonRef = useRef<typeof TouchableOpacity>(null);
   const queryClient = useQueryClient();
 
@@ -89,6 +95,7 @@ const NewTransaction: React.FC<Proptypes> = ({ visibility, setVisibility }) => {
       mutationFn: createCryptoTransaction,
       onSuccess: (data) => {
         queryClient.invalidateQueries({ queryKey: ['customer-chat-details'] });
+        queryClient.refetchQueries({ queryKey: ['customer-chat-details'] });
         showTopToast({
           type: 'success',
           text1: 'Success',
@@ -129,7 +136,25 @@ const NewTransaction: React.FC<Proptypes> = ({ visibility, setVisibility }) => {
   const closeModal = () => {
     setSelectedDepartmentId('');
     setSelectedCategoryId('');
+    setSelectedSubCategoryId('');
     setVisibility(false);
+  };
+
+  const setDepartmentValue = (field: string, id: string) => {
+    if (id.toString() == selectedDepartmentId) return;
+    setSelectedDepartmentId(id.toString());
+    setSelectedCategoryId('');
+    setSelectedSubCategoryId('');
+  };
+  const setCategoryValue = (field: string, id: string) => {
+    if (id.toString() == selectedCategoryId) return;
+    setSelectedCategoryId(id.toString());
+    setSelectedSubCategoryId('');
+  };
+
+  const setSubCategoryValue = (field: string, id: string) => {
+    // if (id.toString() == selectedSubCategoryId) return;
+    setSelectedSubCategoryId(id.toString());
   };
 
   // const selectCurrDepartment = (field: string, id: string) => {
@@ -179,16 +204,13 @@ const NewTransaction: React.FC<Proptypes> = ({ visibility, setVisibility }) => {
               </Text>
             </View>
             <Formik
-              validationSchema={validationNewTransaction}
+              // validationSchema={validationNewTransaction}
               initialValues={{
-                departmentId: '',
-                categoryId: '',
-                subCategoryId: '',
                 countryId: '',
-                customerId: '',
+                // customerId: '',
                 amount: '',
                 exchangeRate: '',
-                amountNaira: '',
+                amountNaira: ' ',
                 cryptoAmount: '',
                 toAddress: '',
                 fromAddress: '',
@@ -196,17 +218,25 @@ const NewTransaction: React.FC<Proptypes> = ({ visibility, setVisibility }) => {
                 cardNumber: '',
               }}
               onSubmit={(values) => {
+                console.log(values);
+                if (
+                  !selectedCategoryId ||
+                  !selectedSubCategoryId ||
+                  !currChatId ||
+                  !userData?.id
+                )
+                  return;
                 const compulsoryData = {
                   amount: +values.amount,
                   exchangeRate: +values.exchangeRate,
                   amountNaira: +values.amountNaira,
-                  categoryId: +values.categoryId,
-                  countryId: +values.countryId,
-                  customerId: +values.customerId,
-                  departmentId: +values.departmentId,
-                  subCategoryId: +values.subCategoryId,
+                  categoryId: +selectedCategoryId,
+                  countryId: 2,
+                  chatId: +currChatId,
+                  subCategoryId: +selectedSubCategoryId,
+                  departmentId: +selectedDepartmentId,
                 };
-                if (+values.departmentId > 2) {
+                if (+selectedDepartmentId > 2) {
                   cryptoTrasaction({
                     data: {
                       ...compulsoryData,
@@ -238,41 +268,19 @@ const NewTransaction: React.FC<Proptypes> = ({ visibility, setVisibility }) => {
                 touched,
                 errors,
               }) => {
-                if (
-                  selectedDepartmentId &&
-                  values.departmentId !== selectedDepartmentId
-                ) {
-                  setSelectedDepartmentId(values.departmentId);
-                  // setSelectedCategoryId('');
-                  setFieldValue('categoryId', '');
-                  setFieldValue('subCategoryId', '');
+                if (selectedDepartmentId !== selectedDepartmentId) {
+                  setSelectedDepartmentId(selectedDepartmentId);
+                  setSelectedCategoryId('');
+                  setSelectedSubCategoryId('');
                 }
 
-                if (
-                  selectedCategoryId &&
-                  selectedDepartmentId &&
-                  values.categoryId !== selectedCategoryId
-                ) {
-                  setFieldValue('subCategoryId', '');
-                }
-                setSelectedDepartmentId(values.departmentId);
-                setSelectedCategoryId(values.categoryId);
-
-                if (values.amount && values.exchangeRate) {
-                  setFieldValue(
-                    'amountNaira',
-                    (Number(values.amount) * Number(values.exchangeRate))
-                      .toFixed(2)
-                      .toString()
-                  );
-                }
                 return (
                   <>
                     <ScrollView style={styles.body}>
                       {departmentsData?.data && (
                         <CustomSelect
                           key={'department'}
-                          currValue={values.departmentId}
+                          currValue={selectedDepartmentId}
                           options={[...departmentsData?.data].map((item) => ({
                             id: item.id,
                             title: item.title,
@@ -280,15 +288,15 @@ const NewTransaction: React.FC<Proptypes> = ({ visibility, setVisibility }) => {
                           id="departmentId"
                           modalLabel="Select Department"
                           placeholder="-Select department-"
-                          setFieldValue={setFieldValue}
-                          error={errors.departmentId}
+                          setFieldValue={setDepartmentValue}
+                          // error={errors.departmentId}
                         />
                       )}
-                      {values.departmentId && categoriesData?.data ? (
+                      {selectedDepartmentId && categoriesData?.data ? (
                         <CustomSelect
                           key={'categoryId'}
                           id="categoryId"
-                          currValue={values.categoryId}
+                          currValue={selectedCategoryId}
                           options={[...categoriesData?.data.categories].map(
                             (item) => ({
                               id: item.category.id,
@@ -297,8 +305,8 @@ const NewTransaction: React.FC<Proptypes> = ({ visibility, setVisibility }) => {
                           )}
                           modalLabel="Select Category"
                           placeholder="-Select category-"
-                          setFieldValue={setFieldValue}
-                          error={errors.categoryId}
+                          setFieldValue={setCategoryValue}
+                          // error={errors.categoryId}
                         />
                       ) : categoriesLoading ? (
                         <ActivityIndicator
@@ -310,13 +318,13 @@ const NewTransaction: React.FC<Proptypes> = ({ visibility, setVisibility }) => {
                           {categoriesError.message}
                         </Text>
                       ) : null}
-                      {values.departmentId &&
-                        values.categoryId &&
+                      {selectedDepartmentId &&
+                        selectedCategoryId &&
                         (subcategoriesData?.data ? (
                           <CustomSelect
                             key={'subCategoryId'}
                             id="subCategoryId"
-                            currValue={values.subCategoryId}
+                            currValue={selectedSubCategoryId}
                             options={[
                               ...subcategoriesData?.data.subCategories,
                             ].map((item) => ({
@@ -325,8 +333,8 @@ const NewTransaction: React.FC<Proptypes> = ({ visibility, setVisibility }) => {
                             }))}
                             modalLabel="Select SubCategory"
                             placeholder="-Select Subcategory-"
-                            setFieldValue={setFieldValue}
-                            error={errors.subCategoryId}
+                            setFieldValue={setSubCategoryValue}
+                            // error={errors.subCategoryId}
                           />
                         ) : isLoadingSubcategories ? (
                           <ActivityIndicator
@@ -339,16 +347,25 @@ const NewTransaction: React.FC<Proptypes> = ({ visibility, setVisibility }) => {
                           </Text>
                         ) : null)}
 
-                      {values.departmentId &&
-                        values.categoryId &&
-                        values.subCategoryId && (
+                      {selectedDepartmentId &&
+                        selectedCategoryId &&
+                        selectedSubCategoryId && (
                           <>
                             <Input
                               label="Amount in Dollars"
                               id="amount"
                               value={values.amount}
-                              placeholder="Enter amount in dollars"
-                              onChangeText={handleChange('amount')}
+                              keyboardType="numeric"
+                              // placeholder="Enter amount in dollars"
+                              onChangeText={(text: string) => {
+                                setFieldValue('amount', text);
+                                setFieldValue(
+                                  'amountNaira',
+                                  (+text * +values.exchangeRate)
+                                    .toFixed(2)
+                                    .toString()
+                                );
+                              }}
                               onBlur={handleBlur('amountInDollars')}
                               errorText={
                                 touched.amount ? errors.amount : undefined
@@ -360,7 +377,7 @@ const NewTransaction: React.FC<Proptypes> = ({ visibility, setVisibility }) => {
                               label="Exchange Rate (Naira per Dollar)"
                               value={values.exchangeRate} // Controlled value
                               onChangeText={handleChange('exchangeRate')}
-                              placeholder="Enter exchange rate"
+                              // placeholder="Enter exchange rate"
                               errorText={
                                 touched.exchangeRate
                                   ? errors.exchangeRate
@@ -373,7 +390,8 @@ const NewTransaction: React.FC<Proptypes> = ({ visibility, setVisibility }) => {
                               id="amountNaira"
                               label="Amount in Naira"
                               value={values.amountNaira}
-                              placeholder="Amount in Naira"
+                              onChangeText={handleChange('amountNaira')}
+                              // placeholder="Amount in Naira"
                               keyboardType="numeric"
                               errorText={
                                 touched.amountNaira
@@ -382,7 +400,7 @@ const NewTransaction: React.FC<Proptypes> = ({ visibility, setVisibility }) => {
                               }
                               readOnly
                             />
-                            {+values.departmentId < 3 ? (
+                            {+selectedDepartmentId < 3 ? (
                               <>
                                 <CustomSelect
                                   currValue={values.cardType}
@@ -399,7 +417,7 @@ const NewTransaction: React.FC<Proptypes> = ({ visibility, setVisibility }) => {
                                   onChangeText={handleChange('cardNumber')}
                                   onBlur={handleBlur('cardNumber')}
                                   label="Card Number"
-                                  placeholder="Enter card number"
+                                  // placeholder="Enter card number"
                                   errorText={
                                     touched.cardNumber
                                       ? errors.cardNumber
@@ -416,7 +434,7 @@ const NewTransaction: React.FC<Proptypes> = ({ visibility, setVisibility }) => {
                                   onChangeText={handleChange('cryptoAmount')}
                                   onBlur={handleBlur('cryptoAmount')}
                                   label="Crypto Amount"
-                                  placeholder="Enter crypto amount"
+                                  // placeholder="Enter crypto amount"
                                   errorText={
                                     touched.cryptoAmount
                                       ? errors.cryptoAmount
@@ -430,13 +448,13 @@ const NewTransaction: React.FC<Proptypes> = ({ visibility, setVisibility }) => {
                                   onChangeText={handleChange('fromAddress')}
                                   onBlur={handleBlur('fromAddress')}
                                   label="From Address"
-                                  placeholder="Enter from address"
+                                  // placeholder="Enter from address"
                                   errorText={
                                     touched.fromAddress
                                       ? errors.fromAddress
                                       : undefined
                                   }
-                                  keyboardType="numeric"
+                                  keyboardType="default"
                                 />
                                 <Input
                                   id="toAddress"
@@ -444,8 +462,8 @@ const NewTransaction: React.FC<Proptypes> = ({ visibility, setVisibility }) => {
                                   onChangeText={handleChange('toAddress')}
                                   onBlur={handleBlur('toAddress')}
                                   label="To Address"
-                                  placeholder="Enter to address"
-                                  keyboardType="numeric"
+                                  // placeholder="Enter to address"
+                                  keyboardType="default"
                                   errorText={
                                     touched.toAddress
                                       ? errors.toAddress
@@ -461,8 +479,11 @@ const NewTransaction: React.FC<Proptypes> = ({ visibility, setVisibility }) => {
                       <TouchableOpacity
                         onPress={handleSubmit as any}
                         style={styles.button}
+                        disabled={
+                          isCardTransactionPending || isCryptoTransactionPending
+                        }
                       >
-                        <Text style={styles.buttonText}>Continue</Text>
+                        {<Text style={styles.buttonText}>Continue</Text>}
                       </TouchableOpacity>
                       {/* <TouchableOpacity
                         ref={resetButtonRef}

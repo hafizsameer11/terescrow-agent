@@ -25,9 +25,11 @@ import { Image } from 'expo-image';
 import { bottomMenuItems, topMenuItems } from '@/utils/data';
 import Header from '@/components/Header';
 import { useTheme } from '@/contexts/themeContext';
+import { useAuth } from '@/contexts/authContext';
 
 export default function TabLayout() {
   const { dark } = useTheme();
+  const { userData } = useAuth();
 
   const Separater = () => {
     return (
@@ -55,7 +57,7 @@ export default function TabLayout() {
         >
           <TouchableOpacity>
             <Image
-              source={images.user1}
+              source={userData?.profilePicture || images.avatar}
               style={{ width: 74, height: 74, borderRadius: 50 }}
               contentFit="contain"
             />
@@ -65,7 +67,7 @@ export default function TabLayout() {
               Welcome
             </Text>
             <Text style={{ fontSize: 14, fontWeight: '400', lineHeight: 16 }}>
-              {'Mehmood'}
+              {userData?.firstname + ' ' + userData?.lastname}
             </Text>
           </View>
         </View>

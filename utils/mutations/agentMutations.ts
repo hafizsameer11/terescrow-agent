@@ -1,6 +1,6 @@
 import { API_ENDPOINTS } from '../apiConfig';
 import { apiCall, ApiResponse } from '../customApiCalls';
-import { IResMessage } from '../queries/agentQueries';
+import { ChatStatus, IResMessage } from '../queries/agentQueries';
 
 export const sendMessageToCustomer = async (
   data: { chatId: string; message: string },
@@ -56,18 +56,12 @@ interface IMesssageToCustomer extends ApiResponse {
   data: IResMessage;
 }
 
-export enum ChatStatus {
-  pending,
-  successful,
-  declined,
-}
-
 interface ITransactionReq {
   departmentId: number;
   categoryId: number;
   subCategoryId: number;
   countryId: number;
-  customerId: number;
+  chatId: number;
   amount: number;
   exchangeRate: number;
   amountNaira: number;
