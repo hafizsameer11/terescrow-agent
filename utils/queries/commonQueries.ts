@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { apiCall, ApiResponse } from '../customApiCalls';
 import { API_ENDPOINTS } from '../apiConfig';
+import { ChatType, IUser } from './agentQueries';
 
 export const getDepartments = async (
   token: string
@@ -32,6 +33,17 @@ export const getSubCategories = async (
 ): Promise<ISubCategoryResponse> => {
   return await apiCall(
     `${API_ENDPOINTS.COMMON.GetActionSubacategories}?departmentId=${departmentId}&categoryId=${categoryId}`,
+    'GET',
+    undefined,
+    token
+  );
+};
+
+export const getAllTeamChats = async (
+  token: string
+): Promise<ITeamChatResponse> => {
+  return await apiCall(
+    API_ENDPOINTS.COMMON.GetAllTeamChats,
     'GET',
     undefined,
     token
@@ -81,4 +93,32 @@ export interface ISubCategoryResponse extends ApiResponse {
       }
     ];
   };
+}
+
+interface ITeamChatResponse extends ApiResponse {
+  data: {
+    id: number;
+    _count: {
+      messages: number;
+    };
+    chatType: ChatType;
+    participants: {
+      user: IUser;
+    }[];
+    messages: {
+      id: number;
+      createdAt: Date;
+      updatedAt: Date;
+      chatId: number;
+      message: string;
+      senderId: number;
+      receiverId: number;
+      isRead: boolean;
+    }[];
+    chatGroup: {
+      groupName: string;
+      groupProfile: string | null;
+      adminId: number;
+    } | null;
+  }[];
 }

@@ -1,13 +1,14 @@
-import { Text, View, StyleSheet, Pressable } from "react-native";
-import { Image } from "expo-image";
-import { COLORS } from "@/constants";
-import { Colors } from "@/constants/Colors";
-import { Route, useRouter } from "expo-router";
+import { Text, View, StyleSheet, Pressable } from 'react-native';
+import { Image } from 'expo-image';
+import { COLORS } from '@/constants';
+import { Colors } from '@/constants/Colors';
+import { Route, useRouter } from 'expo-router';
+import { timeFormatter } from '@/utils/helpers';
 
 const TeamChatContactList: React.FC<{
   pfp: string;
   name: string;
-  date: string;
+  date?: Date;
   recentMsg: string;
   isDarkMode: boolean;
   id: string;
@@ -33,7 +34,9 @@ const TeamChatContactList: React.FC<{
           >
             {props.name}
           </Text>
-          <Text style={styles.dateText}>{props.date}</Text>
+          <Text style={styles.dateText}>
+            {props.date && timeFormatter(props.date)}
+          </Text>
         </View>
 
         {/* Recent Message and Unread Messages Row */}
@@ -57,8 +60,8 @@ const TeamChatContactList: React.FC<{
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 23,
   },
   profileImage: {
@@ -71,33 +74,33 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   nameDateRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 10,
   },
   nameText: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   dateText: {
     fontSize: 12,
-    color: "#888",
+    color: '#888',
   },
   messageRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   recentMessage: {
     fontSize: 12,
-    color: "#555",
+    color: '#555',
     flex: 1,
   },
   unreadMsgContainer: {
     width: 20,
     height: 20,
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
     borderRadius: 50,
     backgroundColor: COLORS.primary,
   },

@@ -5,20 +5,20 @@ import {
   Modal,
   TouchableOpacity,
   View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import ChatPfpNav from "@/components/ChatPfpNav";
-import { COLORS, images } from "@/constants";
-import { useTheme } from "@/contexts/themeContext";
-import { useEffect, useRef, useState } from "react";
-import { Text } from "react-native";
-import { Image } from "expo-image";
-import { FlatList } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import MessageInput from "@/components/MessageInput";
-import { useLocalSearchParams } from "expo-router";
-import { DUMMY_ALL } from "@/utils/dummyAll";
-import { DUMMY_CHAT } from "@/utils/dummyChat";
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import ChatPfpNav from '@/components/ChatPfpNav';
+import { COLORS, images } from '@/constants';
+import { useTheme } from '@/contexts/themeContext';
+import { useEffect, useRef, useState } from 'react';
+import { Text } from 'react-native';
+import { Image } from 'expo-image';
+import { FlatList } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import MessageInput from '@/components/MessageInput';
+import { useLocalSearchParams } from 'expo-router';
+import { DUMMY_ALL } from '@/utils/dummyAll';
+import { DUMMY_CHAT } from '@/utils/dummyChat';
 
 type Message = {
   id: string;
@@ -28,25 +28,25 @@ type Message = {
 };
 
 const individualMessage = [
-  { id: "1", text: "Hello! Send details", isUser: true },
-  { id: "2", text: "Checking!!!", isUser: false },
+  { id: '1', text: 'Hello! Send details', isUser: true },
+  { id: '2', text: 'Checking!!!', isUser: false },
   {
-    id: "3",
-    text: "Valid bro. Your account has been credited.",
+    id: '3',
+    text: 'Valid bro. Your account has been credited.',
     isUser: false,
   },
-  { id: "4", text: "Thanks chief", isUser: true },
+  { id: '4', text: 'Thanks chief', isUser: true },
 ];
 
 const groupMessages = [
-  { id: "1", text: "Hello! Send details", isUser: false },
-  { id: "2", text: "Checking!!!", isUser: false },
+  { id: '1', text: 'Hello! Send details', isUser: false },
+  { id: '2', text: 'Checking!!!', isUser: false },
   {
-    id: "3",
-    text: "Valid bro. Your account has been credited.",
+    id: '3',
+    text: 'Valid bro. Your account has been credited.',
     isUser: false,
   },
-  { id: "4", text: "Thanks chief", isUser: false },
+  { id: '4', text: 'Thanks chief', isUser: false },
 ];
 
 const UserChat = () => {
@@ -74,13 +74,13 @@ const UserChat = () => {
     if (!image) {
       newMessage = {
         id: (messages.length + 1).toString(),
-        text: message || "",
+        text: message || '',
         isUser: true,
       };
     } else {
       newMessage = {
         id: (messages.length + 1).toString(),
-        text: message || "",
+        text: message || '',
         isUser: true,
         image: image,
       };
@@ -91,7 +91,7 @@ const UserChat = () => {
     setTimeout(() => {
       const responseMessage: Message = {
         id: (messages.length + 2).toString(),
-        text: "This is a dummy response!",
+        text: 'This is a dummy response!',
         isUser: false,
       };
       setMessages((prevMessages) => [...prevMessages, responseMessage]);
@@ -104,7 +104,7 @@ const UserChat = () => {
     <View
       style={[
         styles.messageWrapper,
-        { flexDirection: item.isUser ? "row-reverse" : "row" },
+        { flexDirection: item.isUser ? 'row-reverse' : 'row' },
       ]}
     >
       {/* Profile Picture */}
@@ -133,7 +133,7 @@ const UserChat = () => {
             <Text
               style={[
                 styles.timestamp,
-                { alignSelf: item.isUser ? "flex-end" : "flex-start" },
+                { alignSelf: item.isUser ? 'flex-end' : 'flex-start' },
               ]}
             >
               {new Date().toLocaleTimeString()}
@@ -146,8 +146,8 @@ const UserChat = () => {
 
   //this event listener scrolls to bottom to view full content
   useEffect(() => {
-    Keyboard.addListener("keyboardDidShow", () => {
-      console.log("ok");
+    Keyboard.addListener('keyboardDidShow', () => {
+      console.log('ok');
       setTimeout(() => scrollToBottom(), 200);
     });
 
@@ -176,7 +176,7 @@ const UserChat = () => {
           onContentSizeChange={scrollToBottom}
         />
 
-        <MessageInput sendMessage={sendMessage} />
+        <MessageInput sendMessage={sendMessage} sendingMessage={false} />
 
         {imagePreview && (
           <Modal transparent={true} visible={!!imagePreview}>
@@ -209,7 +209,7 @@ const UserChat = () => {
     >
       <ChatPfpNav
         name={userData[0].name}
-        status={userData[0].online ? "Online" : "Offline"}
+        status={userData[0].online ? 'Online' : 'Offline'}
         image={userData[0].pfp}
       />
       {renderAgentChat()}
@@ -220,26 +220,26 @@ const UserChat = () => {
 export default UserChat;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
+  container: { flex: 1, backgroundColor: '#fff' },
   chatContainer: { padding: 10 },
   messageContainer: {
-    maxWidth: "70%",
+    maxWidth: '70%',
     borderRadius: 10,
     marginVertical: 5,
     paddingVertical: 10,
   },
-  userMessage: { alignSelf: "flex-end", backgroundColor: "#DCF8C6" },
-  otherMessage: { alignSelf: "flex-start", backgroundColor: "#E5E5E5" },
+  userMessage: { alignSelf: 'flex-end', backgroundColor: '#DCF8C6' },
+  otherMessage: { alignSelf: 'flex-start', backgroundColor: '#E5E5E5' },
   messageText: { fontSize: 16, borderRadius: 8 },
   timestamp: { fontSize: 12, marginTop: 5, color: COLORS.grayscale400 },
-  dynamicImage: { width: "100%", height: undefined, aspectRatio: 1 },
+  dynamicImage: { width: '100%', height: undefined, aspectRatio: 1 },
   inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: 20,
     paddingHorizontal: 10,
     borderTopWidth: 1,
-    borderColor: "#ddd",
+    borderColor: '#ddd',
   },
   input: {
     flex: 1,
@@ -260,38 +260,38 @@ const styles = StyleSheet.create({
     borderColor: COLORS.grayscale400,
   },
   sendMessage: {
-    position: "absolute",
+    position: 'absolute',
     right: 20,
     paddingVertical: 10,
     paddingRight: 20,
   },
   imagePickerContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   optionButton: {
     backgroundColor: COLORS.white,
     padding: 15,
     marginVertical: 10,
     borderRadius: 10,
-    width: "80%",
-    alignItems: "center",
+    width: '80%',
+    alignItems: 'center',
   },
   optionText: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     color: COLORS.black,
   },
   previewContainer: {
     flex: 1,
-    backgroundColor: "#000",
-    justifyContent: "center",
+    backgroundColor: '#000',
+    justifyContent: 'center',
   },
-  previewImage: { width: "100%", height: "100%", resizeMode: "contain" },
+  previewImage: { width: '100%', height: '100%', resizeMode: 'contain' },
   closeButton: {
-    position: "absolute",
+    position: 'absolute',
     top: 20,
     left: 20,
     backgroundColor: COLORS.white,
@@ -309,8 +309,8 @@ const styles = StyleSheet.create({
     marginVertical: 5,
   },
   messageWithTimestamp: {
-    flexDirection: "column",
-    alignItems: "flex-start",
+    flexDirection: 'column',
+    alignItems: 'flex-start',
     paddingTop: 5,
     paddingLeft: 14,
     paddingRight: 14,
