@@ -117,8 +117,8 @@ const chat = () => {
             pfp={item.customer.profilePicture}
             name={item.customer.firstname + ' ' + item.customer.lastname}
             icon={icons.gallery}
-            time={item.recentMessageTimestamp}
-            msg={item.recentMessage}
+            time={item?.recentMessageTimestamp}
+            msg={item?.recentMessage.message}
             status={item.chatStatus}
           />
         )}

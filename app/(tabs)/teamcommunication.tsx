@@ -11,9 +11,10 @@ import TeamGroupModal from '@/components/TeamGroupModal';
 import { useSocket } from '@/contexts/socketContext';
 import { useAuth } from '@/contexts/authContext';
 import { QueryClient, useQuery } from '@tanstack/react-query';
-import { getChatDetails } from '@/utils/queries/agentQueries';
+import { getCustomerChatDetails } from '@/utils/queries/agentQueries';
 import { getAllTeamChats } from '@/utils/queries/commonQueries';
 import { images } from '@/constants';
+import { sortChatsByLatestMessage } from '@/utils/helpers';
 
 interface User {
   id: string;
@@ -53,24 +54,24 @@ const TeamCommunication = () => {
     setModalVisibility(modalState);
   };
 
-  const filterDataHandler = (selectedItem: string) => {
-    let filteredData = DUMMY_ALL;
-    // Filter by category
-    if (selectedItem === 'Group') {
-      filteredData = filteredData.filter((item) => item.group);
-    } else if (selectedItem === 'Unread') {
-      filteredData = filteredData.filter((item) => !item.seen);
-    }
+  // const filterDataHandler = (selectedItem: string) => {
+  //   let filteredData = DUMMY_ALL;
+  //   // Filter by category
+  //   if (selectedItem === 'Group') {
+  //     filteredData = filteredData.filter((item) => item.group);
+  //   } else if (selectedItem === 'Unread') {
+  //     filteredData = filteredData.filter((item) => !item.seen);
+  //   }
 
-    // Filter by search term
-    if (searchTerm) {
-      filteredData = filteredData.filter((item) =>
-        item.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+  //   // Filter by search term
+  //   if (searchTerm) {
+  //     filteredData = filteredData.filter((item) =>
+  //       item.name.toLowerCase().includes(searchTerm.toLowerCase())
+  //     );
+  //   }
 
-    return filteredData;
-  };
+  //   return filteredData;
+  // };
 
   const handleSearchChange = (searchTerm: string) => {
     setSearchTerm(searchTerm); // Update the search term state
@@ -83,7 +84,7 @@ const TeamCommunication = () => {
     );
     setSelectedUsers(filteredUsers);
   };
-  console.log(selectedUsers);
+  // console.log(allChatsData);
 
   return (
     <View
@@ -110,7 +111,7 @@ const TeamCommunication = () => {
         />
         {/* Chat list */}
         <FlatList
-          data={allChatsData?.data}
+          data={sortChatsByLatestMessage(allChatsData?.data)}
           style={styles.chatList}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => {

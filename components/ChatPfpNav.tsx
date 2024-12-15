@@ -1,17 +1,51 @@
-import { StyleSheet, View, Text } from "react-native";
-import { Image } from "expo-image";
-import { COLORS, icons } from "@/constants";
-import { Pressable } from "react-native";
-import { useRouter } from "expo-router";
-import { useTheme } from "@/contexts/themeContext";
-import { Colors } from "@/constants/Colors";
+import { StyleSheet, View, Text } from 'react-native';
+import { Image } from 'expo-image';
+import { COLORS, icons, images } from '@/constants';
+import { Pressable } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useTheme } from '@/contexts/themeContext';
+import { Colors } from '@/constants/Colors';
+import { ITeamChatDetailsResponse } from '@/utils/queries/commonQueries';
+import { ChatType } from '@/utils/queries/agentQueries';
+import { useSocket } from '@/contexts/socketContext';
 
-const ChatPfpNav: React.FC<{ image: string; name: string; status: string }> = (
-  props
-) => {
+let profilePicture: string;
+let profileName: string;
+let receiverStatus = '';
+
+const ChatPfpNav: React.FC<{
+  chatDetails: ITeamChatDetailsResponse['data'] | undefined;
+}> = ({ chatDetails }) => {
   const { dark } = useTheme();
+  const { onlineAgents, isAdminOnline } = useSocket();
   const router = useRouter();
 
+  if (chatDetails) {
+    const { chatGroup, chatType, participants } = chatDetails;
+
+    if (chatType == ChatType.group_chat) {
+      profileName = chatGroup?.groupName!;
+      profilePicture = chatGroup?.groupProfile!;
+      onlineAgents.forEach((agent) => {
+        if (+agent.userId == +participants[0]?.user.id) {
+          receiverStatus = 'Online';
+        }
+      });
+      if (
+        receiverStatus == '' &&
+        isAdminOnline &&
+        +participants[0]?.user.id == +isAdminOnline.userId
+      ) {
+        receiverStatus = 'Online';
+      } else {
+        receiverStatus = 'Offline';
+      }
+    } else {
+      const receiver = participants[0]?.user;
+      profileName = receiver?.firstname + ' ' + receiver?.lastname;
+      profilePicture = receiver?.profilePicture!;
+    }
+  }
   const backPressHandler = () => {
     router.back();
   };
@@ -27,7 +61,10 @@ const ChatPfpNav: React.FC<{ image: string; name: string; status: string }> = (
     >
       <View style={styles.mainContentContainer}>
         <View>
-          <Image source={props.image} style={{ width: 58, height: 58 }} />
+          <Image
+            source={profilePicture || images.avatar}
+            style={{ width: 58, height: 58 }}
+          />
         </View>
         <View style={styles.mainTextContainer}>
           <Text
@@ -36,17 +73,19 @@ const ChatPfpNav: React.FC<{ image: string; name: string; status: string }> = (
               dark ? { color: Colors.dark.text } : { color: Colors.light.text },
             ]}
           >
-            {props.name}
+            {profileName || 'Unknown'}
           </Text>
 
-          <Text
-            style={[
-              styles.agentStatus,
-              props.status === "Offline" && { color: COLORS.red },
-            ]}
-          >
-            {props.status}
-          </Text>
+          {receiverStatus && (
+            <Text
+              style={[
+                styles.agentStatus,
+                receiverStatus === 'Offline' && { color: COLORS.red },
+              ]}
+            >
+              {receiverStatus}
+            </Text>
+          )}
         </View>
       </View>
 
@@ -75,9 +114,9 @@ export default ChatPfpNav;
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
     backgroundColor: COLORS.white,
@@ -88,23 +127,23 @@ const styles = StyleSheet.create({
   },
   closeIcon: {
     padding: 3,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 4,
   },
   mainContentContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
   },
   mainTextContainer: {
     marginLeft: 12,
     paddingVertical: 5,
-    flexDirection: "column",
+    flexDirection: 'column',
     justifyContent: 'space-between',
   },
   mainHeading: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   agentStatus: {
     fontSize: 12,

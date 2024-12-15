@@ -3,7 +3,7 @@ import { apiCall, ApiResponse } from '../customApiCalls';
 
 export const getAllChatsWithCustomer = async (
   token: string
-): Promise<IAllChatsRes> => {
+): Promise<IAllCustomerChatsRes> => {
   return await apiCall(
     API_ENDPOINTS.AGENT.GetAllChatsWithCustomer,
     'GET',
@@ -12,27 +12,37 @@ export const getAllChatsWithCustomer = async (
   );
 };
 
-export const getChatDetails = async (
+export const getCustomerChatDetails = async (
   chatId: string,
   token: string
 ): Promise<IChatDetailsRes> => {
   return await apiCall(
-    API_ENDPOINTS.AGENT.GetChatDetails + '/' + chatId,
+    API_ENDPOINTS.AGENT.GetCustomerChatDetails + '/' + chatId,
     'GET',
     undefined,
     token
   );
 };
 
-interface IAllChatsRes extends ApiResponse {
+export interface IAllCustomerChatsRes extends ApiResponse {
   data: {
     id: number;
     customer: IUser;
-    recentMessage: string;
+    recentMessage: IResMessage;
     recentMessageTimestamp: Date;
     chatStatus: ChatStatus;
     messagesCount: number;
   }[];
+}
+
+interface ChatDetails {
+  id: number;
+  createdAt: Date;
+  updatedAt: Date;
+  chatId: number;
+  departmentId: number;
+  categoryId: number;
+  status: ChatStatus;
 }
 
 interface IChatDetailsRes extends ApiResponse {
@@ -40,15 +50,7 @@ interface IChatDetailsRes extends ApiResponse {
     id: number;
     customer: IUser;
     messages: IResMessage[];
-    chatDetails: {
-      id: number;
-      createdAt: Date;
-      updatedAt: Date;
-      chatId: number;
-      departmentId: number;
-      categoryId: number;
-      status: ChatStatus;
-    };
+    chatDetails: ChatDetails;
     chatType: ChatType;
     createdAt: Date;
     updatedAt: Date;

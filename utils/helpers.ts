@@ -1,4 +1,6 @@
 import Toast from 'react-native-toast-message';
+import { ITeamChatResponse } from './queries/commonQueries';
+import { IAllCustomerChatsRes } from './queries/agentQueries';
 
 export const showTopToast = (props: showTopToastProps) => {
   Toast.show({
@@ -27,3 +29,39 @@ interface showTopToastProps {
   text1: string;
   text2: string;
 }
+
+export const sortChatsByLatestMessage = (
+  chats: ITeamChatResponse['data'] | undefined
+): typeof chats => {
+  if (!chats) return undefined;
+
+  return [...chats].sort((a, b) => {
+    const latestMessageA = a.messages[0]?.createdAt
+      ? new Date(a.messages[0].createdAt).getTime()
+      : 0;
+    const latestMessageB = b.messages[0]?.createdAt
+      ? new Date(b.messages[0].createdAt).getTime()
+      : 0;
+
+    // Sort in descending order of the latest message's createdAt
+    return latestMessageB - latestMessageA;
+  });
+};
+
+export const sortCustomerChatsByLatestMessage = (
+  chats: IAllCustomerChatsRes['data'] | undefined
+): typeof chats => {
+  if (!chats) return undefined;
+
+  return [...chats].sort((a, b) => {
+    const latestMessageA = a?.recentMessage?.createdAt
+      ? new Date(a.recentMessage.createdAt).getTime()
+      : 0;
+    const latestMessageB = b?.recentMessage?.createdAt
+      ? new Date(b.recentMessage.createdAt).getTime()
+      : 0;
+
+    // Sort in descending order of the latest message's createdAt
+    return latestMessageB - latestMessageA;
+  });
+};
