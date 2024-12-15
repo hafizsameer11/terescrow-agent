@@ -44,6 +44,8 @@ export default function TabLayout() {
     );
   };
 
+  console.log(userData);
+
   const CustomDrawer = (props: DrawerContentComponentProps) => {
     return (
       <DrawerContentScrollView {...props}>

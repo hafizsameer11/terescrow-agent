@@ -28,7 +28,7 @@ import { useAuth } from '@/contexts/authContext';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   ChatStatus,
-  getChatDetails,
+  getCustomerChatDetails,
   IResMessage,
 } from '@/utils/queries/agentQueries';
 import MessageCom from '@/components/chat/MessageCom';
@@ -69,7 +69,7 @@ const TransactionChat = () => {
     error: chatDetailsError,
   } = useQuery({
     queryKey: ['customer-chat-details'],
-    queryFn: () => getChatDetails(chatId, token),
+    queryFn: () => getCustomerChatDetails(chatId, token),
   });
 
   // console.log(userData);

@@ -50,6 +50,18 @@ export const getAllTeamChats = async (
   );
 };
 
+export const getTeamChatDetails = async (
+  token: string,
+  chatId: string
+): Promise<ITeamChatDetailsResponse> => {
+  return await apiCall(
+    API_ENDPOINTS.COMMON.GetTeamChatDetails + '/' + chatId,
+    'GET',
+    undefined,
+    token
+  );
+};
+
 // department quick actions
 export interface IDepartmentResponse extends ApiResponse {
   data: {
@@ -95,7 +107,7 @@ export interface ISubCategoryResponse extends ApiResponse {
   };
 }
 
-interface ITeamChatResponse extends ApiResponse {
+export interface ITeamChatDetailsResponse extends ApiResponse {
   data: {
     id: number;
     _count: {
@@ -120,5 +132,9 @@ interface ITeamChatResponse extends ApiResponse {
       groupProfile: string | null;
       adminId: number;
     } | null;
-  }[];
+  };
+}
+
+export interface ITeamChatResponse extends ApiResponse {
+  data: ITeamChatDetailsResponse['data'][];
 }

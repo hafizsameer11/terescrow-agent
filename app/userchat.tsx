@@ -16,9 +16,22 @@ import { Image } from 'expo-image';
 import { FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import MessageInput from '@/components/MessageInput';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { DUMMY_ALL } from '@/utils/dummyAll';
 import { DUMMY_CHAT } from '@/utils/dummyChat';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { NavigationOptions } from 'expo-router/build/global-state/routing';
+import { NavigationProp } from '@react-navigation/native';
+import { getTeamChatDetails } from '@/utils/queries/commonQueries';
+import { useAuth } from '@/contexts/authContext';
+import { useSocket } from '@/contexts/socketContext';
+import { ChatType, IResMessage } from '@/utils/queries/agentQueries';
+import { sendMessageToTeam } from '@/utils/mutations/commonMutations';
+import TeamMessageCom from '@/components/TeamMessageCom';
+import LoadingOverlay from '@/components/LoadingOverlay';
+import chat from './(tabs)/chat';
+import { showTopToast } from '@/utils/helpers';
+import { ApiError } from '@/utils/customApiCalls';
 
 type Message = {
   id: string;
@@ -27,122 +40,98 @@ type Message = {
   image?: string;
 };
 
-const individualMessage = [
-  { id: '1', text: 'Hello! Send details', isUser: true },
-  { id: '2', text: 'Checking!!!', isUser: false },
-  {
-    id: '3',
-    text: 'Valid bro. Your account has been credited.',
-    isUser: false,
-  },
-  { id: '4', text: 'Thanks chief', isUser: true },
-];
-
-const groupMessages = [
-  { id: '1', text: 'Hello! Send details', isUser: false },
-  { id: '2', text: 'Checking!!!', isUser: false },
-  {
-    id: '3',
-    text: 'Valid bro. Your account has been credited.',
-    isUser: false,
-  },
-  { id: '4', text: 'Thanks chief', isUser: false },
-];
-
 const UserChat = () => {
   const { dark } = useTheme();
-  const { id } = useLocalSearchParams();
-  const userData = DUMMY_ALL.filter((item) => item.id === id);
-  // const userData =
-  //   id <= "13" && id >= "0"
-  //     ? DUMMY_ALL.filter((item) => item.id === id)
-  //     : DUMMY_CHAT.filter((item) => item.id === id);
+  const { id: currChatId }: { id: string } = useLocalSearchParams();
+  const { goBack, reset, navigate } = useNavigation<NavigationProp<any>>();
+  if (!currChatId) return;
+  const { token, userData } = useAuth();
+  const { socket } = useSocket();
+  const currParticipantsIds = useRef<number[]>([]);
   const flatListRef = useRef<FlatList>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Message[]>(
-    userData[0].group ? groupMessages : individualMessage
-  );
+  const [messages, setMessages] = useState<IResMessage[]>([]);
+  const {
+    data: chatDetailsData,
+    isLoading: chatDetailsLoading,
+    isError: isChatDetailsError,
+    error: chatDetailsError,
+  } = useQuery({
+    queryKey: ['chat-details', currChatId],
+    queryFn: () => getTeamChatDetails(token, currChatId),
+  });
+
+  const { mutate: sendMessage, isPending: sendingMessage } = useMutation({
+    mutationKey: ['send-team-message'],
+    mutationFn: (data: { message: string; chatId: number }) =>
+      sendMessageToTeam(data, token),
+    onSuccess: (data) => {
+      if (data?.data) {
+        setMessages((prevMessages) => [...prevMessages, data?.data]);
+      }
+    },
+    onError: (error: ApiError) => {
+      console.log(error);
+      showTopToast({
+        type: 'error',
+        text1: 'Error',
+        text2: error?.message || 'Failed to send message',
+      });
+    },
+  });
+
   const scrollToBottom = () => {
     flatListRef.current?.scrollToEnd({ animated: true });
   };
 
-  const sendMessage = (message?: string, image?: any) => {
-    if (!image && !message) return;
-
-    let newMessage: Message;
-
-    if (!image) {
-      newMessage = {
-        id: (messages.length + 1).toString(),
-        text: message || '',
-        isUser: true,
-      };
-    } else {
-      newMessage = {
-        id: (messages.length + 1).toString(),
-        text: message || '',
-        isUser: true,
-        image: image,
-      };
+  useEffect(() => {
+    if (socket) {
+      socket.on(
+        'message',
+        ({ from, message }: { from: number; message: IResMessage }) => {
+          console.log(from, message);
+          console.log('My id: ', userData?.id);
+          console.log('participants: ', currParticipantsIds.current);
+          if (
+            from == userData?.id ||
+            !currParticipantsIds.current.includes(from)
+          )
+            return;
+          setMessages((prevMessages) => [...prevMessages, message]);
+          setTimeout(() => {
+            scrollToBottom();
+          }, 200);
+        }
+      );
     }
 
-    setMessages((prevMessages) => [...prevMessages, newMessage]);
+    return () => {
+      socket?.off('message');
+    };
+  }, [socket]);
 
-    setTimeout(() => {
-      const responseMessage: Message = {
-        id: (messages.length + 2).toString(),
-        text: 'This is a dummy response!',
-        isUser: false,
-      };
-      setMessages((prevMessages) => [...prevMessages, responseMessage]);
-      scrollToBottom();
-    }, 1000);
-    scrollToBottom();
+  useEffect(() => {
+    if (chatDetailsData?.data) {
+      if (chatDetailsData?.data?.participants.length > 0) {
+        currParticipantsIds.current = [
+          ...chatDetailsData?.data.participants,
+        ].map((participant) => participant?.user.id);
+      }
+      setMessages(chatDetailsData?.data.messages);
+    }
+  }, [chatDetailsData]);
+  const handleSendMessage = (message?: string, image?: any) => {
+    if (!image && !message) return;
+
+    console.log(message);
+
+    if (message) {
+      sendMessage({
+        message,
+        chatId: Number(currChatId),
+      });
+    }
   };
-
-  const renderMessage = ({ item }: { item: Message }) => (
-    <View
-      style={[
-        styles.messageWrapper,
-        { flexDirection: item.isUser ? 'row-reverse' : 'row' },
-      ]}
-    >
-      {/* Profile Picture */}
-      <Image
-        source={[item.isUser ? images.logo : userData[0].pfp]}
-        style={styles.profilePicture}
-      />
-
-      {/* Message Content */}
-      <View
-        style={[
-          styles.messageContainer,
-          item.isUser ? styles.userMessage : styles.otherMessage,
-        ]}
-      >
-        {item.image && (
-          <TouchableOpacity
-            onPress={() => setImagePreview(item.image as string)}
-          >
-            <Image source={{ uri: item.image }} style={styles.dynamicImage} />
-          </TouchableOpacity>
-        )}
-        {!item.image && (
-          <View style={styles.messageWithTimestamp}>
-            <Text style={styles.messageText}>{item.text}</Text>
-            <Text
-              style={[
-                styles.timestamp,
-                { alignSelf: item.isUser ? 'flex-end' : 'flex-start' },
-              ]}
-            >
-              {new Date().toLocaleTimeString()}
-            </Text>
-          </View>
-        )}
-      </View>
-    </View>
-  );
 
   //this event listener scrolls to bottom to view full content
   useEffect(() => {
@@ -170,13 +159,21 @@ const UserChat = () => {
         <FlatList
           ref={flatListRef}
           data={messages}
-          keyExtractor={(item) => item.id}
-          renderItem={renderMessage}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <TeamMessageCom
+              messageData={item}
+              participants={chatDetailsData?.data.participants!}
+            />
+          )}
           contentContainerStyle={styles.chatContainer}
           onContentSizeChange={scrollToBottom}
         />
 
-        <MessageInput sendMessage={sendMessage} sendingMessage={false} />
+        <MessageInput
+          sendMessage={handleSendMessage}
+          sendingMessage={sendingMessage}
+        />
 
         {imagePreview && (
           <Modal transparent={true} visible={!!imagePreview}>
@@ -207,11 +204,8 @@ const UserChat = () => {
           : { backgroundColor: COLORS.white },
       ]}
     >
-      <ChatPfpNav
-        name={userData[0].name}
-        status={userData[0].online ? 'Online' : 'Offline'}
-        image={userData[0].pfp}
-      />
+      <LoadingOverlay visible={chatDetailsLoading} />
+      <ChatPfpNav chatDetails={chatDetailsData?.data} />
       {renderAgentChat()}
     </SafeAreaView>
   );
@@ -222,17 +216,6 @@ export default UserChat;
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   chatContainer: { padding: 10 },
-  messageContainer: {
-    maxWidth: '70%',
-    borderRadius: 10,
-    marginVertical: 5,
-    paddingVertical: 10,
-  },
-  userMessage: { alignSelf: 'flex-end', backgroundColor: '#DCF8C6' },
-  otherMessage: { alignSelf: 'flex-start', backgroundColor: '#E5E5E5' },
-  messageText: { fontSize: 16, borderRadius: 8 },
-  timestamp: { fontSize: 12, marginTop: 5, color: COLORS.grayscale400 },
-  dynamicImage: { width: '100%', height: undefined, aspectRatio: 1 },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -297,24 +280,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderRadius: 50,
     padding: 5,
-  },
-  profilePicture: {
-    width: 40,
-    height: 40,
-    marginTop: 6,
-    borderRadius: 20,
-    marginHorizontal: 10,
-  },
-  messageWrapper: {
-    marginVertical: 5,
-  },
-  messageWithTimestamp: {
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    paddingTop: 5,
-    paddingLeft: 14,
-    paddingRight: 14,
-    paddingBottom: 5,
   },
   groupMessage: {
     borderColor: COLORS.primary,
