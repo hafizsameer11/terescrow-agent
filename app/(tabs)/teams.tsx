@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -15,81 +15,174 @@ import { useTheme } from "@/contexts/themeContext";
 import Box from "@/components/DashboardBox";
 import RecentChats from "@/components/RecentChats";
 import Button from "@/components/Button";
+import { getTeam } from "@/utils/queries/adminQueries";
+import { token } from "@/utils/apiConfig";
+import { useQuery } from "@tanstack/react-query";
 
 const getRandomStatus = () => {
   const statuses = ["successfull", "failed", "pending"];
   return statuses[Math.floor(Math.random() * statuses.length)];
 };
 
-const dummyData = Array(15)
-  .fill(3)
-  .map(() => ({
-    name: "Razer Gold",
-    status: getRandomStatus(),
-    subTitle: "Adam",
-    date: "Nov 7, 2024",
-    role: "manager",
-  }));
+// const dummyData = Array(15)
+//   .fill(3)
+//   .map(() => ({
+//     name: "Razer Gold",
+//     status: getRandomStatus(),
+//     subTitle: "Adam",
+//     date: "Nov 7, 2024",
+//     role: "manager",
+//   }));
+
 
 export default function Department() {
   const [query, setQuery] = useState("");
   const { dark } = useTheme();
   const [activeBtn, setActiveBtn] = useState("active");
-  const [filteredData, setFilteredData] = useState(dummyData);
+  const [filteredData, setFilteredData] = useState([]);
   const [selectedOption, setSelectedOption] = useState("Role");
+  const [menuVisible, setMenuVisible] = useState<string | null>(null);
+
   const textColor = {
     color: dark ? COLORS.white : COLORS.black,
   };
 
-  const handlePress = (btn: string) => {
-    setActiveBtn(btn);
-  };
-
-  const handleSearch = (text: string) => {
-    setQuery(text);
-    if (query === "") {
-      setFilteredData(dummyData);
+  // Fetch Data from API
+  const { data: teamData, isLoading, isError, error } = useQuery({
+    queryKey: ['teamData'],
+    queryFn: () => getTeam({ token }),
+    enabled: !!token,
+  });
+  console.log("Team Data",teamData);
+  const handleMenuToggle = (index: string) => {
+    if (menuVisible === index) {
+      setMenuVisible(null);
     } else {
-      const filterData = dummyData.filter((item) =>
-        item.name.toLowerCase().includes(text.toLowerCase())
-      );
-      setFilteredData(filterData);
+      setMenuVisible(index);
     }
   };
 
-  const renderRow = (item: (typeof dummyData)[0], index: number) => {
+  // Update Data on Fetch
+  useEffect(() => {
+    if (teamData?.data) {
+      setFilteredData(teamData.data);
+    }
+  }, [teamData]);
+
+  // Handle Button Press
+  const handlePress = (btn: string) => setActiveBtn(btn);
+
+  // Search Filter
+  const handleSearch = (text: string) => {
+    setQuery(text);
+    const filterData = teamData?.data.filter((item) =>
+      item.user.username.toLowerCase().includes(text.toLowerCase())
+    );
+    setFilteredData(filterData || []);
+  };
+
+  // Render Each Row
+  const renderRow = (item, index) => {
     const getStatusBgColor = (status: string) => {
-      if (status === "successfull") return COLORS.primary;
-      if (status === "pending") return COLORS.warning;
-      if (status === "failed") return COLORS.red;
+      if (status === "online") return COLORS.primary;
+      if (status === "offline") return COLORS.warning;
       return COLORS.transparentWhite;
     };
+
+    const handleViewCustomerDetails = (customerId: number) => {
+      // Search in both sources
+      const customer =
+        getAllCustomerss?.data.find(
+          (item: Customer) => item.id === customerId
+        ) ||
+        customerTransactions?.data.find(
+          (item: Transaction) => item.customer?.id === customerId
+        )?.customer;
+    
+      console.log("The Details", customer);
+      setMenuVisible(null);
+    
+      if (customer) {
+        push(`/profile?id=${customer.id}`);
+      } else {
+        console.error("Customer not found");
+      }
+    };
+
     return (
       <View style={tableHeader.row} key={index}>
-        <View style={[tableHeader.cell, tableHeader.nameCell]}>
+        <View style={[tableHeader.cell, tableHeader.nameCell, {width: '50%'}]}>
           <Image
-            source={icons.bitCoin}
+            source={icons.userDefault}
             style={{
               width: 20,
               height: 20,
               tintColor: dark ? COLORS.white : COLORS.black,
             }}
           />
-          <Text style={[{ marginLeft: 8 }, textColor]}>{item.name}</Text>
-          <Text
+          <Text style={[{ marginLeft: 8 }, textColor]}>
+            {item.user.firstname} {item.user.lastname}
+          </Text>
+          <View
             style={{
               width: 15,
               height: 15,
               marginLeft: 8,
               borderRadius: 50,
-              backgroundColor: getStatusBgColor(item.status),
+              backgroundColor: getStatusBgColor(item.AgentStatus),
             }}
-          ></Text>
+          />
         </View>
-        <Text style={[tableHeader.cell, textColor]}>{item.date}</Text>
-        <Text style={[tableHeader.cell, textColor]}>{item.role}</Text>
+        <Text style={[tableHeader.cell, textColor]}>
+          {new Date(item.user.createdAt).toLocaleDateString()}
+        </Text>
+        <Text style={[tableHeader.cell, textColor]}>{item.user.role}</Text>
+        <Text>
+        <View style={styles.menuContainer}>
+                <TouchableOpacity onPress={() => handleMenuToggle(item.id)}>
+                  <Image
+                    source={icons.threeDots}
+                    style={[
+                      styles.dotsImage,
+                      { tintColor: dark ? COLORS.white : COLORS.black },
+                    ]}
+                  />
+                </TouchableOpacity>
+
+                {menuVisible === item.id && (
+                  <View
+                    style={[
+                      styles.dropdownMenu,
+                      { backgroundColor: dark ? COLORS.dark2 : COLORS.white },
+                    ]}
+                  >
+                    <TouchableOpacity
+                      onPress={() => handleViewCustomerDetails(item.id)}
+                    >
+                      <Text style={[styles.dropdownItem, textColor]}>
+                        View Customer Details
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      // onPress={() => handleTransactionModal(item.id)}
+                    >
+                      <Text style={[styles.dropdownItem, textColor]}>
+                        View Transaction Details
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity>
+                      <Text style={[styles.dropdownItem, textColor]}>
+                        Notifications
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+        </Text>
         <View style={[tableHeader.actionCell, tableHeader.nameCell]}>
-          <Button
+          {/* <Button
             title="Assign Agents"
             fontSize={12}
             style={{
@@ -100,16 +193,14 @@ export default function Department() {
               borderColor: COLORS.primary,
             }}
             textColor={COLORS.primary}
-          />
-          <TouchableOpacity style={styles.iconButton}>
+          /> */}
+          {/* <TouchableOpacity style={styles.iconButton}>
             <Image source={icons.eye2} style={styles.icon} />
           </TouchableOpacity>
-
           <TouchableOpacity style={styles.iconButton}>
             <Image source={icons.edit} style={styles.icon} />
-          </TouchableOpacity>
-
-          <TouchableOpacity>
+          </TouchableOpacity> */}
+          {/* <TouchableOpacity>
             <Image
               source={icons.trash}
               style={[
@@ -117,11 +208,12 @@ export default function Department() {
                 { tintColor: COLORS.red, width: 25, height: 25 },
               ]}
             />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
     );
   };
+
   return (
     <SafeAreaView
       style={[
@@ -131,20 +223,14 @@ export default function Department() {
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.container}>
-          <Text
-            style={[
-              styles.title,
-              { color: dark ? COLORS.white : COLORS.black },
-            ]}
-          >
-            Teams
-          </Text>
-          <Button
+          <Text style={[styles.title, textColor]}>Teams</Text>
+          {/* <Button
             title="Add new Team"
             style={{ borderRadius: 10, height: 40 }}
             fontSize={12}
-          />
+          /> */}
         </View>
+
         <View style={{ padding: 10 }}>
           <View style={styles.row}>
             <Box title="Total Income" value="$1,000" percentage={7} condition />
@@ -182,23 +268,18 @@ export default function Department() {
             <View style={styles.iconContainer}>
               <Image
                 source={icons.search}
-                style={[
-                  styles.icon,
-                  { tintColor: dark ? COLORS.white : COLORS.black },
-                ]}
+                style={[styles.icon, { tintColor: dark ? COLORS.white : COLORS.black }]}
               />
             </View>
             <TextInput
-              style={[
-                styles.searchBar,
-                { color: dark ? COLORS.white : COLORS.black },
-              ]}
+              style={[styles.searchBar, textColor]}
               placeholder="Search"
-              placeholderTextColor={dark ? COLORS.white : COLORS.black}
+              placeholderTextColor={textColor.color}
               value={query}
               onChangeText={handleSearch}
             />
           </View>
+
           <View
             style={[
               styles.pickerContainer,
@@ -221,11 +302,10 @@ export default function Department() {
                   source={icons.arrowDown}
                   style={{
                     width: 20,
-                    height: 20,
-                    padding: 10,
                     position: "absolute",
-                    right: -5,
-                    top: 8,
+                    top: 7,
+                    left: -13,
+                    height: 20,
                     tintColor: dark ? COLORS.white : COLORS.black,
                   }}
                 />
@@ -233,34 +313,21 @@ export default function Department() {
             />
           </View>
         </View>
+
         <View
           style={[
             styles.headerButtonsContainer,
-            { borderColor: dark ? COLORS.dark2 : "#ccc", borderWidth: 1, marginBottom: 20 },
+            { borderColor: dark ? COLORS.dark2 : "#ccc", borderWidth: 1 },
           ]}
         >
           <TouchableOpacity
             onPress={() => handlePress("active")}
             style={[
               styles.button,
-              activeBtn === "active" && styles.activeButton,
+              activeBtn === "active" && styles.activeButton
             ]}
           >
-            <Text
-              style={[
-                styles.buttonText,
-                {
-                  color:
-                    activeBtn === "active"
-                      ? COLORS.white
-                      : dark
-                      ? COLORS.white
-                      : COLORS.black,
-                },
-              ]}
-            >
-              Active
-            </Text>
+            <Text style={[styles.buttonText, activeBtn === "active" && { color: COLORS.white }]}>Active</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => handlePress("deleted")}
@@ -269,24 +336,10 @@ export default function Department() {
               activeBtn === "deleted" && styles.activeButton,
             ]}
           >
-            <Text
-              style={[
-                styles.buttonText,
-                {
-                  color:
-                    activeBtn === "deleted"
-                      ? COLORS.white
-                      : dark
-                      ? COLORS.white
-                      : COLORS.black,
-                },
-              ]}
-            >
-              Deleted
-            </Text>
+            <Text style={[styles.buttonText, activeBtn === "deleted" && { color: COLORS.white }]}>Deleted</Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+
       <ScrollView horizontal>
         <View>
           <View
@@ -298,15 +351,16 @@ export default function Department() {
               },
             ]}
           >
-            <Text style={[tableHeader.headerCell, textColor]}>Name</Text>
+            <Text style={[tableHeader.headerCell, textColor]}>Team Name</Text>
             <Text style={[tableHeader.headerCell, textColor]}>Date Added</Text>
             <Text style={[tableHeader.headerCell, textColor]}>Role</Text>
             <Text style={[tableHeader.headerCell, textColor]}>Action</Text>
           </View>
-          <ScrollView style={tableHeader.tableBody}>
+          <View style={{marginBottom: 100}}>
             {filteredData.map((item, index) => renderRow(item, index))}
-          </ScrollView>
+          </View>
         </View>
+      </ScrollView>
       </ScrollView>
     </SafeAreaView>
   );
@@ -325,6 +379,27 @@ const styles = StyleSheet.create({
   scrollContainer: {
     paddingHorizontal: 10,
     marginBottom: 300,
+  },
+  menuContainer: {
+    marginRight: 10,
+  },
+  dropdownItem: {
+    padding: 10,
+  },
+  dropdownMenu: {
+    position: "absolute",
+    top: -10,
+    right: 20,
+    elevation: 5,
+    borderRadius: 5,
+    padding: 10,
+    width: 200,
+    zIndex: 300,
+  },
+  dotsImage: {
+    width: 20,
+    height: 20,
+    zIndex: 2,
   },
   headerButtonsContainer: {
     flexDirection: "row",
@@ -348,13 +423,16 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 10,
     backgroundColor: "transparent",
+    color: COLORS.white,
   },
   activeButton: {
     backgroundColor: COLORS.primary,
     borderRadius: 10,
+    color: COLORS.white,
   },
   buttonText: {
     fontWeight: "bold",
+    
   },
   searchContainer: {
     alignItems: "center",
@@ -365,7 +443,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   searchBar: {
-    height: 40,
+    height: 35,
     width: "70%",
   },
   title: {
@@ -425,8 +503,9 @@ const tableHeader = StyleSheet.create({
     paddingHorizontal: 10,
   },
   tableBody: {
-    maxHeight: "85%",
     paddingTop: 10,
+    marginBottom: 50,
+    width: "100%",
   },
   row: {
     flexDirection: "row",
@@ -436,11 +515,11 @@ const tableHeader = StyleSheet.create({
   },
   cell: {
     flex: 1,
-    paddingHorizontal: 10,
+    width: '100%',
     textAlign: "center",
   },
   actionCell: {
-    flex: 1,
+    // flex: 1,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -456,13 +535,13 @@ const tableHeader = StyleSheet.create({
   },
   dropdownMenu: {
     position: "absolute",
-    top: 30,
+    top: 0,
     right: 20,
     elevation: 5,
     borderRadius: 5,
     padding: 10,
     width: 200,
-    zIndex: 200,
+    zIndex: 300,
   },
   dropdownItem: {
     padding: 10,

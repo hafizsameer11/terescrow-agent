@@ -76,7 +76,7 @@ export default function Customer() {
             <Box title="Total Outflow" value="$500" percentage={4} condition />
           </View>
         </View>
-        <View>
+        <View style={{minHeight: 300}}>
           <RecentChats indexChats={false} />
         </View>
       </ScrollView>

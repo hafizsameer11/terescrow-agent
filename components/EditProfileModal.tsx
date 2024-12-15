@@ -175,7 +175,7 @@ const EditProfileModal = ({
                         { color: dark ? COLORS.white : COLORS.black },
                       ]}
                     >
-                      {userName.charAt(0).toUpperCase()}
+                      {userName}
                     </Text>
                   </View>
                 )}

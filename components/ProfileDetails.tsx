@@ -19,58 +19,42 @@ interface userDetailsProps {
   alignRight: boolean;
 }
 
-const ProfileDetails = () => {
-  const { id } = useLocalSearchParams();
-  const customer = usersData.find((item) => item.id === id);
+interface ProfileDetailsProps {
+  email?: string;
+  phoneNumber?: string;
+  gender?: string;
+  country?: string;
+}
+
+const ProfileDetails: React.FC<ProfileDetailsProps> = ({
+  email,
+  phoneNumber,
+  gender,
+  country,
+}) => {
   const { dark } = useTheme();
 
-  const [userDetails, setUserDetails] = useState<userDetailsProps[]>([
-    { label: "Email Address", value: "", icon: icons.email, alignRight: false },
-    { label: "Phone Number", value: "", icon: icons.call, alignRight: true },
+  // Update details when props change
+  const userDetails: userDetailsProps[] = [
+    { label: "Email Address", value: email || "N/A", icon: icons.email, alignRight: false },
+    { label: "Phone Number", value: phoneNumber || "N/A", icon: icons.call, alignRight: true },
     {
       label: "Password",
       value: "********",
       icon: icons.lock,
       alignRight: false,
     },
-    { label: "Gender", value: "", icon: icons.userDefault, alignRight: true },
+    { label: "Gender", value: gender || "N/A", icon: icons.userDefault, alignRight: true },
     {
       label: "Referral Code",
-      value: "",
+      value: "N/A", // Placeholder for referral code
       icon: icons.bookmark,
       alignRight: false,
     },
-    { label: "Country", value: "", icon: icons.calendar, alignRight: true },
-  ]);
+    { label: "Country", value: country || "N/A", icon: icons.calendar, alignRight: true },
+  ];
 
-  useEffect(() => {
-    if (customer) {
-      setUserDetails((prevDetails) =>
-        prevDetails.map((detail) => {
-          let value = "N/A";
-          switch (detail.label) {
-            case "Email Address":
-              value = customer.email || "N/A";
-              break;
-            case "Phone Number":
-              value = customer.phoneNumber || "N/A";
-              break;
-            case "Gender":
-              value = customer.gender || "N/A";
-              break;
-            case "Referral Code":
-              value = customer.referralCode || "N/A";
-              break;
-            case "Country":
-              value = customer.country || "N/A";
-              break;
-          }
-          return { ...detail, value };
-        })
-      );
-    }
-  }, [customer]);
-
+  // Group details into rows
   const chunkedDetails = (details: userDetailsProps[]) => {
     let result: userDetailsProps[][] = [];
     for (let i = 0; i < details.length; i += 2) {
@@ -78,16 +62,6 @@ const ProfileDetails = () => {
     }
     return result;
   };
-
-  if (!customer) {
-    return (
-      <View style={styles.container}>
-        <Text style={{ color: dark ? COLORS.white : COLORS.black }}>
-          User not found.
-        </Text>
-      </View>
-    );
-  }
 
   return (
     <ScrollView style={styles.container}>
@@ -102,7 +76,7 @@ const ProfileDetails = () => {
               ]}
             >
               <View style={styles.iconContainer}>
-                <Image source={item.icon} style={[styles.icon]} />
+                <Image source={item.icon} style={styles.icon} />
               </View>
               <View style={styles.textContainer}>
                 <Text
@@ -137,6 +111,7 @@ const ProfileDetails = () => {
     </ScrollView>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {
