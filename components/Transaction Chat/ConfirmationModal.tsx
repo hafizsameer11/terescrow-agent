@@ -3,12 +3,21 @@ import { Image } from 'expo-image';
 import { COLORS, icons } from '@/constants';
 import { useTheme } from '@/contexts/themeContext';
 import NewTransaction from './NewTransaction';
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { ICategory, IDepartment } from '@/utils/queries/agentQueries';
 const ConfirmationModal: React.FC<{
   modalState: boolean;
   setModalState: React.Dispatch<React.SetStateAction<boolean>>;
   currChatId?: number;
-}> = ({ modalState, setModalState, currChatId }) => {
+  currDepartment?: IDepartment;
+  currCategory?: ICategory;
+}> = ({
+  modalState,
+  setModalState,
+  currChatId,
+  currCategory,
+  currDepartment,
+}) => {
   const [transactionModalVisibility, setTransactionModalVisibility] =
     useState(false);
   const { dark } = useTheme();
@@ -86,6 +95,8 @@ const ConfirmationModal: React.FC<{
         visibility={transactionModalVisibility}
         setVisibility={setTransactionModalVisibility}
         currChatId={currChatId}
+        currCategory={currCategory}
+        currDepartment={currDepartment}
       />
     </>
   );

@@ -306,6 +306,8 @@ const TransactionChat = () => {
         setModalState={setmodalVisibility}
         modalState={modalVisibility}
         currChatId={chatDetailsData?.data?.id}
+        currCategory={chatDetailsData?.data?.chatDetails?.category}
+        currDepartment={chatDetailsData?.data?.chatDetails?.department}
       />
 
       {chatDetailsData?.data?.chatDetails?.status &&

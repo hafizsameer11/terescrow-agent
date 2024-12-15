@@ -35,11 +35,31 @@ export interface IAllCustomerChatsRes extends ApiResponse {
   }[];
 }
 
+export interface IDepartment {
+  id: number;
+  createdAt: Date;
+  updatedAt: Date;
+  status: 'active' | 'inactive';
+  title: string;
+  description: string;
+  icon: string;
+}
+
+export interface ICategory {
+  id: number;
+  createdAt: Date;
+  updatedAt: Date;
+  title: string;
+  subTitle: string | null;
+  image: string | null;
+}
 interface ChatDetails {
   id: number;
   createdAt: Date;
   updatedAt: Date;
   chatId: number;
+  category: ICategory;
+  department: IDepartment;
   departmentId: number;
   categoryId: number;
   status: ChatStatus;

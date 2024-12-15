@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Text,
   View,
@@ -18,6 +18,8 @@ import {
   getCategories,
   getDepartments,
   getSubCategories,
+  ICategoryResponse,
+  IDepartmentResponse,
 } from '@/utils/queries/commonQueries';
 import { useAuth } from '@/contexts/authContext';
 import CustomSelect from '../CustomSelect';
@@ -32,11 +34,15 @@ import { Formik } from 'formik';
 import { validationNewTransaction } from '../Validation';
 import Input from '../CustomInput';
 import LoadingOverlay from '../LoadingOverlay';
+import { ICategory, IDepartment } from '@/utils/queries/agentQueries';
+import StaticInput from '../StaticInput';
 
 type Proptypes = {
   visibility: boolean;
   setVisibility: (value: boolean) => void;
   currChatId?: number;
+  currDepartment?: IDepartment;
+  currCategory?: ICategory;
 };
 
 const cardTypesData = [
@@ -48,35 +54,35 @@ const NewTransaction: React.FC<Proptypes> = ({
   visibility,
   setVisibility,
   currChatId,
+  currDepartment,
+  currCategory,
 }) => {
   // const [modalVisibility, setModalVisible] = useState(true);
   const { token, userData } = useAuth();
-  const [selectedDepartmentId, setSelectedDepartmentId] = useState('');
-  const [selectedCategoryId, setSelectedCategoryId] = useState('');
   const [selectedSubCategoryId, setSelectedSubCategoryId] = useState('');
   const resetButtonRef = useRef<typeof TouchableOpacity>(null);
   const queryClient = useQueryClient();
 
-  const {
-    data: departmentsData,
-    isLoading: departmentsLoading,
-    isError: isDepartmentsError,
-    error: departmentsError,
-  } = useQuery({
-    queryKey: ['all-departments'],
-    queryFn: () => getDepartments(token),
-  });
+  // const {
+  //   data: departmentsData,
+  //   isLoading: departmentsLoading,
+  //   isError: isDepartmentsError,
+  //   error: departmentsError,
+  // } = useQuery({
+  //   queryKey: ['all-departments'],
+  //   queryFn: () => getDepartments(token),
+  // });
 
-  const {
-    data: categoriesData,
-    isLoading: categoriesLoading,
-    isError: isCategoriesError,
-    error: categoriesError,
-  } = useQuery({
-    queryKey: [selectedDepartmentId, 'categories'],
-    queryFn: () => getCategories(token, selectedDepartmentId),
-    enabled: !!selectedDepartmentId,
-  });
+  // const {
+  //   data: categoriesData,
+  //   isLoading: categoriesLoading,
+  //   isError: isCategoriesError,
+  //   error: categoriesError,
+  // } = useQuery({
+  //   queryKey: [selectedDepartmentId, 'categories'],
+  //   queryFn: () => getCategories(token, selectedDepartmentId),
+  //   enabled: !!selectedDepartmentId,
+  // });
 
   const {
     data: subcategoriesData,
@@ -84,9 +90,14 @@ const NewTransaction: React.FC<Proptypes> = ({
     isError: isErrorSubcategories,
     error: errorSubcategories,
   } = useQuery({
-    queryKey: [selectedDepartmentId, selectedCategoryId, 'subcategories'],
+    queryKey: [currDepartment?.id, currCategory?.id, 'subcategories'],
     queryFn: () =>
-      getSubCategories(token, selectedDepartmentId, selectedCategoryId),
+      getSubCategories(
+        token,
+        currDepartment?.id.toString()!,
+        currCategory?.id.toString()!
+      ),
+    enabled: !!currDepartment?.id && !!currCategory?.id,
   });
 
   const { mutate: cryptoTrasaction, isPending: isCryptoTransactionPending } =
@@ -134,23 +145,21 @@ const NewTransaction: React.FC<Proptypes> = ({
     });
 
   const closeModal = () => {
-    setSelectedDepartmentId('');
-    setSelectedCategoryId('');
     setSelectedSubCategoryId('');
     setVisibility(false);
   };
 
-  const setDepartmentValue = (field: string, id: string) => {
-    if (id.toString() == selectedDepartmentId) return;
-    setSelectedDepartmentId(id.toString());
-    setSelectedCategoryId('');
-    setSelectedSubCategoryId('');
-  };
-  const setCategoryValue = (field: string, id: string) => {
-    if (id.toString() == selectedCategoryId) return;
-    setSelectedCategoryId(id.toString());
-    setSelectedSubCategoryId('');
-  };
+  // const setDepartmentValue = (field: string, id: string) => {
+  //   if (id.toString() == selectedDepartmentId) return;
+  //   setSelectedDepartmentId(id.toString());
+  //   setSelectedCategoryId('');
+  //   setSelectedSubCategoryId('');
+  // };
+  // const setCategoryValue = (field: string, id: string) => {
+  //   if (id.toString() == selectedCategoryId) return;
+  //   setSelectedCategoryId(id.toString());
+  //   setSelectedSubCategoryId('');
+  // };
 
   const setSubCategoryValue = (field: string, id: string) => {
     // if (id.toString() == selectedSubCategoryId) return;
@@ -178,11 +187,7 @@ const NewTransaction: React.FC<Proptypes> = ({
     <>
       <Modal animationType="fade" transparent={true} visible={visibility}>
         <LoadingOverlay
-          visible={
-            isCryptoTransactionPending ||
-            isCardTransactionPending ||
-            departmentsLoading
-          }
+          visible={isCryptoTransactionPending || isCardTransactionPending}
         />
         <View style={styles.overlay}>
           <View style={[styles.modalContainer]}>
@@ -220,8 +225,8 @@ const NewTransaction: React.FC<Proptypes> = ({
               onSubmit={(values) => {
                 console.log(values);
                 if (
-                  !selectedCategoryId ||
-                  !selectedSubCategoryId ||
+                  !currCategory ||
+                  !currDepartment ||
                   !currChatId ||
                   !userData?.id
                 )
@@ -230,13 +235,11 @@ const NewTransaction: React.FC<Proptypes> = ({
                   amount: +values.amount,
                   exchangeRate: +values.exchangeRate,
                   amountNaira: +values.amountNaira,
-                  categoryId: +selectedCategoryId,
+                  subCategoryId: +selectedSubCategoryId,
                   countryId: 2,
                   chatId: +currChatId,
-                  subCategoryId: +selectedSubCategoryId,
-                  departmentId: +selectedDepartmentId,
                 };
-                if (+selectedDepartmentId > 2) {
+                if (+currDepartment.id > 2) {
                   cryptoTrasaction({
                     data: {
                       ...compulsoryData,
@@ -268,58 +271,25 @@ const NewTransaction: React.FC<Proptypes> = ({
                 touched,
                 errors,
               }) => {
-                if (selectedDepartmentId !== selectedDepartmentId) {
-                  setSelectedDepartmentId(selectedDepartmentId);
-                  setSelectedCategoryId('');
-                  setSelectedSubCategoryId('');
-                }
-
                 return (
                   <>
                     <ScrollView style={styles.body}>
-                      {departmentsData?.data && (
-                        <CustomSelect
-                          key={'department'}
-                          currValue={selectedDepartmentId}
-                          options={[...departmentsData?.data].map((item) => ({
-                            id: item.id,
-                            title: item.title,
-                          }))}
-                          id="departmentId"
-                          modalLabel="Select Department"
-                          placeholder="-Select department-"
-                          setFieldValue={setDepartmentValue}
-                          // error={errors.departmentId}
+                      {currDepartment && (
+                        <StaticInput
+                          label="Department"
+                          text={currDepartment.title}
                         />
                       )}
-                      {selectedDepartmentId && categoriesData?.data ? (
-                        <CustomSelect
-                          key={'categoryId'}
-                          id="categoryId"
-                          currValue={selectedCategoryId}
-                          options={[...categoriesData?.data.categories].map(
-                            (item) => ({
-                              id: item.category.id,
-                              title: item.category.title,
-                            })
-                          )}
-                          modalLabel="Select Category"
-                          placeholder="-Select category-"
-                          setFieldValue={setCategoryValue}
-                          // error={errors.categoryId}
+
+                      {currCategory && (
+                        <StaticInput
+                          label="Category"
+                          text={currCategory.title}
                         />
-                      ) : categoriesLoading ? (
-                        <ActivityIndicator
-                          size="small"
-                          color={COLORS.primary}
-                        />
-                      ) : isCategoriesError ? (
-                        <Text style={{ color: 'red' }}>
-                          {categoriesError.message}
-                        </Text>
-                      ) : null}
-                      {selectedDepartmentId &&
-                        selectedCategoryId &&
+                      )}
+
+                      {currCategory &&
+                        currDepartment &&
                         (subcategoriesData?.data ? (
                           <CustomSelect
                             key={'subCategoryId'}
@@ -347,8 +317,8 @@ const NewTransaction: React.FC<Proptypes> = ({
                           </Text>
                         ) : null)}
 
-                      {selectedDepartmentId &&
-                        selectedCategoryId &&
+                      {currCategory &&
+                        currDepartment &&
                         selectedSubCategoryId && (
                           <>
                             <Input
@@ -400,7 +370,7 @@ const NewTransaction: React.FC<Proptypes> = ({
                               }
                               readOnly
                             />
-                            {+selectedDepartmentId < 3 ? (
+                            {+currDepartment.id < 3 ? (
                               <>
                                 <CustomSelect
                                   currValue={values.cardType}

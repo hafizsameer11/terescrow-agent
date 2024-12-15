@@ -57,8 +57,6 @@ interface IMesssageToCustomer extends ApiResponse {
 }
 
 interface ITransactionReq {
-  departmentId: number;
-  categoryId: number;
   subCategoryId: number;
   countryId: number;
   chatId: number;
