@@ -124,11 +124,11 @@ const Log = () => {
             Log Card
           </Text>
           <View style={[styles.headerButtonsContainer, { gap: 10 }]}>
-            <Button
+            {/* <Button
               title="Log New Card"
               style={[styles.customBtn, { height: 45 }]}
               fontSize={13}
-            />
+            /> */}
             <View
               style={[
                 styles.filterIconContainer,

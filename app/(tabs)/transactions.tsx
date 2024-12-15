@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -18,6 +18,10 @@ import RNPickerSelect from "react-native-picker-select";
 import Box from "@/components/DashboardBox";
 import { Route, router } from "expo-router";
 import FullTransactionModal from "@/components/TransactionDetailModal";
+import { useQuery } from "@tanstack/react-query";
+import { getTransactions, getCustomerTransactions } from "@/utils/queries/adminQueries";
+
+import { token } from "@/utils/apiConfig";
 
 const getRandomStatus = () => {
   const statuses = ["successfull", "failed", "pending"];
@@ -25,75 +29,98 @@ const getRandomStatus = () => {
 };
 
 
-const Transactions: React.FC<{ isShown: boolean }> = ({ isShown = true }) => {
-  const { name } = transactionsData[0];
+const Transactions: React.FC<{ isShown: boolean, customerId?: string }> = ({ isShown = true, customerId }) => {
+
+  console.log("Inside the Transaction Part", customerId);
+
   const { dark } = useTheme();
   const [activeBtn, setActiveBtn] = useState("All");
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [filteredData, setFilteredData] = useState(transactionsData);
+  const [filteredData, setFilteredData] = useState([]);
   const [selectedOption, setSelectedOption] = useState("Last 30 days");
   const [query, setQuery] = useState("");
   const [menuVisible, setMenuVisible] = useState<number | null>(null);
-  const userInitial = name.charAt(0).toUpperCase();
   const [transactionModalVisible, setTransactionModalVisible] = useState(false);
 
   const textColor = {
     color: dark ? COLORS.white : COLORS.black,
   };
+
+
+  const {
+    data: customerTransactions,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: customerId ? ["customerDetails", customerId] : ["customerTransactions"],
+    queryFn: () =>
+      customerId
+        ? getCustomerTransactions({ token, id: customerId })
+        : getTransactions({ token }),
+    enabled: !!token && (!!customerId || !customerId),
+  });
+
+  // Update State on Data Fetch
+  useEffect(() => {
+    if (customerTransactions?.data) {
+      setFilteredData(customerTransactions?.data);
+    }
+  }, [customerTransactions]);
+
+  // Search Filter Function
+  const handleSearch = (text: string) => {
+    setQuery(text);
+    const filtered = customerTransactions?.data.filter((item) =>
+      item.customer.username.toLowerCase().includes(text.toLowerCase())
+    );
+    setFilteredData(filtered || []);
+  };
+
+  const handlePressModal = () => {
+    setIsModalVisible(!isModalVisible);
+    setMenuVisible(null);
+  };
+
+ 
+
+  const handlePress = (btn: string) => {
+    setActiveBtn(btn);
+  };
+
   const handleMenuToggle = (index: number) => {
     setMenuVisible(menuVisible === index ? null : index);
   };
 
   const handleTransactionModal = (transactionId: string) => {
     setTransactionModalVisible(!transactionModalVisible);
+    setMenuVisible(null)
   };
 
-  const handleSearch = (text: string) => {
-    setQuery(text);
-    if (query === "") {
-      setFilteredData(transactionsData);
-    } else {
-      const filterData = transactionsData.filter((item) =>
-        item.name.toLowerCase().includes(text.toLowerCase())
-      );
-      setFilteredData(filterData);
-    }
-  };
-
-  const handlePressModal = () => {
-    setIsModalVisible(!isModalVisible);
-  };
-
-  const handlePress = (btn: string) => {
-    setActiveBtn(btn);
-  };
-
-  let transactionId;
-
-  const renderRow = ({
-    item,
-    index,
-  }: {
-    item: (typeof filteredData)[0];
-    index: number;
-  }) => {
+  // Render Each Row
+  const renderRow = ({ item, index }) => {
     const getStatusBgColor = (status: string) => {
-      if (status === "successfull") return COLORS.primary;
       if (status === "pending") return COLORS.warning;
+      if (status === "successfull") return COLORS.primary;
       if (status === "failed") return COLORS.red;
       return COLORS.transparentWhite;
     };
 
+    const handleCustomerDetails = () => {
+      router.push(`/profile?id=${item.customer.id}`)
+      setMenuVisible(null);
+    }
+
+    const handleTransactionDetails = () => {
+      handleTransactionModal(item.id)
+      setMenuVisible(null);
+    }
+
     return (
       <View style={tableHeader.row} key={index}>
         <View style={tableHeader.nameLocationCell}>
-          <View style={tableHeader.userInitialContainer}>
-            <Text style={textColor}>{userInitial}</Text>
-          </View>
-          <View style={tableHeader.nameSubTitleContainer}>
-            <Text style={[tableHeader.cell, textColor]}>{item.name}</Text>
-            <Text style={tableHeader.location}>{item.subTitle}</Text>
-          </View>
+          <Text style={[tableHeader.cell, textColor]}>
+            {item.customer.username}
+          </Text>
         </View>
 
         <Text
@@ -102,17 +129,19 @@ const Transactions: React.FC<{ isShown: boolean }> = ({ isShown = true }) => {
               backgroundColor: getStatusBgColor(item.status),
               borderRadius: 5,
               color: COLORS.white,
-              height: 30,
               padding: 4,
+              height: 30,
             },
           ]}
         >
           {item.status}
         </Text>
-        <Text style={[tableHeader.cell, textColor]}>{item.serviceType}</Text>
-        <Text style={[tableHeader.cell, textColor]}>{item.transctionType}</Text>
-        <Text style={[tableHeader.cell, textColor]}>{item.date}</Text>
-        <Text style={[tableHeader.cell, textColor]}>{item.amount}</Text>
+        <Text style={[tableHeader.cell, textColor]}>{item.cardType}</Text>
+        <Text style={[tableHeader.cell, textColor]}>{item.amountNaira}</Text>
+        <Text style={[tableHeader.cell, textColor]}>
+          {new Date(item.createdAt).toLocaleDateString()}
+        </Text>
+
         <View style={tableHeader.actionCell}>
           <TouchableOpacity onPress={() => handleMenuToggle(index)}>
             <Image
@@ -137,7 +166,7 @@ const Transactions: React.FC<{ isShown: boolean }> = ({ isShown = true }) => {
                 <TouchableOpacity style={[tableHeader.dropdownItem]}>
                   <Text
                     style={textColor}
-                    onPress={() => router.push(`/profile?id=${item.id}`)}
+                    onPress={handleCustomerDetails}
                   >
                     View Customer Details
                   </Text>
@@ -145,7 +174,7 @@ const Transactions: React.FC<{ isShown: boolean }> = ({ isShown = true }) => {
               )}
               <TouchableOpacity
                 style={[tableHeader.dropdownItem]}
-                onPress={() => handleTransactionModal(item.id)}
+                onPress={handleTransactionDetails}
               >
                 <Text style={textColor}>View Transaction Details</Text>
               </TouchableOpacity>
@@ -231,8 +260,8 @@ const Transactions: React.FC<{ isShown: boolean }> = ({ isShown = true }) => {
                     activeBtn === "All"
                       ? COLORS.white
                       : dark
-                      ? COLORS.white
-                      : COLORS.black,
+                        ? COLORS.white
+                        : COLORS.black,
                 },
               ]}
             >
@@ -254,8 +283,8 @@ const Transactions: React.FC<{ isShown: boolean }> = ({ isShown = true }) => {
                     activeBtn === "giftCard"
                       ? COLORS.white
                       : dark
-                      ? COLORS.white
-                      : COLORS.black,
+                        ? COLORS.white
+                        : COLORS.black,
                 },
               ]}
             >
@@ -277,8 +306,8 @@ const Transactions: React.FC<{ isShown: boolean }> = ({ isShown = true }) => {
                     activeBtn === "crypto"
                       ? COLORS.white
                       : dark
-                      ? COLORS.white
-                      : COLORS.black,
+                        ? COLORS.white
+                        : COLORS.black,
                 },
               ]}
             >
@@ -319,7 +348,8 @@ const Transactions: React.FC<{ isShown: boolean }> = ({ isShown = true }) => {
           visible={isModalVisible}
           onClose={() => setIsModalVisible(false)}
         />
-        <ScrollView horizontal>
+
+        <ScrollView horizontal style={{ minHeight: 300 }}>
           <View>
             <View
               style={[
@@ -331,17 +361,16 @@ const Transactions: React.FC<{ isShown: boolean }> = ({ isShown = true }) => {
               ]}
             >
               <Text style={[tableHeader.headerCell, textColor]}>
-                Name, Username
+                Name
               </Text>
               <Text style={[tableHeader.headerCell, textColor]}>Status</Text>
               <Text style={[tableHeader.headerCell, textColor]}>
-                Service Type
+                Card Type
               </Text>
               <Text style={[tableHeader.headerCell, textColor]}>
-                Transaction Type
+                Amount (₦)
               </Text>
               <Text style={[tableHeader.headerCell, textColor]}>Date</Text>
-              <Text style={[tableHeader.headerCell, textColor]}>Amount</Text>
               <Text style={[tableHeader.headerCell, textColor]}></Text>
             </View>
             <FlatList
@@ -352,6 +381,7 @@ const Transactions: React.FC<{ isShown: boolean }> = ({ isShown = true }) => {
             />
           </View>
         </ScrollView>
+
         <FullTransactionModal
           transactionId="4"
           visible={transactionModalVisible}

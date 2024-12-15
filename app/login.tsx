@@ -24,14 +24,15 @@ const Login = () => {
     mutationKey: ['login'],
     mutationFn: loginUser,
     onSuccess: async (data) => {
+      // Automatically redirect to tabs when the login is successful
       setToken(data.token)
         .then((res) => {
           setUserData(data?.data);
           reset({
             index: 0,
-            routes: [{ name: '(tabs)' }],
+            routes: [{ name: '(tabs)' }], // Reset the navigation stack to tabs
           });
-          navigate('(tabs)');
+          navigate('(tabs)'); // Navigate to the tabs directly
         })
         .catch((error) => {
           showTopToast({
@@ -86,9 +87,14 @@ const Login = () => {
             <Formik
               initialValues={{ email: '', password: '' }}
               validationSchema={validationSignIn}
-              onSubmit={(values) =>
-                mutate({ email: values.email, password: values.password })
-              }
+              onSubmit={() => {
+                // Skip credential check and redirect to tabs directly
+                reset({
+                  index: 0,
+                  routes: [{ name: '(tabs)' }], // Reset the stack
+                });
+                navigate('(tabs)'); // Navigate to tabs without validating credentials
+              }}
             >
               {({
                 handleChange,
@@ -130,8 +136,8 @@ const Login = () => {
                     />
                     <Button
                       title="Login"
-                      onPress={handleSubmit as any}
-                      isLoading={isPending}
+                      onPress={handleSubmit as any} // Triggers form submission
+                      isLoading={isPending} // Displays loading indicator
                     />
                   </View>
                 );
@@ -143,6 +149,7 @@ const Login = () => {
     </SafeAreaView>
   );
 };
+
 
 const styles = StyleSheet.create({
   scrollContainer: {

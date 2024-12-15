@@ -13,9 +13,15 @@ import { useRouter } from "expo-router";
 import { Image } from "expo-image";
 import FilterModal from "./FilterModal";
 import EditProfileModal from "./EditProfileModal";
-import { usersData } from "../utils/usersData";
+import { transactionDetails, usersData } from "../utils/usersData";
 import { transactionsData } from "../utils/usersData";
 import FullTransactionModal from "./TransactionDetailModal";
+import { gettAllCustomerss, getTransactions } from "@/utils/queries/adminQueries";
+import { useQuery } from "@tanstack/react-query";
+import { token } from "@/utils/apiConfig";
+import { Transaction, Customer } from "@/utils/queries/datainterfaces";
+
+
 
 const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
   const [query, setQuery] = useState("");
@@ -32,6 +38,27 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
   const { push } = useRouter();
   const { dark } = useTheme();
 
+  const { data: customerTransactions, isLoading: loadingTransactions } = useQuery({
+    queryKey: ["customerDetails"],
+    queryFn: () => getTransactions({ token }),
+    enabled: indexChats && !!token, // Only enabled if indexChats is true
+  });
+  const { data: getAllCustomerss, isLoading: loadingCustomers } = useQuery({
+    queryKey: ["getCustomers"],
+    queryFn: () => gettAllCustomerss({ token }),
+    enabled: !indexChats && !!token, // Only enabled if indexChats is false
+  });
+  
+  // Loading Placeholder
+  if (loadingTransactions || loadingCustomers) {
+    return <Text>Loading...</Text>;
+  }
+  
+  // Data to Display
+  const dataToRender = indexChats ? customerTransactions?.data : getAllCustomerss?.data;
+  
+  console.log("gettAllCustomerss", dataToRender);
+
   const handleSearch = (text: string) => {
     setQuery(text);
     if (text === "") {
@@ -46,6 +73,7 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
 
   const handleModalVisible = () => {
     setModalVisible(!modalVisible);
+    setMenuVisible(null)
   };
 
   const handleTransactionModal = (transactionId: string) => {
@@ -53,9 +81,7 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
     setIsTransactionModalVisible(true);
   };
 
-  const textColor = {
-    color: dark ? COLORS.white : COLORS.black,
-  };
+
 
   const handleMenuToggle = (index: string) => {
     if (menuVisible === index) {
@@ -67,22 +93,43 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
 
   const handleFilterPress = () => {
     setIsModalVisible(true);
+    setMenuVisible(null);
   };
 
-  const handleViewCustomerDetails = (customerId: string) => {
-    const customer = usersData.find((item) => item.id === customerId);
+  const handleViewCustomerDetails = (customerId: number) => {
+    // Search in both sources
+    const customer =
+      getAllCustomerss?.data.find(
+        (item: Customer) => item.id === customerId
+      ) ||
+      customerTransactions?.data.find(
+        (item: Transaction) => item.customer?.id === customerId
+      )?.customer;
+  
+    console.log("The Details", customer);
+    setMenuVisible(null);
+  
     if (customer) {
       push(`/profile?id=${customer.id}`);
+    } else {
+      console.error("Customer not found");
     }
   };
+  
+  
 
+  const textColor = {
+    color: dark ? COLORS.white : COLORS.black,
+  };
   const handleViewTransactionDetails = (transactionId: string) => {
     const transaction = transactionsData.find((item) => item.id === transactionId);
     if (transaction) {
       setSelectedTransactionId(transaction.id);
       setIsTransactionModalVisible(true);
+      setMenuVisible(null);
     }
   };
+  console.log(customerTransactions);
 
   return (
     <View style={styles.container}>
@@ -138,16 +185,17 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
         </View>
       </View>
       <FlatList
-        data={filteredData}
+        data={dataToRender}
         scrollEnabled={false}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
+        keyExtractor={(item: Transaction | Customer) => item.id.toString()}
+        renderItem={({ item }: { item: Transaction | Customer }) => (
           <View
             style={[
               styles.itemContainer,
               { backgroundColor: dark ? COLORS.dark2 : COLORS.white },
             ]}
           >
+            {/* Profile Initial */}
             <View
               style={[
                 styles.dpContainer,
@@ -160,9 +208,13 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
                   { color: dark ? COLORS.white : COLORS.black },
                 ]}
               >
-                {item.name.charAt(0).toUpperCase()}
+                {indexChats && "customer" in item
+                  ? item.customer?.firstname?.charAt(0).toUpperCase() || "N"
+                  : (item as Customer).firstname?.charAt(0).toUpperCase() || "N"}
               </Text>
             </View>
+
+            {/* Profile Details */}
             <View style={styles.textContainer}>
               <Text
                 style={[
@@ -170,12 +222,19 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
                   { color: dark ? COLORS.white : COLORS.black },
                 ]}
               >
-                {item.name}
+                {indexChats && "customer" in item
+                  ? item.customer?.firstname || "N/A"
+                  : (item as Customer).firstname || "N/A"}
               </Text>
-              <Text style={styles.username}>{item.username}</Text>
+              <Text style={styles.username}>
+                {indexChats && "customer" in item
+                  ? item.customer?.username || "N/A"
+                  : (item as Customer).username || "N/A"}
+              </Text>
             </View>
 
-            {indexChats ? (
+            {/* Status or Menu Section */}
+            {indexChats && "status" in item ? (
               <View style={[styles.statusContainer, { flexDirection: "row" }]}>
                 <Text
                   style={
@@ -184,8 +243,9 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
                       : styles.successfulStatus
                   }
                 >
-                  {item.status}
+                  {item.status || "Unknown"}
                 </Text>
+
                 <View style={styles.menuContainer}>
                   <TouchableOpacity onPress={() => handleMenuToggle(item.id)}>
                     <Image
@@ -205,12 +265,15 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
                       ]}
                     >
                       <TouchableOpacity
-                        onPress={() => handleViewCustomerDetails(item.id)}
+                        onPress={() =>
+                          handleViewCustomerDetails((item as Transaction).customerId)
+                        }
                       >
                         <Text style={[styles.dropdownItem, textColor]}>
                           View Customer Details
                         </Text>
                       </TouchableOpacity>
+
                       <TouchableOpacity
                         onPress={() => handleTransactionModal(item.id)}
                       >
@@ -224,15 +287,6 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
               </View>
             ) : (
               <View style={styles.menuContainer}>
-                <Text
-                  style={[
-                    styles.statusCircle,
-                    {
-                      backgroundColor:
-                        item.status === "Failed" ? COLORS.red : COLORS.primary,
-                    },
-                  ]}
-                />
                 <TouchableOpacity onPress={() => handleMenuToggle(item.id)}>
                   <Image
                     source={icons.threeDots}
@@ -257,6 +311,7 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
                         View Customer Details
                       </Text>
                     </TouchableOpacity>
+
                     <TouchableOpacity
                       onPress={() => handleTransactionModal(item.id)}
                     >
@@ -264,6 +319,7 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
                         View Transaction Details
                       </Text>
                     </TouchableOpacity>
+
                     <TouchableOpacity onPress={handleModalVisible}>
                       <Text style={[styles.dropdownItem, textColor]}>
                         Notifications
@@ -276,6 +332,9 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
           </View>
         )}
       />
+
+
+
 
       <FilterModal
         visible={isModalVisible}
@@ -411,13 +470,13 @@ const styles = StyleSheet.create({
   },
   dropdownMenu: {
     position: "absolute",
-    top: 30,
+    top: 0,
     right: 20,
     elevation: 5,
     borderRadius: 5,
     padding: 10,
     width: 200,
-    zIndex: 200,
+    zIndex: 300,
   },
 });
 

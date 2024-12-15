@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -15,47 +15,70 @@ import { useTheme } from '@/contexts/themeContext';
 import Box from '@/components/DashboardBox';
 import RecentChats from '@/components/RecentChats';
 import Button from '@/components/Button';
+import { getDepartments } from '@/utils/queries/adminQueries';
+import { useQuery } from '@tanstack/react-query';
+import { token } from '@/utils/apiConfig';
+
+export interface Department {
+  id: number;
+  title: string;
+  description?: string;
+  icon?: string;
+  status?: string;
+  noOfAgents?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 const getRandomStatus = () => {
   const statuses = ['active', 'offline'];
   return statuses[Math.floor(Math.random() * statuses.length)];
 };
 
-const dummyData = Array(15)
-  .fill(3)
-  .map(() => ({
-    name: 'Razer Gold',
-    type: 'E-Code',
-    status: getRandomStatus(),
-    noOfAgents: 3,
-    description: 'Buying of cryptocurrency',
-  }));
 
 export default function Department() {
   const [query, setQuery] = useState('');
   const { dark } = useTheme();
-  const [filteredData, setFilteredData] = useState(dummyData);
+  const [filteredData, setFilteredData] = useState<Department[]>([]);
   const textColor = {
     color: dark ? COLORS.white : COLORS.black,
   };
+
+  // API Fetching with React Query
+  const { data: departmentsData, isLoading, isError, error } = useQuery({
+    queryKey: ['departmentsData'],
+    queryFn: () => getDepartments({ token }),
+    enabled: !!token,
+  });
+
+  // Effect to initialize filtered data on load
+  useEffect(() => {
+    if (departmentsData?.data) {
+      setFilteredData(departmentsData.data);
+    }
+  }, [departmentsData]);
+  console.log("Inside the Deaprtment", departmentsData);
+  // Search Filter
   const handleSearch = (text: string) => {
     setQuery(text);
-    if (query === '') {
-      setFilteredData(dummyData);
+    if (text === '') {
+      setFilteredData(departmentsData?.data || []);
     } else {
-      const filterData = dummyData.filter((item) =>
-        item.name.toLowerCase().includes(text.toLowerCase())
+      const filterData = departmentsData?.data.filter((item: Department) =>
+        item.title.toLowerCase().includes(text.toLowerCase())
       );
-      setFilteredData(filterData);
+      setFilteredData(filterData || []);
     }
   };
 
-  const renderRow = (item: (typeof dummyData)[0], index: number) => {
+  // Renders Table Row
+  const renderRow = (item: Department, index: number) => {
     const getStatusBgColor = (status: string) => {
       if (status === 'active') return COLORS.primary;
       if (status === 'offline') return COLORS.warning;
       return COLORS.transparentWhite;
     };
+
     return (
       <View style={tableHeader.row} key={index}>
         <View style={[tableHeader.cell, tableHeader.nameCell]}>
@@ -67,16 +90,17 @@ export default function Department() {
               tintColor: dark ? COLORS.white : COLORS.black,
             }}
           />
-          <Text style={[{ marginLeft: 8 }, textColor]}>{item.name}</Text>
+          <Text style={[{ marginLeft: 8 }, textColor]}>{item.title}</Text>
         </View>
         <Text
           style={[
             tableHeader.cell,
             {
-              backgroundColor: getStatusBgColor(item.status),
+              backgroundColor: getStatusBgColor(item?.status),
               borderRadius: 5,
               color: COLORS.white,
-              padding: 5,
+              paddingVertical: 5,
+              paddingHorizontal: 1,
             },
           ]}
         >
@@ -85,7 +109,7 @@ export default function Department() {
         <Text style={[tableHeader.cell, textColor]}>{item.noOfAgents}</Text>
         <Text style={[tableHeader.cell, textColor]}>{item.description}</Text>
         <View style={[tableHeader.actionCell, tableHeader.nameCell]}>
-          <Button
+          {/* <Button
             title="Assign Agents"
             fontSize={12}
             style={{
@@ -96,16 +120,16 @@ export default function Department() {
               borderColor: COLORS.primary,
             }}
             textColor={COLORS.primary}
-          />
-          <TouchableOpacity style={styles.iconButton}>
+          /> */}
+          {/* <TouchableOpacity style={styles.iconButton}>
             <Image source={icons.eye2} style={[styles.icon]} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.iconButton}>
             <Image source={icons.edit} style={styles.icon} />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
-          <TouchableOpacity>
+          {/* <TouchableOpacity>
             <Image
               source={icons.trash}
               style={[
@@ -113,11 +137,12 @@ export default function Department() {
                 { tintColor: COLORS.red, width: 25, height: 25 },
               ]}
             />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
     );
   };
+
   return (
     <View
       style={[
@@ -135,24 +160,20 @@ export default function Department() {
           >
             Department
           </Text>
-          <Button
+          {/* <Button
             title="Add new department"
             style={{ borderRadius: 10, height: 40 }}
             fontSize={12}
-          />
+          /> */}
         </View>
+
         <View style={{ padding: 10 }}>
           <View style={styles.row}>
             <Box title="Total Income" value="$1,000" percentage={7} condition />
             <Box title="Total Inflow" value="$500" percentage={5} condition />
           </View>
           <View style={styles.row}>
-            <Box
-              title="Total Expense"
-              value="$1,000"
-              percentage={8}
-              condition
-            />
+            <Box title="Total Expense" value="$1,000" percentage={8} condition />
             <Box title="Total Outflow" value="$500" percentage={4} condition />
           </View>
         </View>
@@ -186,7 +207,7 @@ export default function Department() {
             onChangeText={handleSearch}
           />
         </View>
-      </ScrollView>
+
       <ScrollView horizontal>
         <View>
           <View
@@ -198,22 +219,24 @@ export default function Department() {
               },
             ]}
           >
-            <Text style={[tableHeader.headerCell, textColor]}>Name</Text>
-            <Text style={[tableHeader.headerCell, textColor]}>Status</Text>
+            <Text style={[tableHeader.headerCell, textColor]}>Department Name</Text>
+            <Text style={[tableHeader.headerCell, textColor, { width: '25%' }]}>Status</Text>
             <Text style={[tableHeader.headerCell, textColor]}>
               No of Agents
             </Text>
             <Text style={[tableHeader.headerCell, textColor]}>Description</Text>
-            <Text style={[tableHeader.headerCell, textColor]}>Action</Text>
           </View>
+
           <ScrollView style={tableHeader.tableBody}>
             {filteredData.map((item, index) => renderRow(item, index))}
           </ScrollView>
         </View>
       </ScrollView>
+      </ScrollView>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   safeArea: {

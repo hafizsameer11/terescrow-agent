@@ -22,6 +22,9 @@ import { Route, router } from "expo-router";
 import NewNotificationModal from "@/components/NewNotification";
 import uuid from "react-native-uuid";
 import EditProfileModal from "@/components/EditProfileModal";
+import { useQuery } from "@tanstack/react-query";
+import { token } from "@/utils/apiConfig";
+import { getAllUsers } from "@/utils/queries/adminQueries";
 
 const getRandomStatus = () => {
   const statuses = ["successfull", "failed", "pending"];
@@ -42,6 +45,13 @@ const Users = () => {
   const [notificationsModalVisible, setNotificationsModalVisible] =
     useState(false);
   const [transactionModalVisible, setTransactionModalVisible] = useState(false);
+
+  const {data:userData, isLoading, isError, error} = useQuery({
+    queryKey: ['userData'],
+    queryFn: () => getAllUsers({ token }),
+    enabled: !!token,
+  })
+  console.log("userData", userData?.data);
 
   const handleTransactionModal = () => {
     setTransactionModalVisible(!transactionModalVisible);
@@ -84,11 +94,10 @@ const Users = () => {
   }: {
     item: {
       id: string;
-      name: string;
-      subTitle: string;
+      username: string;
       email: string;
-      joined: string;
-      category: string;
+      phoneNumber: string;
+      role: string;
       gender: string;
       status: string;
     };
@@ -108,14 +117,13 @@ const Users = () => {
             <Text style={textColor}>{userInitial}</Text>
           </View>
           <View style={tableHeader.nameSubTitleContainer}>
-            <Text style={[tableHeader.cell, textColor]}>{item.name}</Text>
-            <Text style={tableHeader.location}>{item.subTitle}</Text>
+            <Text style={[tableHeader.cell, textColor]}>{item.username}</Text>
           </View>
         </View>
 
-        <Text style={[tableHeader.cell, textColor]}>{item.email}</Text>
-        <Text style={[tableHeader.cell, textColor]}>{item.joined}</Text>
-        <Text style={[tableHeader.cell, textColor]}>{item.category}</Text>
+        <Text style={[tableHeader.cell, textColor,]}>{item.email}</Text>
+        <Text style={[tableHeader.cell, textColor]}>{item.phoneNumber}</Text>
+        <Text style={[tableHeader.cell, textColor]}>{item.role}</Text>
         <Text style={[tableHeader.cell, textColor]}>{item.gender}</Text>
         <Text
           style={[
@@ -410,14 +418,14 @@ const Users = () => {
                 Name, Username
               </Text>
               <Text style={[tableHeader.headerCell, textColor]}>Email</Text>
-              <Text style={[tableHeader.headerCell, textColor]}>Joined</Text>
-              <Text style={[tableHeader.headerCell, textColor]}>Category</Text>
+              <Text style={[tableHeader.headerCell, textColor]}>Mobile</Text>
+              <Text style={[tableHeader.headerCell, textColor]}>Role</Text>
               <Text style={[tableHeader.headerCell, textColor]}>Gender</Text>
               <Text style={[tableHeader.headerCell, textColor]}>Status</Text>
               <Text style={[tableHeader.headerCell, textColor]}></Text>
             </View>
             <FlatList
-              data={filteredData}
+              data={userData?.data}
               renderItem={renderRow}
               keyExtractor={(_, index) => index.toString()}
               style={{ maxHeight: 300 }}

@@ -13,43 +13,88 @@ import { usersData } from '@/utils/usersData';
 import KYCModal from '@/components/KYCModal';
 import Transactions from './transactions';
 import FullTransactionModal from '@/components/TransactionDetailModal';
+import { useQuery } from '@tanstack/react-query';
+import { getCustomerDetails } from '@/utils/queries/adminQueries';
+import { token } from '@/utils/apiConfig';
+import { Customer } from '@/utils/queries/datainterfaces';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-interface Customer {
-  id: string;
-  name: string;
-  email: string;
-  image: string;
-  gender: string;
-  mobileNumber: string;
-  country: string;
-}
+// interface Customer {
+//   id: string;
+//   name: string;
+//   email: string;
+//   image: string;
+//   gender: string;
+//   mobileNumber: string;
+//   country: string;
+// }
+
 
 const Profile = () => {
-  const { id } = useLocalSearchParams();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const [activeBtn, setActiveBtn] = useState('customerDetails');
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState<String | null>(null);
   const [mode, setMode] = useState('editProfile');
   const [customerData, setCustomerData] = useState<Customer | null>(null);
   const [kycModalVisible, setKYCModalVisible] = useState(false);
+  const [customerId, setCustomerId] = useState<string | null>(null);
+
   const { dark } = useTheme();
 
-  const customer = usersData.find((item) => item.id === id);
+// Store or Retrieve Customer ID
+useEffect(() => {
+  const manageCustomerId = async () => {
+    try {
+      let storedId = id;
 
+      if (!storedId) {
+        storedId = await AsyncStorage.getItem("customerId");
+      } else {
+        await AsyncStorage.setItem("customerId", storedId);
+      }
+
+      if (storedId) setCustomerId(storedId);
+    } catch (error) {
+      console.error("Error managing customer ID:", error);
+    }
+  };
+  manageCustomerId();
+}, [id]);
+
+console.log("Stored Customer ID:", customerId);
+
+// Fetch Customer Details using React Query
+const { data, isLoading, isError, error } = useQuery({
+  queryKey: ["customerDetails", customerId],
+  queryFn: () => getCustomerDetails({ token, id: customerId! }),
+  enabled: Boolean(customerId),
+
+  // Automatically refetch when customerId changes
+  refetchOnWindowFocus: true,
+  retry: 2,
+
+  // Optional: Handle errors if needed
+  onError: (error) => {
+    console.error("Error fetching customer details:", error);
+  },
+});
+
+
+  const customer: Customer | undefined = data?.data;
+  const { email, phoneNumber, gender, country } = customer || {};
+
+  // Handle Button Press
   const handlePress = (btn: string) => {
     setActiveBtn(btn);
   };
 
-  const handlePressModal = () => {
-    setModalVisible(true);
-  };
-  const handleKYCModal = () => {
-    setKYCModalVisible(true);
-  };
+  // Modals Handlers
+  const handlePressModal = () => setModalVisible(true);
+  const handleKYCModal = () => setKYCModalVisible(true);
 
-  const handleImageSelect = (uri: string) => {
-    setSelectedImage(uri);
-  };
+  // Image Selection Handler
+  const handleImageSelect = (uri: string) => setSelectedImage(uri);
 
   return (
     <View
@@ -80,8 +125,8 @@ const Profile = () => {
                     activeBtn === 'customerDetails'
                       ? COLORS.white
                       : dark
-                      ? COLORS.white
-                      : COLORS.black,
+                        ? COLORS.white
+                        : COLORS.black,
                 },
               ]}
             >
@@ -103,8 +148,8 @@ const Profile = () => {
                     activeBtn === 'transactionActivities'
                       ? COLORS.white
                       : dark
-                      ? COLORS.white
-                      : COLORS.black,
+                        ? COLORS.white
+                        : COLORS.black,
                 },
               ]}
             >
@@ -112,6 +157,7 @@ const Profile = () => {
             </Text>
           </TouchableOpacity>
         </View>
+
         <View style={{ marginTop: 10 }}>
           {activeBtn === 'customerDetails' && (
             <>
@@ -124,23 +170,19 @@ const Profile = () => {
                     />
                   ) : (
                     <Text style={styles.profileAvatarText}>
-                      {customer?.name.charAt(0).toUpperCase()}
+                      {customer?.username}
                     </Text>
                   )}
                 </View>
+
                 <View style={styles.profileDetails}>
-                  <Text style={styles.profileName}>{customer?.name}</Text>
+                  <Text style={styles.profileName}>{customer?.username}</Text>
                   <Text style={styles.profileSubDetails}>
-                    {customer?.usernameTag} - {'Tier 2'}
+                    {customer?.username} - {'Tier 2'}
                   </Text>
                 </View>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'flex-end',
-                    gap: 10,
-                  }}
-                >
+
+                <View style={{ flexDirection: 'row', gap: 10 }}>
                   <TouchableOpacity
                     style={[
                       styles.profileEditButton,
@@ -173,7 +215,14 @@ const Profile = () => {
                   </TouchableOpacity>
                 </View>
               </View>
-              <ProfileDetails />
+
+              <ProfileDetails
+                email={email}
+                phoneNumber={phoneNumber}
+                gender={gender}
+                country={country}
+              />
+
               <View
                 style={[
                   styles.accountActivitiesContainer,
@@ -206,32 +255,19 @@ const Profile = () => {
                     Nov 7, 2024 - 4:30PM
                   </Text>
                 </View>
-                <View style={styles.accountActivitiesSubContainer}>
-                  <Text
-                    style={[
-                      styles.accountActivitiesSubTitle,
-                      { color: dark ? COLORS.white : COLORS.black },
-                    ]}
-                  >
-                    Password Reset
-                  </Text>
-                  <Text style={{ color: dark ? COLORS.white : COLORS.black }}>
-                    Nov 7, 2024 - 4:30PM
-                  </Text>
-                </View>
               </View>
             </>
           )}
 
           {activeBtn === 'transactionActivities' && (
-            <Transactions isShown={false} />
+            <Transactions isShown={false} customerId={customerId!} />
           )}
         </View>
 
         <EditProfileModal
           visible={isModalVisible}
           onClose={() => setModalVisible(false)}
-          userName={customer?.name}
+          userName={customer?.username}
           mode="editProfile"
           onImageSelect={handleImageSelect}
           setMode={setMode}
@@ -246,6 +282,7 @@ const Profile = () => {
 };
 
 export default Profile;
+
 
 const styles = StyleSheet.create({
   safeArea: {
