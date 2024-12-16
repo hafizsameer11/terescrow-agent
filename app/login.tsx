@@ -35,6 +35,7 @@ const Login = () => {
   
         navigate('(tabs)');  // Navigate after resetting the stack
       } catch (error: any) {
+        console.error('Error logging in:', data);
         showTopToast({
           type: 'error',
           text1: 'Error',

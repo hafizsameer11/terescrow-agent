@@ -66,6 +66,8 @@ interface ITransactionReq {
 }
 interface ICryptoTransactionReq extends ITransactionReq {
   cryptoAmount: number;
+  departmentId?: number;
+  categoryId?: number;
   toAddress: string;
   fromAddress: string;
 }
@@ -73,4 +75,6 @@ interface ICryptoTransactionReq extends ITransactionReq {
 interface ICardTransactionReq extends ITransactionReq {
   cardType: string;
   cardNumber: string;
+  departmentId?: number;
+  categoryId?: number;
 }

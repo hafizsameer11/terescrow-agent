@@ -71,11 +71,6 @@ const TransactionChat = () => {
     queryKey: ['customer-chat-details'],
     queryFn: () => getCustomerChatDetails(chatId, token),
   });
-
-  // console.log(userData);
-
-  // console.log(chatDetailsData?.data);
-
   const { mutate: changeStatus, isPending: changeStatusPending } = useMutation({
     mutationFn: (data: { chatId: string; setStatus: ChatStatus }) =>
       changeChatStatus(data, token),
@@ -120,8 +115,6 @@ const TransactionChat = () => {
       });
     },
   });
-
-  //chat details handling
   useEffect(() => {
     if (chatDetailsData?.data.messages) {
       currCustomerId.current = chatDetailsData?.data.customer.id;
@@ -140,15 +133,12 @@ const TransactionChat = () => {
       setMessages([]);
     };
   }, [chatDetailsData]);
-
-  //socket logic handling..
   useEffect(() => {
     if (socket) {
       socket.on(
         'message',
         ({ from, message }: { from: number; message: IResMessage }) => {
-          // console.log(from, message);
-          // console.log('hgf');
+
           console.log('agentId', userData?.id);
           console.log('customerId', currCustomerId?.current);
           if (from == userData?.id || from !== currCustomerId?.current) return;
@@ -175,7 +165,11 @@ const TransactionChat = () => {
       }
     };
   }, [socket]);
-
+useEffect(() => {
+  if(chatDetailsData){
+    console.log("chatcategoryu", chatDetailsData.data.chatDetails);
+  }
+})
   const handleChangeStatus = (status: ChatStatus) => {
     if (changeStatusPending) return;
     if (status == ChatStatus.declined) {
