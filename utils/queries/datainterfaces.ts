@@ -73,7 +73,7 @@ export interface Agent {
   user: Customer;
 }
 
-interface Transaction {
+export interface Transaction {
   id: number;
   departmentId: number;
   categoryId: number;

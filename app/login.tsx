@@ -24,23 +24,23 @@ const Login = () => {
     mutationKey: ['login'],
     mutationFn: loginUser,
     onSuccess: async (data) => {
-      // Automatically redirect to tabs when the login is successful
-      setToken(data.token)
-        .then((res) => {
-          setUserData(data?.data);
-          reset({
-            index: 0,
-            routes: [{ name: '(tabs)' }], // Reset the navigation stack to tabs
-          });
-          navigate('(tabs)'); // Navigate to the tabs directly
-        })
-        .catch((error) => {
-          showTopToast({
-            type: 'error',
-            text1: 'Error',
-            text2: error.message,
-          });
+      try {
+        await setToken(data.token);  // Correctly await setToken
+        await setUserData(data?.data);  // Correctly await setUserData
+  
+        reset({
+          index: 0,
+          routes: [{ name: '(tabs)' }],
         });
+  
+        navigate('(tabs)');  // Navigate after resetting the stack
+      } catch (error: any) {
+        showTopToast({
+          type: 'error',
+          text1: 'Error',
+          text2: error.message,
+        });
+      }
     },
     onError: (error: ApiError) => {
       showTopToast({
@@ -50,6 +50,7 @@ const Login = () => {
       });
     },
   });
+  
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -87,13 +88,9 @@ const Login = () => {
             <Formik
               initialValues={{ email: '', password: '' }}
               validationSchema={validationSignIn}
-              onSubmit={() => {
+              onSubmit={(values) => {
                 // Skip credential check and redirect to tabs directly
-                reset({
-                  index: 0,
-                  routes: [{ name: '(tabs)' }], // Reset the stack
-                });
-                navigate('(tabs)'); // Navigate to tabs without validating credentials
+                mutate(values);  // Correctly submit login cr
               }}
             >
               {({
