@@ -127,7 +127,7 @@ const TeamCommunication = () => {
               const receiver = item.participants.filter(
                 (participant) => participant.user.id !== userData?.id
               )[0]?.user;
-              profileName = receiver?.firstname + ' ' + receiver?.lastname;
+              profileName = receiver.username;
               profilePicture = receiver?.profilePicture;
             }
 

@@ -8,11 +8,14 @@ import { useTheme } from '@/contexts/themeContext';
 import Box from '@/components/DashboardBox';
 import RecentChats from '@/components/RecentChats';
 import Header from '@/components/Header';
+import { usersData } from '@/utils/usersData';
+import { useAuth } from '@/contexts/authContext';
 
 export default function HomeScreen() {
   const [selectedOption, setSelectedOption] = useState('Year');
   const [menuVisible, setMenuVisible] = useState<number | null>(null);
   const { dark } = useTheme();
+  const {userData}=useAuth();
   const handleMenuToggle = (index: number) => {
     setMenuVisible(menuVisible === index ? null : index);
   };
@@ -67,6 +70,9 @@ export default function HomeScreen() {
             />
           </View>
         </View>
+        {/* {u} */}
+        {userData?.role === 'admin' ? (
+          
         <View style={{ padding: 10 }}>
           <View style={styles.row}>
             <Box title="Total Income" value="$1,000" percentage={7} condition />
@@ -120,6 +126,25 @@ export default function HomeScreen() {
             />
           </View>
         </View>
+        ):
+        (  <View style={{ padding: 10 }}>
+          <View style={styles.row}>
+            <Box title="Total Chats" value="$1,000" percentage={7} condition />
+            <Box title="SuccessFull Transactions" value="$500" percentage={5} condition />
+          </View>
+          <View style={styles.row}>
+            <Box
+              title="Pending Chats"
+              value="$1,000"
+              percentage={8}
+              condition
+            />
+            <Box title="Declined Chats" value="$500" percentage={0} condition />
+          </View>
+       
+        </View>
+
+        )}
         <View>
           <RecentChats indexChats />
         </View>

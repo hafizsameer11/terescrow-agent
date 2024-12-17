@@ -122,7 +122,7 @@ useEffect(() => {
             name={item.customer.firstname + ' ' + item.customer.lastname}
             icon={icons.gallery}
             time={item?.recentMessageTimestamp}
-            msg={item?.recentMessage.message}
+            msg={item?.recentMessage?.message}
             status={item.chatStatus}
           />
         )}

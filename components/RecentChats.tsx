@@ -22,8 +22,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Transaction, Customer } from "@/utils/queries/datainterfaces";
 import { useAuth } from "@/contexts/authContext";
 
-
-
 const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
   const [query, setQuery] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
@@ -313,7 +311,6 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
                         View Customer Details
                       </Text>
                     </TouchableOpacity>
-
                     <TouchableOpacity
                       onPress={() => handleTransactionModal(item.id)}
                     >
@@ -321,7 +318,6 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
                         View Transaction Details
                       </Text>
                     </TouchableOpacity>
-
                     <TouchableOpacity onPress={handleModalVisible}>
                       <Text style={[styles.dropdownItem, textColor]}>
                         Notifications
@@ -334,10 +330,6 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
           </View>
         )}
       />
-
-
-
-
       <FilterModal
         visible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
