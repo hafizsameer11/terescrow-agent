@@ -45,7 +45,11 @@ const chat = () => {
   const handleSearchChange = (searchTerm: string) => {
     setSearchTerm(searchTerm);
   };
-
+useEffect(() => {
+  if(allChatsData){
+    console.log(allChatsData);
+  }
+})
   const selectedCategoryHandler = (categoryName: string) => {
     // setSelectedCategory(categoryName);
 
@@ -59,7 +63,7 @@ const chat = () => {
   //hi bro
   return (
     <View style={[styles.container, dark && { backgroundColor: COLORS.black }]}>
-      <LoadingOverlay visible={allChatsLoading} />
+      <LoadingOverlay visible={false} />
       <View style={styles.header}>
         <Text style={[styles.mainHeading, dark && { color: COLORS.white }]}>
           Gifcard transactions

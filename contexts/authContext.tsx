@@ -10,7 +10,7 @@ interface AuthContextType {
     lastname: string;
     username: string;
     email: string;
-    role: UserRoles;
+    role: UserRoles | string;
     profilePicture: string | null;
   } | null;
   setToken: (token: string) => Promise<void>;
@@ -60,7 +60,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const [state, dispatch] = useReducer(authReducer, initialState);
 
   const setToken = async (token: string) => {
-    // Example: Save token to localStorage or perform other async tasks
     await SecureStore.setItemAsync('authToken', token);
     dispatch({ type: 'SET_TOKEN', payload: token });
   };

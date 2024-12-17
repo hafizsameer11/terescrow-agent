@@ -24,6 +24,7 @@ const Login = () => {
     mutationKey: ['login'],
     mutationFn: loginUser,
     onSuccess: async (data) => {
+      console.log(data);
       // Automatically redirect to tabs when the login is successful
       setToken(data.token)
         .then((res) => {
@@ -87,13 +88,9 @@ const Login = () => {
             <Formik
               initialValues={{ email: '', password: '' }}
               validationSchema={validationSignIn}
-              onSubmit={() => {
+              onSubmit={(values) => {
                 // Skip credential check and redirect to tabs directly
-                reset({
-                  index: 0,
-                  routes: [{ name: '(tabs)' }], // Reset the stack
-                });
-                navigate('(tabs)'); // Navigate to tabs without validating credentials
+                mutate(values); // Correctly submit login cr
               }}
             >
               {({
@@ -149,7 +146,6 @@ const Login = () => {
     </SafeAreaView>
   );
 };
-
 
 const styles = StyleSheet.create({
   scrollContainer: {

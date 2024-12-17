@@ -57,32 +57,10 @@ const NewTransaction: React.FC<Proptypes> = ({
   currDepartment,
   currCategory,
 }) => {
-  // const [modalVisibility, setModalVisible] = useState(true);
-  const { token, userData } = useAuth();
+    const { token, userData } = useAuth();
   const [selectedSubCategoryId, setSelectedSubCategoryId] = useState('');
   const resetButtonRef = useRef<typeof TouchableOpacity>(null);
   const queryClient = useQueryClient();
-
-  // const {
-  //   data: departmentsData,
-  //   isLoading: departmentsLoading,
-  //   isError: isDepartmentsError,
-  //   error: departmentsError,
-  // } = useQuery({
-  //   queryKey: ['all-departments'],
-  //   queryFn: () => getDepartments(token),
-  // });
-
-  // const {
-  //   data: categoriesData,
-  //   isLoading: categoriesLoading,
-  //   isError: isCategoriesError,
-  //   error: categoriesError,
-  // } = useQuery({
-  //   queryKey: [selectedDepartmentId, 'categories'],
-  //   queryFn: () => getCategories(token, selectedDepartmentId),
-  //   enabled: !!selectedDepartmentId,
-  // });
 
   const {
     data: subcategoriesData,
@@ -99,7 +77,7 @@ const NewTransaction: React.FC<Proptypes> = ({
       ),
     enabled: !!currDepartment?.id && !!currCategory?.id,
   });
-
+  console.log("department", currDepartment);
   const { mutate: cryptoTrasaction, isPending: isCryptoTransactionPending } =
     useMutation({
       mutationKey: ['create-crypto-transaction'],
@@ -213,6 +191,8 @@ const NewTransaction: React.FC<Proptypes> = ({
               initialValues={{
                 countryId: '',
                 // customerId: '',
+                departmentId: currDepartment?.id,
+                categoryId: currCategory?.id,
                 amount: '',
                 exchangeRate: '',
                 amountNaira: ' ',
@@ -239,13 +219,15 @@ const NewTransaction: React.FC<Proptypes> = ({
                   countryId: 2,
                   chatId: +currChatId,
                 };
-                if (+currDepartment.id > 2) {
+                if (currDepartment.title.includes('Crypto') || currDepartment.title.includes('crypto')) {
                   cryptoTrasaction({
                     data: {
                       ...compulsoryData,
+                      departmentId: currDepartment?.id,
                       cryptoAmount: +values.cryptoAmount,
                       fromAddress: values.fromAddress,
                       toAddress: values.toAddress,
+                      categoryId: currCategory?.id,
                     },
                     token,
                   });
@@ -255,6 +237,8 @@ const NewTransaction: React.FC<Proptypes> = ({
                       ...compulsoryData,
                       cardType: values.cardType,
                       cardNumber: values.cardNumber,
+                      departmentId: currDepartment?.id,
+                      categoryId: currCategory?.id,
                     },
                     token,
                   });
@@ -370,7 +354,7 @@ const NewTransaction: React.FC<Proptypes> = ({
                               }
                               readOnly
                             />
-                            {+currDepartment.id < 3 ? (
+                            {+currDepartment.title.includes('gift') || +currDepartment.title.includes('Gift') || +currDepartment.title.includes('card') || +currDepartment.title.includes('Card') ? (
                               <>
                                 <CustomSelect
                                   currValue={values.cardType}
