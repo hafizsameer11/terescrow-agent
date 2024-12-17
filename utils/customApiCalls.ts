@@ -23,6 +23,7 @@ export const apiCall = async (
   data?: any,
   token?: string
 ) => {
+  // console.log(url);
   let headers;
   headers = {
     Authorization: token ? `Bearer ${token}` : '',

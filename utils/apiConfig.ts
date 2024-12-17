@@ -1,10 +1,10 @@
 // import { getTeamChatDetails } from "./queries/commonQueries";
 
-export const API_BASE_URL = 'http://192.168.18.11:8000';
+export const API_BASE_URL = 'http://192.168.1.3:8000';
 
-export const API_TEMPLATE_URL = API_BASE_URL + "/api/";
+export const API_TEMPLATE_URL = API_BASE_URL + '/api/';
 
-const API_DOMAIN = "http://192.168.18.11:8000/api";
+const API_DOMAIN = 'http://192.168.1.3:8000/api';
 
 export const API_ENDPOINTS = {
   COMMON: {
@@ -16,6 +16,7 @@ export const API_ENDPOINTS = {
     SendMessageToTeam: API_TEMPLATE_URL + 'send-message-to-team',
     GetTeamChatDetails: API_TEMPLATE_URL + 'get-team-chat-details', //chat id as param
     GetAllChatsWithTeam: API_TEMPLATE_URL + 'get-all-chats-with-team',
+    MarkAllAsRead: API_TEMPLATE_URL + '/public/read-all-messages',
   },
   AGENT: {
     GetAllChatsWithCustomer:
@@ -24,19 +25,21 @@ export const API_ENDPOINTS = {
     SendMessageToCustomer: API_TEMPLATE_URL + 'agent/send-to-customer',
     ChangeChatStatus: API_TEMPLATE_URL + 'agent/change-chat-status', // body {chatId, setStatus}
     CreateCryptoTransaction:
-      API_TEMPLATE_URL + "agent/create-crypto-transaction",
-    CreateCardTransaction: API_TEMPLATE_URL + "agent/create-card-transaction",
+      API_TEMPLATE_URL + 'agent/create-crypto-transaction',
+    CreateCardTransaction: API_TEMPLATE_URL + 'agent/create-card-transaction',
   },
-
+  ADMIN: {
+    CreateChatGroup: API_DOMAIN + '/admin/create-chat-group',
+  },
 };
 
-const OUR_ENDPOINT= {
-  
+const OUR_ENDPOINT = {
   //Sir wale.
   CUSTOMER: {
-    AllCustomers: API_DOMAIN + "/admin/operations/get-all-customers",
-    CustomerDetails: API_DOMAIN + "/admin/operations/get-customer-details",
-    CustomerTransactions: API_DOMAIN + "/admin/operations/get-customer-transactions",
+    AllCustomers: API_DOMAIN + '/admin/operations/get-all-customers',
+    CustomerDetails: API_DOMAIN + '/admin/operations/get-customer-details',
+    CustomerTransactions:
+      API_DOMAIN + '/admin/operations/get-customer-transactions',
   },
   OPERATIONS: {
     Traansactions: API_DOMAIN + '/get-admin-transaction',
@@ -54,7 +57,7 @@ const OUR_ENDPOINT= {
     CreateDepartment: API_DOMAIN + '/admin/operations/create-department',
     UpdateDepartment: API_DOMAIN + '/admin/operations/update-department',
     DeleteDepartment: API_DOMAIN + '/admin/operations/delete-department',
-
+    GetAllAgents: API_DOMAIN + '/admin/operations/get-all-agents',
     CreateAgent: API_DOMAIN + '/admin/operations/create-agent',
     UpdateAgent: API_DOMAIN + '/admin/operations/update-agent',
 
@@ -62,9 +65,9 @@ const OUR_ENDPOINT= {
     UpdateCategory: API_DOMAIN + '/admin/operations/update-category',
     DeleteCategory: API_DOMAIN + '/admin/operations/delete-category',
     CreateSubCategory: API_DOMAIN + '/admin/operations/create-subcategory',
-    UpdateSubCategory: API_DOMAIN + '/admin/operations/update-subcategory'
-  }
-}
+    UpdateSubCategory: API_DOMAIN + '/admin/operations/update-subcategory',
+  },
+};
 const token =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTQsInVzZXJuYW1lIjoianV0anV0dSEiLCJyb2xlIjoiYWdlbnQiLCJpYXQiOjE3MzQyOTU3NjksImV4cCI6MTczNDM4MjE2OX0.FYQfKL0OxfQcGP4RJEk-UQlafXlGUSqwopk6R8Ire1o";
-export {token, OUR_ENDPOINT ,API_DOMAIN};
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTQsInVzZXJuYW1lIjoianV0anV0dSEiLCJyb2xlIjoiYWdlbnQiLCJpYXQiOjE3MzQyOTU3NjksImV4cCI6MTczNDM4MjE2OX0.FYQfKL0OxfQcGP4RJEk-UQlafXlGUSqwopk6R8Ire1o';
+export { token, OUR_ENDPOINT, API_DOMAIN };

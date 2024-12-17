@@ -1,55 +1,54 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useRouter } from "expo-router";
-import { Image } from "expo-image";
-import { COLORS, icons } from "@/constants";
-import { Colors } from "@/constants/Colors";
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Image } from 'expo-image';
+import { COLORS, icons } from '@/constants';
+import { Colors } from '@/constants/Colors';
+import { useAuth } from '@/contexts/authContext';
+import { useTheme } from '@/contexts/themeContext';
+import { UserRoles } from '@/contexts/socketContext';
 const TeamChatHeader: React.FC<{
-  isDarkMode: boolean;
   setModalVisible: (modalState: boolean) => void;
-}> = ({ isDarkMode, setModalVisible }) => {
+}> = ({ setModalVisible }) => {
+  const { userData } = useAuth();
+  const { dark } = useTheme();
+  console.log(userData);
   const router = useRouter();
   return (
     <View style={styles.header}>
       <Text
         style={[
           styles.mainHeading,
-          isDarkMode
-            ? { color: Colors.dark.text }
-            : { color: Colors.light.text },
+          dark ? { color: Colors.dark.text } : { color: Colors.light.text },
         ]}
       >
         Chats
       </Text>
       <View style={styles.iconsContainer}>
-        <Pressable
-          style={[
-            styles.iconContainer,
-            { marginRight: 14 },
-            isDarkMode && { backgroundColor: COLORS.primary },
-          ]}
-          onPress={() => setModalVisible(true)}
-        >
-          <Image
-            source={icons.friends}
+        {userData?.role == UserRoles.admin && (
+          <Pressable
             style={[
-              styles.icons,
-              isDarkMode && { tintColor: Colors.dark.tint },
+              styles.iconContainer,
+              { marginRight: 14 },
+              dark && { backgroundColor: COLORS.primary },
             ]}
-          />
-        </Pressable>
+            onPress={() => setModalVisible(true)}
+          >
+            <Image
+              source={icons.friends}
+              style={[styles.icons, dark && { tintColor: Colors.dark.tint }]}
+            />
+          </Pressable>
+        )}
         <Pressable
           style={[
             styles.iconContainer,
-            isDarkMode && { backgroundColor: COLORS.primary },
+            dark && { backgroundColor: COLORS.primary },
           ]}
           onPress={() => router.push('/editteamchat')}
         >
           <Image
             source={icons.edit}
-            style={[
-              styles.icons,
-              isDarkMode && { tintColor: Colors.dark.tint },
-            ]}
+            style={[styles.icons, dark && { tintColor: Colors.dark.tint }]}
           />
         </Pressable>
       </View>
@@ -59,9 +58,9 @@ const TeamChatHeader: React.FC<{
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 29,
     paddingVertical: 15,
     borderBottomWidth: 1,
@@ -69,18 +68,18 @@ const styles = StyleSheet.create({
   },
   mainHeading: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   iconsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   iconContainer: {
     width: 40,
     height: 40,
     borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: COLORS.grayscale200,
   },
   icons: {

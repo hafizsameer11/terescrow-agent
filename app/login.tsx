@@ -89,7 +89,7 @@ const Login = () => {
               initialValues={{ email: '', password: '' }}
               validationSchema={validationSignIn}
               onSubmit={(values) => {
-                // Skip credential check and redirect to tabs directly
+                console.log(values);
                 mutate(values); // Correctly submit login cr
               }}
             >

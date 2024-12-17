@@ -9,43 +9,50 @@ import { ITeamChatDetailsResponse } from '@/utils/queries/commonQueries';
 import { ChatType } from '@/utils/queries/agentQueries';
 import { useSocket } from '@/contexts/socketContext';
 
-let profilePicture: string;
-let profileName: string;
-let receiverStatus = '';
-
 const ChatPfpNav: React.FC<{
   chatDetails: ITeamChatDetailsResponse['data'] | undefined;
 }> = ({ chatDetails }) => {
   const { dark } = useTheme();
   const { onlineAgents, isAdminOnline } = useSocket();
   const router = useRouter();
+  let profilePicture: string = '';
+  let profileName: string = '';
+  let receiverStatus = '';
 
+  // console.log(onlineAgents);
   if (chatDetails) {
     const { chatGroup, chatType, participants } = chatDetails;
 
     if (chatType == ChatType.group_chat) {
       profileName = chatGroup?.groupName!;
       profilePicture = chatGroup?.groupProfile!;
+    } else {
+      const receiver = participants?.[0]?.user;
+      profileName = receiver?.firstname + ' ' + receiver?.lastname;
+      profilePicture = receiver?.profilePicture!;
+      console.log('receiverId: ', receiver);
+      // console.log(onlineAgents);
+      console.log(isAdminOnline);
       onlineAgents.forEach((agent) => {
-        if (+agent.userId == +participants[0]?.user.id) {
+        if (+agent.userId == +receiver?.id) {
           receiverStatus = 'Online';
         }
       });
       if (
-        receiverStatus == '' &&
+        (!receiverStatus || receiverStatus == 'Offline') &&
         isAdminOnline &&
         +participants[0]?.user.id == +isAdminOnline.userId
       ) {
         receiverStatus = 'Online';
       } else {
-        receiverStatus = 'Offline';
+        if (!receiverStatus) {
+          receiverStatus = 'Offline';
+        }
       }
-    } else {
-      const receiver = participants[0]?.user;
-      profileName = receiver?.firstname + ' ' + receiver?.lastname;
-      profilePicture = receiver?.profilePicture!;
     }
   }
+
+  console.log(receiverStatus);
   const backPressHandler = () => {
     router.back();
   };
@@ -76,7 +83,7 @@ const ChatPfpNav: React.FC<{
             {profileName || 'Unknown'}
           </Text>
 
-          {receiverStatus && (
+          {chatDetails?.chatType == ChatType.team_chat && receiverStatus && (
             <Text
               style={[
                 styles.agentStatus,

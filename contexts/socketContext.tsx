@@ -14,9 +14,9 @@ interface SocketContextType {
 }
 
 export enum UserRoles {
-  admin,
-  agent,
-  customer,
+  admin = 'admin',
+  agent = 'agent',
+  customer = 'customer',
 }
 
 export interface Agent {
@@ -72,6 +72,11 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
       });
 
       newSocket.on('newAgentJoined', (agent: Agent) => {
+        showTopToast({
+          type: 'info',
+          text1: 'News!',
+          text2: 'A new agent has joined',
+        });
         setOnlineAgents((prevOnlineAgents) => [...prevOnlineAgents, agent]);
       });
 
@@ -98,18 +103,20 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       );
 
-      newSocket.on(
-        'adminJoined',
-        (admin: { userId: string; socketId: string }) => {
-          if (userData?.role == UserRoles.admin) return;
-          setIsAdminOnline(admin);
-          showTopToast({
-            type: 'info',
-            text1: 'News!',
-            text2: 'The Admin has joined',
-          });
-        }
-      );
+      if (userData?.role == UserRoles.agent) {
+        newSocket.on(
+          'adminJoined',
+          (admin: { userId: string; socketId: string }) => {
+            console.log(admin);
+            setIsAdminOnline(admin);
+            showTopToast({
+              type: 'info',
+              text1: 'News!',
+              text2: 'The Admin has joined',
+            });
+          }
+        );
+      }
 
       newSocket.on('customerJoined', (customer: NonAgentUser) => {
         if (userData?.role == UserRoles.agent) return;

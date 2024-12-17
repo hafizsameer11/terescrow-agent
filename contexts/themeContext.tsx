@@ -29,11 +29,12 @@ interface ThemeProviderProps {
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const colorScheme = useColorScheme();
-  const [isDark, setIsDark] = useState(colorScheme === 'dark');
+  const [isDark, setIsDark] = useState(false);
+  // const [isDark, setIsDark] = useState(colorScheme === 'dark');
 
-  useEffect(() => {
-    setIsDark(colorScheme === 'dark');
-  }, [colorScheme]);
+  // useEffect(() => {
+  //   setIsDark(colorScheme === 'dark');
+  // }, [colorScheme]);
 
   const defaultTheme: ThemeContextType = {
     dark: isDark,

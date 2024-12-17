@@ -11,6 +11,7 @@ const TeamChatContactList: React.FC<{
   date?: Date;
   recentMsg: string;
   isDarkMode: boolean;
+  msgCount: number;
   id: string;
 }> = (props) => {
   const router = useRouter();
@@ -50,7 +51,7 @@ const TeamChatContactList: React.FC<{
             {props.recentMsg}
           </Text>
           <View style={styles.unreadMsgContainer}>
-            <Text style={styles.unreadMessage}>3</Text>
+            <Text style={styles.unreadMessage}>{props.msgCount}</Text>
           </View>
         </View>
       </View>

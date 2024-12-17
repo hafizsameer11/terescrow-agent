@@ -1,5 +1,5 @@
 import { apiCall, ApiResponse } from '../customApiCalls';
-import { API_ENDPOINTS } from '../apiConfig';
+import { API_ENDPOINTS, token } from '../apiConfig';
 import { UserRoles } from '@/contexts/socketContext';
 import { IResMessage } from '../queries/agentQueries';
 
@@ -22,6 +22,21 @@ export const sendMessageToTeam = async (
     API_ENDPOINTS.COMMON.SendMessageToTeam,
     'POST',
     data,
+    token
+  );
+};
+
+export const readAllMessages = async ({
+  chatId,
+  token,
+}: {
+  chatId: string;
+  token: string;
+}): Promise<ApiResponse> => {
+  return await apiCall(
+    API_ENDPOINTS.COMMON.MarkAllAsRead,
+    'POST',
+    { chatId },
     token
   );
 };

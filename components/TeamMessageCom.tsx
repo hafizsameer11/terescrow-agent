@@ -18,7 +18,8 @@ const TeamMessageCom = ({
     (participant) => participant.user.id === messageData.senderId
   )?.user;
 
-  console.log(messageData);
+  console.log(participants);
+  // console.log(messageData);
   return (
     <View
       style={[
