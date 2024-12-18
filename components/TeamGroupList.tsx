@@ -1,24 +1,42 @@
-import { COLORS } from "@/constants";
-import { Colors } from "@/constants/Colors";
-import { Image } from "expo-image";
-import { useState } from "react";
-import { Text, View, StyleSheet } from "react-native";
-import { Checkbox } from "react-native-paper";
+import { COLORS, icons } from '@/constants';
+import { Colors } from '@/constants/Colors';
+import { useSocket } from '@/contexts/socketContext';
+import { useTheme } from '@/contexts/themeContext';
+import { Image } from 'expo-image';
+import { useEffect, useState } from 'react';
+import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
+import { Checkbox } from 'react-native-paper';
+
+let isOnline = false;
 
 const TeamGroupList: React.FC<{
   pfp: string;
   name: string;
   username: string;
   userId: string;
-  online: boolean;
-  isDarkMode: boolean;
-  getCheckedId: (userId: string, isChecked: boolean) => void;
+  getCheckedId?: (userId: number, isChecked: boolean) => void;
+  deleteSelected?: (userId: number) => void;
+  isSelectable: boolean;
 }> = (props) => {
   const [isChecked, setIsChecked] = useState(false);
+  const { dark } = useTheme();
+  const { onlineAgents } = useSocket();
+
   const checkDataHandler = () => {
     setIsChecked(!isChecked);
-    props.getCheckedId(props.userId, !isChecked);
+    props.getCheckedId && props.getCheckedId(+props.userId, !isChecked);
   };
+
+  //check online Status
+
+  useEffect(() => {
+    for (const agent of onlineAgents) {
+      if (agent.userId === props.userId.toString()) {
+        isOnline = true;
+      }
+    }
+  }, [onlineAgents]);
+
   return (
     <View style={styles.container}>
       {/* Profile Image */}
@@ -29,17 +47,14 @@ const TeamGroupList: React.FC<{
         <View style={{ flex: 1 }}>
           <View style={styles.nameStatusRow}>
             <Text
-              style={[
-                styles.nameText,
-                props.isDarkMode && { color: Colors.dark.text },
-              ]}
+              style={[styles.nameText, dark && { color: Colors.dark.text }]}
             >
               {props.name}
             </Text>
             <View
               style={[
                 styles.onlineStatus,
-                props.online
+                isOnline
                   ? { backgroundColor: COLORS.green }
                   : { backgroundColor: COLORS.red },
               ]}
@@ -49,11 +64,27 @@ const TeamGroupList: React.FC<{
           {/* Recent Message and Unread Messages Row */}
           <Text style={styles.userName}>{props.username}</Text>
         </View>
-        <Checkbox
-          status={isChecked ? "checked" : "unchecked"}
-          onPress={checkDataHandler}
-          color="#4CAF50"
-        />
+        {props.isSelectable && (
+          <Checkbox
+            status={isChecked ? 'checked' : 'unchecked'}
+            onPress={checkDataHandler}
+            color="#4CAF50"
+          />
+        )}
+        {!props.isSelectable && (
+          <TouchableOpacity
+            onPress={() =>
+              props.deleteSelected && props.deleteSelected(+props.userId)
+            }
+            activeOpacity={0.6}
+          >
+            <Image
+              source={icons.deletePng}
+              style={{ width: 20, height: 20 }}
+              tintColor={COLORS.red}
+            />
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -61,8 +92,8 @@ const TeamGroupList: React.FC<{
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 23,
     padding: 10,
     borderWidth: 1,
@@ -77,18 +108,18 @@ const styles = StyleSheet.create({
   },
   rightContainer: {
     flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   nameStatusRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 10,
   },
   nameText: {
     fontSize: 14,
-    fontWeight: "semibold",
+    fontWeight: 'semibold',
   },
   onlineStatus: {
     width: 15,

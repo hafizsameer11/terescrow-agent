@@ -12,6 +12,9 @@ interface AuthContextType {
     email: string;
     role: UserRoles | string;
     profilePicture: string | null;
+    gender: string | null;
+    createdAt?: string;
+    phoneNumber?: string;
   } | null;
   setToken: (token: string) => Promise<void>;
   setUserData: (userData: AuthContextType['userData']) => void;

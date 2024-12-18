@@ -148,7 +148,6 @@ const Login = () => {
   );
 };
 
-
 const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,

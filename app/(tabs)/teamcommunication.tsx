@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View, FlatList, ScrollView, StyleSheet } from 'react-native';
 import { useTheme } from '@/contexts/themeContext';
 import { Colors } from '@/constants/Colors';
@@ -11,10 +11,15 @@ import TeamGroupModal from '@/components/TeamGroupModal';
 import { useSocket } from '@/contexts/socketContext';
 import { useAuth } from '@/contexts/authContext';
 import { QueryClient, useQuery } from '@tanstack/react-query';
-import { getCustomerChatDetails } from '@/utils/queries/agentQueries';
-import { getAllTeamChats } from '@/utils/queries/commonQueries';
-import { images } from '@/constants';
+import { ChatType, getCustomerChatDetails } from '@/utils/queries/agentQueries';
+import {
+  getAllTeamChats,
+  ITeamChatResponse,
+} from '@/utils/queries/commonQueries';
+import { icons, images } from '@/constants';
 import { sortChatsByLatestMessage } from '@/utils/helpers';
+import LoadingOverlay from '@/components/LoadingOverlay';
+import { Text } from 'react-native';
 
 interface User {
   id: string;
@@ -31,8 +36,10 @@ const TeamCommunication = () => {
   const { token, userData } = useAuth();
   const { socket } = useSocket();
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [displayChats, setDisplayChats] = useState<ITeamChatResponse['data']>(
+    []
+  );
   const [modalVisibility, setModalVisibility] = useState(false);
-  const [selectedUsers, setSelectedUsers] = useState<selectedPeopleGroup[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const {
     data: allChatsData,
@@ -40,19 +47,42 @@ const TeamCommunication = () => {
     isError: isAllChatsError,
     error: allChatsError,
   } = useQuery({
-    queryKey: ['all-chats-with-customer'],
+    queryKey: ['all-chats-with-team'],
     queryFn: () => getAllTeamChats(token),
   });
 
-  const queryClient = new QueryClient();
-
   const selectCategoryHandler = (selected: string) => {
+    console.log(selected);
     setSelectedCategory(selected);
   };
 
   const modalVisibilityHandler = (modalState: boolean) => {
     setModalVisibility(modalState);
   };
+
+  useEffect(() => {
+    if (allChatsData?.data) {
+      setDisplayChats(sortChatsByLatestMessage(allChatsData?.data)!);
+    }
+  }, [allChatsData]);
+
+  useEffect(() => {
+    if (!searchTerm && allChatsData)
+      return setDisplayChats(allChatsData?.data!);
+    if (searchTerm && displayChats) {
+      const filteredChats = [...displayChats].filter((chat) => {
+        if (chat.chatType === ChatType.group_chat)
+          return chat.chatGroup?.groupName
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase());
+        const { firstname, lastname } = chat.participants[0].user;
+        return (firstname + ' ' + lastname)
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
+      });
+      setDisplayChats(filteredChats);
+    }
+  }, [searchTerm]);
 
   // const filterDataHandler = (selectedItem: string) => {
   //   let filteredData = DUMMY_ALL;
@@ -77,14 +107,7 @@ const TeamCommunication = () => {
     setSearchTerm(searchTerm); // Update the search term state
   };
 
-  const handleSelectedUsers = (users: User[]) => {
-    const selectedUserIds = users.map((user) => user.id);
-    const filteredUsers = DUMMY_ALL.filter((user) =>
-      selectedUserIds.includes(user.id)
-    );
-    setSelectedUsers(filteredUsers);
-  };
-  // console.log(allChatsData);
+  // console.log(allChatsData?.data);
 
   return (
     <View
@@ -95,11 +118,14 @@ const TeamCommunication = () => {
           : { backgroundColor: Colors.light.background },
       ]}
     >
+      <LoadingOverlay visible={allChatsLoading} />
+      {isAllChatsError && (
+        <View style={{ alignItems: 'center' }}>
+          <Text style={{ color: 'red' }}>{allChatsError?.message}</Text>
+        </View>
+      )}
       {/* Header */}
-      <TeamChatHeader
-        isDarkMode={dark}
-        setModalVisible={modalVisibilityHandler}
-      />
+      <TeamChatHeader setModalVisible={modalVisibilityHandler} />
       {/* Search bar */}
       <ScrollView style={{ paddingHorizontal: 15 }}>
         <TeamChatSearch isDarkMode={dark} onSearchChange={handleSearchChange} />
@@ -111,7 +137,7 @@ const TeamCommunication = () => {
         />
         {/* Chat list */}
         <FlatList
-          data={sortChatsByLatestMessage(allChatsData?.data)}
+          data={displayChats}
           style={styles.chatList}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => {
@@ -122,12 +148,12 @@ const TeamCommunication = () => {
 
             if (item.chatGroup) {
               profileName = item.chatGroup.groupName;
-              profilePicture = item.chatGroup.groupProfile;
+              profilePicture = item.chatGroup?.groupProfile;
             } else {
               const receiver = item.participants.filter(
                 (participant) => participant.user.id !== userData?.id
               )[0]?.user;
-              profileName = receiver.username;
+              profileName = receiver?.firstname + ' ' + receiver?.lastname;
               profilePicture = receiver?.profilePicture;
             }
 
@@ -139,10 +165,17 @@ const TeamCommunication = () => {
             return (
               <TeamChatContactList
                 id={item.id.toString()}
-                pfp={profileName || images.avatar}
+                pfp={
+                  profilePicture
+                    ? profilePicture
+                    : item.chatType == ChatType.group_chat
+                    ? icons.people
+                    : icons.profile
+                }
                 name={profileName}
                 date={recentDate}
                 recentMsg={recentMessage || 'No recent message'}
+                msgCount={item._count?.messages}
                 isDarkMode={dark}
               />
             );
@@ -154,7 +187,6 @@ const TeamCommunication = () => {
           isDarkMode={dark}
           modalVisible={modalVisibility}
           setModalVisible={modalVisibilityHandler}
-          onUserSelection={handleSelectedUsers} // Pass selected users to the group chat
         />
       </ScrollView>
     </View>

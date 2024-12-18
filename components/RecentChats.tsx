@@ -19,6 +19,7 @@ import FullTransactionModal from "./TransactionDetailModal";
 import { gettAllCustomerss, getTransactions } from "@/utils/queries/adminQueries";
 import { useQuery } from "@tanstack/react-query";
 // import { token } from "@/utils/apiConfig";
+// import { token } from "@/utils/apiConfig";
 import { Transaction, Customer } from "@/utils/queries/datainterfaces";
 import { useAuth } from "@/contexts/authContext";
 
@@ -27,6 +28,7 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedOption, setSelectedOption] = useState(null);
   const { token } = useAuth();
+  // const { token } = useAuth();
   const [filteredData, setFilteredData] = useState(usersData);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [menuVisible, setMenuVisible] = useState<string | null>(null);

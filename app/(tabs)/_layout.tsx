@@ -69,7 +69,7 @@ export default function TabLayout() {
               Welcome
             </Text>
             <Text style={{ fontSize: 14, fontWeight: "400", lineHeight: 16 }}>
-              {userData?.firstname + " " + userData?.lastname}
+              {userData?.username}
             </Text>
           </View>
         </View>

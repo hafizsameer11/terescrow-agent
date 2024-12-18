@@ -5,7 +5,7 @@ export const topMenuItems = [
     title: "Dashboard",
     name: "index",
     icon: icons.dashboard,
-    roles: ["admin"],
+    roles: ["admin","agent"],
   },
   {
     title: "Customer",

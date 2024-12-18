@@ -15,6 +15,7 @@ const ChatContactList: React.FC<{
   icon: string;
   status: ChatStatus;
   id: string;
+  messageCount?: number;
 }> = (props) => {
   const router = useRouter();
   const { dark } = useTheme();
@@ -49,7 +50,7 @@ const ChatContactList: React.FC<{
             </Text>
           </View>
           <View style={styles.unreadMsgContainer}>
-            <Text style={styles.unreadMessage}>3</Text>
+            <Text style={styles.unreadMessage}>{props.messageCount}</Text>
           </View>
         </View>
         <View
@@ -79,6 +80,7 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
     marginRight: 10,
+    marginTop: 10,
   },
   rightContainer: {
     flex: 1,

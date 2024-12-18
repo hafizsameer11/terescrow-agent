@@ -16,17 +16,24 @@ import { Image } from 'expo-image';
 import { FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import MessageInput from '@/components/MessageInput';
-import { useLocalSearchParams, useNavigation } from 'expo-router';
+import {
+  useFocusEffect,
+  useLocalSearchParams,
+  useNavigation,
+} from 'expo-router';
 import { DUMMY_ALL } from '@/utils/dummyAll';
 import { DUMMY_CHAT } from '@/utils/dummyChat';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { NavigationOptions } from 'expo-router/build/global-state/routing';
 import { NavigationProp } from '@react-navigation/native';
 import { getTeamChatDetails } from '@/utils/queries/commonQueries';
 import { useAuth } from '@/contexts/authContext';
 import { useSocket } from '@/contexts/socketContext';
 import { ChatType, IResMessage } from '@/utils/queries/agentQueries';
-import { sendMessageToTeam } from '@/utils/mutations/commonMutations';
+import {
+  readAllMessages,
+  sendMessageToTeam,
+} from '@/utils/mutations/commonMutations';
 import TeamMessageCom from '@/components/TeamMessageCom';
 import LoadingOverlay from '@/components/LoadingOverlay';
 import chat from './(tabs)/chat';
@@ -51,13 +58,14 @@ const UserChat = () => {
   const flatListRef = useRef<FlatList>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [messages, setMessages] = useState<IResMessage[]>([]);
+  const queryClient = useQueryClient();
   const {
     data: chatDetailsData,
     isLoading: chatDetailsLoading,
     isError: isChatDetailsError,
     error: chatDetailsError,
   } = useQuery({
-    queryKey: ['chat-details', currChatId],
+    queryKey: ['team-chat-details', currChatId],
     queryFn: () => getTeamChatDetails(token, currChatId),
   });
 
@@ -80,9 +88,35 @@ const UserChat = () => {
     },
   });
 
+  const { mutate: readAll, isPending: isReadAllPending } = useMutation({
+    mutationKey: ['read-all-messages'],
+    mutationFn: readAllMessages,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['all-chats-with-team'] });
+      queryClient.refetchQueries({ queryKey: ['all-chats-with-team'] });
+    },
+  });
+
   const scrollToBottom = () => {
     flatListRef.current?.scrollToEnd({ animated: true });
   };
+
+  // useFocusEffect(() => {
+  //   console.log('object');
+  //   readAll({
+  //     chatId: currChatId,
+  //     token,
+  //   });
+  // });
+
+  useEffect(() => {
+    if (currChatId) {
+      readAll({
+        chatId: currChatId,
+        token,
+      });
+    }
+  }, [currChatId]);
 
   useEffect(() => {
     if (socket) {
@@ -97,6 +131,7 @@ const UserChat = () => {
             !currParticipantsIds.current.includes(from)
           )
             return;
+          queryClient.invalidateQueries({ queryKey: ['all-chats-with-team'] });
           setMessages((prevMessages) => [...prevMessages, message]);
           setTimeout(() => {
             scrollToBottom();
@@ -120,6 +155,7 @@ const UserChat = () => {
       setMessages(chatDetailsData?.data.messages);
     }
   }, [chatDetailsData]);
+
   const handleSendMessage = (message?: string, image?: any) => {
     if (!image && !message) return;
 
@@ -132,6 +168,8 @@ const UserChat = () => {
       });
     }
   };
+
+  // console.log(chatDetailsData?.data);
 
   //this event listener scrolls to bottom to view full content
   useEffect(() => {

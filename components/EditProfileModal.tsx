@@ -17,6 +17,7 @@ import { validationEditProfile, validationNewNotification } from "./Validation";
 import Input from "./CustomInput";
 import Button from "./Button";
 import NewNotificationModal from "./NewNotification";
+import { useAuth } from "@/contexts/authContext";
 
 const dummyNotifications = [
   {
@@ -75,32 +76,37 @@ const EditProfileModal = ({
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isNewNotificationVisible, setIsNewNotificationVisible] =
     useState(false);
+    const {userData} = useAuth();
 
   const handleNewNotificationPress = () => {
     onClose();
     setMode("newNotification");
     setIsNewNotificationVisible(true);
   };
+  const [formData, setFormData] = useState({
+    firstname: userData?.firstname || "",
+    username: userData?.username || "",
+    email: userData?.email || "",
+    phoneNumber: userData?.phoneNumber || "",
+    gender: userData?.gender || "",
+    country: userData?.country || "",
+    profilePicture: userData?.profilePicture || null,
+  });
+
   console.log(mode);
   const handleImagePicker = async () => {
-    try {
-      const { status } =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status === "granted") {
-        const result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.All,
-          allowsEditing: true,
-          aspect: [1, 1],
-          quality: 1,
-        });
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status === "granted") {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
 
-        if (!result.canceled) {
-          setSelectedImage(result.assets[0].uri);
-          onImageSelect(result.assets[0].uri);
-        }
+      if (!result.canceled && result.assets) {
+        setFormData({ ...formData, profilePicture: result.assets[0].uri });
       }
-    } catch (error) {
-      console.log(`Image picker error: ${error}`);
     }
   };
 
@@ -194,13 +200,13 @@ const EditProfileModal = ({
                 <ScrollView contentContainerStyle={styles.scrollContent}>
                   <Formik
                     initialValues={{
-                      name: "",
-                      userName: "",
-                      email: "",
-                      phoneNumber: "",
-                      gender: "",
-                      password: "",
-                      country: "",
+                      name: userData?.firstname,
+                      userName: userData?.username,
+                      email: userData?.email,
+                      phoneNumber: userData?.phoneNumber,
+                      gender: userData?.gender,
+                      // password:,
+                      country: userData?.country,
                     }}
                     validationSchema={validationEditProfile}
                     onSubmit={() => {
@@ -315,7 +321,7 @@ const EditProfileModal = ({
               </>
             )}
 
-            {mode === "notifications" && (
+            {/* {mode === "notifications" && (
               <>
                 <View style={{ alignItems: "flex-start", width: "100%" }}>
                   <Button
@@ -388,7 +394,7 @@ const EditProfileModal = ({
                   </View>
                 </ScrollView>
               </>
-            )}
+            )} */}
           </View>
         </View>
       </Modal>

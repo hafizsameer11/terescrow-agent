@@ -8,6 +8,7 @@ import ProfileDetails from '@/components/ProfileDetails';
 import EditProfileModal from '@/components/EditProfileModal';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
+import { useAuth } from '@/contexts/authContext';
 
 const Profile = () => {
   const [user, setUser] = useState({
@@ -26,6 +27,7 @@ const Profile = () => {
   const [selectedImage, setSelectedImage] = useState<String | null>(null);
   const [mode, setMode] = useState('editProfile');
   const { dark } = useTheme();
+  const {token,userData} = useAuth();
   const userInitial = name.charAt(0).toUpperCase();
 
   const handlePress = (btn: string) => {
@@ -48,6 +50,7 @@ const Profile = () => {
       ]}
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {userData?.role == 'admin' && (
         <View
           style={[
             styles.headerButtonsContainer,
@@ -101,6 +104,8 @@ const Profile = () => {
             </Text>
           </TouchableOpacity>
         </View>
+          
+        )}
         <View style={styles.profileContainer}>
           <View style={styles.profileAvatar}>
             {selectedImage ? (
@@ -113,8 +118,8 @@ const Profile = () => {
             )}
           </View>
           <View style={styles.profileDetails}>
-            <Text style={styles.profileName}>{user.name}</Text>
-            <Text style={styles.profileSubDetails}>{user.owner}</Text>
+            <Text style={styles.profileName}>{userData?.username}</Text>
+            <Text style={styles.profileSubDetails}>{userData?.role}</Text>
           </View>
           <TouchableOpacity
             style={[
@@ -152,7 +157,7 @@ const Profile = () => {
                 },
               ]}
             >
-              <Text style={{ fontWeight: 'bold' }}>Email:</Text> {user.email}
+              <Text style={{ fontWeight: 'bold' }}>Email:</Text> {userData?.email}
             </Text>
             <Text
               style={[
@@ -163,7 +168,7 @@ const Profile = () => {
                 },
               ]}
             >
-              <Text style={{ fontWeight: 'bold' }}>Gender:</Text> {user.gender}
+              <Text style={{ fontWeight: 'bold' }}>Gender:</Text> {userData?.gender}
             </Text>
             <Text
               style={[
@@ -175,7 +180,7 @@ const Profile = () => {
               ]}
             >
               <Text style={{ fontWeight: 'bold' }}>Date Added:</Text>{' '}
-              {user.date}
+              {userData?.createdAt}
             </Text>
           </View>
         </View>
@@ -193,7 +198,7 @@ const Profile = () => {
           >
             Account Activities
           </Text>
-          <View
+          {/* <View
             style={[
               styles.accountActivitiesSubContainer,
               { borderBottomWidth: 1, borderColor: '#ccc' },
@@ -223,7 +228,7 @@ const Profile = () => {
             <Text style={{ color: dark ? COLORS.white : COLORS.black }}>
               Nov 7, 2024 - 4:30PM
             </Text>
-          </View>
+          </View> */}
         </View>
         <EditProfileModal
           visible={isModalVisible}

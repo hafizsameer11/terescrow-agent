@@ -1,10 +1,10 @@
 // import { getTeamChatDetails } from "./queries/commonQueries";
 
-export const API_BASE_URL = 'http://192.168.0.103:8000';
+export const API_BASE_URL = 'http://192.168.18.11:8000';
 
-export const API_TEMPLATE_URL = API_BASE_URL + "/api/";
+export const API_TEMPLATE_URL = API_BASE_URL + '/api/';
 
-const API_DOMAIN = "http://192.168.0.103:8000/api";
+const API_DOMAIN = "http://192.168.18.11:8000/api";
 
 export const API_ENDPOINTS = {
   COMMON: {
@@ -16,6 +16,9 @@ export const API_ENDPOINTS = {
     SendMessageToTeam: API_TEMPLATE_URL + 'send-message-to-team',
     GetTeamChatDetails: API_TEMPLATE_URL + 'get-team-chat-details', //chat id as param
     GetAllChatsWithTeam: API_TEMPLATE_URL + 'get-all-chats-with-team',
+    MarkAllAsRead: API_TEMPLATE_URL + '/public/read-all-messages',
+    GetAgentStats: API_TEMPLATE_URL + 'agent/utilities/get-agent-stats',
+    EditAgentProfile: API_TEMPLATE_URL + 'agent/utilities/edit-agent-profile',
   },
   AGENT: {
     GetAllChatsWithCustomer:
@@ -24,14 +27,19 @@ export const API_ENDPOINTS = {
     SendMessageToCustomer: API_TEMPLATE_URL + 'agent/send-to-customer',
     ChangeChatStatus: API_TEMPLATE_URL + 'agent/change-chat-status', // body {chatId, setStatus}
     CreateCryptoTransaction:
-      API_TEMPLATE_URL + "agent/create-crypto-transaction",
-    CreateCardTransaction: API_TEMPLATE_URL + "agent/create-card-transaction",
+      API_TEMPLATE_URL + 'agent/create-crypto-transaction',
+    CreateCardTransaction: API_TEMPLATE_URL + 'agent/create-card-transaction',
+    GetTeamNotifications: API_TEMPLATE_URL + 'agent/utilities/get-team-notifications',
+    GetAllNotifications: API_TEMPLATE_URL + 'agent/utilities/get-all-notifications',
+    GetCustomerNotifications: API_TEMPLATE_URL + 'agent/utilities/get-customer-notifications',
+    GetTransactionForAgent: API_TEMPLATE_URL + 'agent/utilities/get-transactions-for-agent',
   },
-
+  ADMIN: {
+    CreateChatGroup: API_DOMAIN + '/admin/create-chat-group',
+  },
 };
 
-const OUR_ENDPOINT= {
-  
+const OUR_ENDPOINT = {
   //Sir wale.
   CUSTOMER: {
     AllCustomers: API_DOMAIN + "/admin/operations/get-all-customers",

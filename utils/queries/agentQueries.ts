@@ -1,5 +1,6 @@
 import { API_ENDPOINTS } from '../apiConfig';
 import { apiCall, ApiResponse } from '../customApiCalls';
+import { CustomerTransactionResponse } from './datainterfaces';
 
 export const getAllChatsWithCustomer = async (
   token: string
@@ -23,6 +24,79 @@ export const getCustomerChatDetails = async (
     token
   );
 };
+
+export const getAgentStats=async (token: string):Promise<StatsResponse>=>{
+  return await apiCall(
+    API_ENDPOINTS.COMMON.GetAgentStats,
+    'GET',
+    undefined,
+    token
+  );
+  
+}
+export const getTeamNotifications=async (token: string):Promise<IInAppNotificationResponse>=>{
+  return await apiCall(
+    API_ENDPOINTS.AGENT.GetTeamNotifications,
+    'GET',
+    undefined,
+    token
+  );
+  
+}
+
+
+export const getCustomerNotifications=async (token: string):Promise<IInAppNotificationResponse>=>{
+  return await apiCall(
+    API_ENDPOINTS.AGENT.GetCustomerNotifications,
+    'GET',
+    undefined,
+    token
+  );
+  
+}
+
+export const getAllNotiications=async (token: string):Promise<IInAppNotificationResponse>=>{
+  return await apiCall(
+    API_ENDPOINTS.AGENT.GetAllNotifications,
+    'GET',
+    undefined,
+    token
+  );
+  
+}
+export const getTransactionForAgent=async (token: string):Promise<CustomerTransactionResponse>=>{
+  return await apiCall(
+    API_ENDPOINTS.AGENT.GetTransactionForAgent,
+    'GET',
+    undefined,
+    token
+  );
+}
+
+export interface IInAppNotificationResponse extends ApiResponse {
+  data: InAppNotifications[]
+}
+export interface InAppNotifications{
+  id: number,
+  title: string,
+ description: string,
+ type: string,
+ createdAt: string,
+ isRead: boolean,
+
+}
+interface StatsData {
+  totalChats: number;
+  successfulllTransactions: number;
+  pendingChats: number;
+  declinedChats: number;
+}
+
+interface StatsResponse {
+  status: string;
+  message: string;
+  data: StatsData;
+}
 
 export interface IAllCustomerChatsRes extends ApiResponse {
   data: {

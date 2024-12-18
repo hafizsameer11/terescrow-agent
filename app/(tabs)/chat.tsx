@@ -9,24 +9,23 @@ import {
 import { useTheme } from '@/contexts/themeContext';
 import { Image } from 'expo-image';
 import { COLORS, icons } from '@/constants';
-import { DUMMY_CHAT } from '../../utils/dummyChat';
 import { useEffect, useState } from 'react';
 import ChatContactList from '@/components/ChatContactList';
-import TransFilter from '@/components/TransFilter';
-import { QueryClient, useQuery } from '@tanstack/react-query';
+import LoadingOverlay from '@/components/LoadingOverlay';
+import { useQuery } from '@tanstack/react-query';
 import {
   ChatStatus,
   getAllChatsWithCustomer,
 } from '@/utils/queries/agentQueries';
 import { useAuth } from '@/contexts/authContext';
-import LoadingOverlay from '@/components/LoadingOverlay';
-import { useSocket } from '@/contexts/socketContext';
-import { showTopToast } from '@/utils/helpers';
-const chat = () => {
+
+const ChatScreen = () => {
   const { dark } = useTheme();
   const { token } = useAuth();
-  const { socket } = useSocket();
-  const queryClient = new QueryClient();
+  const [selectedCategory, setSelectedCategory] = useState<ChatStatus | 'All'>('All');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dropDownVisibility, setDropDownVisibility] = useState(false);
+
   const {
     data: allChatsData,
     isLoading: allChatsLoading,
@@ -34,25 +33,16 @@ const chat = () => {
     error: allChatsError,
   } = useQuery({
     queryKey: ['all-chats-with-customer'],
+    refetchInterval: 1500,
     queryFn: () => getAllChatsWithCustomer(token),
   });
-  const [selectedCategory, setSelectedCategory] = useState<ChatStatus | 'All'>(
-    'All'
-  );
-  const [searchTerm, setSearchTerm] = useState('');
-  const [dropDownVisibility, setDropDownVisibility] = useState(false);
 
-  const handleSearchChange = (searchTerm: string) => {
-    setSearchTerm(searchTerm);
+  const handleSearchChange = (term: string) => {
+    setSearchTerm(term);
   };
-useEffect(() => {
-  if(allChatsData){
-    console.log(allChatsData);
-  }
-})
-  const selectedCategoryHandler = (categoryName: string) => {
-    // setSelectedCategory(categoryName);
 
+  const selectedCategoryHandler = (category: ChatStatus | 'All') => {
+    setSelectedCategory(category);
     setDropDownVisibility(false);
   };
 
@@ -60,18 +50,21 @@ useEffect(() => {
     setDropDownVisibility(!dropDownVisibility);
   };
 
-  //hi bro
+  const filteredChats = allChatsData?.data?.filter((chat) => {
+    const matchesCategory = selectedCategory === 'All' || chat.chatStatus === selectedCategory;
+    const matchesSearch = chat.customer.firstname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      chat.customer.lastname.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
   return (
     <View style={[styles.container, dark && { backgroundColor: COLORS.black }]}>
-      <LoadingOverlay visible={false} />
+      <LoadingOverlay visible={allChatsLoading} />
       <View style={styles.header}>
-        <Text style={[styles.mainHeading, dark && { color: COLORS.white }]}>
-          Gifcard transactions
-        </Text>
-        <Text style={styles.textDetail}>
-          Manage total customers and see their activities
-        </Text>
+        <Text style={[styles.mainHeading, dark && { color: COLORS.white }]}>Customer Chats</Text>
+        <Text style={styles.textDetail}>Manage total customers and see their activities</Text>
       </View>
+
       <View style={styles.filterInput}>
         <View style={styles.filter}>
           <Text style={styles.filterHeading}>Filter by:</Text>
@@ -88,19 +81,20 @@ useEffect(() => {
             />
           </Pressable>
           {dropDownVisibility && (
-            <View
-              style={[
-                styles.dropDown,
-                dark && { backgroundColor: COLORS.dark3 },
-              ]}
-            >
-              <TransFilter
-                isDarkMode={dark}
-                onSelect={selectedCategoryHandler}
-              />
+            <View style={[styles.dropDown, dark && { backgroundColor: COLORS.dark3 }]}>
+              {['All', 'pending', 'successful', 'declined'].map((status) => (
+                <Pressable
+                  key={status}
+                  style={styles.dropDownItem}
+                  onPress={() => selectedCategoryHandler(status as ChatStatus | 'All')}
+                >
+                  <Text style={styles.dropDownText}>{status}</Text>
+                </Pressable>
+              ))}
             </View>
           )}
         </View>
+
         <View style={styles.searchContainer}>
           <Image source={icons.search} style={styles.searchIcon} />
           <TextInput
@@ -111,19 +105,21 @@ useEffect(() => {
           />
         </View>
       </View>
+
       <FlatList
-        data={allChatsData?.data}
+        data={filteredChats}
         style={styles.chatList}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <ChatContactList
             id={item.id.toString()}
             pfp={item.customer.profilePicture}
-            name={item.customer.firstname + ' ' + item.customer.lastname}
+            name={`${item.customer.firstname} ${item.customer.lastname}`}
             icon={icons.gallery}
-            time={item?.recentMessageTimestamp}
-            msg={item?.recentMessage?.message}
+            time={item.recentMessageTimestamp}
+            msg={item.recentMessage?.message}
             status={item.chatStatus}
+            messageCount={item.messagesCount}
           />
         )}
       />
@@ -131,7 +127,7 @@ useEffect(() => {
   );
 };
 
-export default chat;
+export default ChatScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -146,6 +142,7 @@ const styles = StyleSheet.create({
   mainHeading: {
     fontSize: 18,
     fontWeight: '500',
+  marginBottom: 5,
   },
   textDetail: {
     fontSize: 14,
@@ -216,5 +213,12 @@ const styles = StyleSheet.create({
     shadowColor: COLORS.greyscale900,
     backgroundColor: COLORS.white,
     shadowOffset: { width: 0, height: 2 },
+  },
+  dropDownItem: {
+    paddingVertical: 8,
+  },
+  dropDownText: {
+    fontSize: 14,
+    color: COLORS.greyscale900,
   },
 });

@@ -52,6 +52,14 @@ export const createCardTransaction = async ({
   );
 };
 
+export const editAgentProfile = async (
+  data: EditAgentProfileReq,
+  token: string
+): Promise<ApiResponse> => {
+  return await apiCall(API_ENDPOINTS.COMMON.EditAgentProfile, 'POST', data, token);
+};
+
+
 interface IMesssageToCustomer extends ApiResponse {
   data: IResMessage;
 }
@@ -77,4 +85,15 @@ interface ICardTransactionReq extends ITransactionReq {
   cardNumber: string;
   departmentId?: number;
   categoryId?: number;
+}
+interface EditAgentProfileReq {
+  firstname: string,
+  lastname: string,
+  profilePicture: string,
+  email: string,
+  phoneNumber: string,
+  gender: string,
+  username: string
+  password?: string,
+  country?: string
 }

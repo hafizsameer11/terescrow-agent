@@ -10,15 +10,42 @@ import RecentChats from '@/components/RecentChats';
 import Header from '@/components/Header';
 import { usersData } from '@/utils/usersData';
 import { useAuth } from '@/contexts/authContext';
+import { useQuery } from '@tanstack/react-query';
+import { ChatStatus, getAgentStats, getAllChatsWithCustomer } from '@/utils/queries/agentQueries';
+import { FlatList } from 'react-native-gesture-handler';
+import ChatContactList from '@/components/ChatContactList';
 
 export default function HomeScreen() {
   const [selectedOption, setSelectedOption] = useState('Year');
   const [menuVisible, setMenuVisible] = useState<number | null>(null);
   const { dark } = useTheme();
   const {userData}=useAuth();
+  const {token}=useAuth();
+  const {
+    data: agtenStatsData,
+    isLoading: agentStatsLoading,
+    isError: isAgentStatsError,
+    error: agentStatsError,
+  } = useQuery({
+    queryKey: ['agentStats'],
+    refetchInterval: 30000,
+    queryFn: () => getAgentStats(token),
+  });
   const handleMenuToggle = (index: number) => {
     setMenuVisible(menuVisible === index ? null : index);
   };
+  const {
+    data: allChatsData,
+    isLoading: allChatsLoading,
+    isError: isAllChatsError,
+    error: allChatsError,
+  } = useQuery({
+    queryKey: ['all-chats-with-customer'],
+    queryFn: () => getAllChatsWithCustomer(token),
+    refetchInterval: 30000,
+
+  });
+ 
   return (
     <View
       style={[
@@ -32,12 +59,12 @@ export default function HomeScreen() {
           <Text
             style={[
               styles.title,
-              { color: dark ? COLORS.white : COLORS.black },
+              { color: dark ? COLORS.white : COLORS.black,paddingTop:20 },
             ]}
           >
             Dashboard
           </Text>
-          <View
+          {/* <View
             style={[
               styles.pickerContainer,
               { backgroundColor: dark ? COLORS.dark2 : COLORS.white },
@@ -68,7 +95,7 @@ export default function HomeScreen() {
                 />
               )}
             />
-          </View>
+          </View> */}
         </View>
         {/* {u} */}
         {userData?.role === 'admin' ? (
@@ -129,25 +156,50 @@ export default function HomeScreen() {
         ):
         (  <View style={{ padding: 10 }}>
           <View style={styles.row}>
-            <Box title="Total Chats" value="$1,000" percentage={7} condition />
-            <Box title="SuccessFull Transactions" value="$500" percentage={5} condition />
+            <Box title="Total Chats" value={agtenStatsData?.data.totalChats.toString() || '0'} percentage={7} condition />
+            <Box title="SuccessFull Transactions" value={agtenStatsData?.data.successfulllTransactions.toString() || '0'} percentage={5} condition />
           </View>
           <View style={styles.row}>
             <Box
               title="Pending Chats"
-              value="$1,000"
+              value={agtenStatsData?.data.pendingChats.toString() || '0'}
               percentage={8}
               condition
             />
-            <Box title="Declined Chats" value="$500" percentage={0} condition />
+            <Box title="Declined Chats" value={agtenStatsData?.data.declinedChats.toString() || '0'} percentage={0} condition />
           </View>
        
         </View>
 
         )}
-        <View>
-          <RecentChats indexChats />
-        </View>
+        {userData?.role === 'admin' ? (
+            <View>
+            <RecentChats indexChats />
+          </View>
+        ):
+        (
+          <View style={{ padding: 10 }}>
+            <Text>Recent Chats</Text>
+            <FlatList
+            data={allChatsData?.data}
+            style={styles.chatList}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <ChatContactList
+                id={item.id.toString()}
+                pfp={item.customer.profilePicture}
+                name={item.customer.username}
+                icon={icons.gallery}
+                time={item?.recentMessageTimestamp}
+                msg={item?.recentMessage?.message}
+                status={item.chatStatus}
+                messageCount={item.messagesCount}
+              />
+            )}
+          />
+          </View>
+        )}
+      
       </ScrollView>
     </View>
   );
@@ -187,6 +239,9 @@ const styles = StyleSheet.create({
   },
   boxContainer: {
     padding: 15,
+  },
+  chatList: {
+    marginTop: 20,
   },
 });
 

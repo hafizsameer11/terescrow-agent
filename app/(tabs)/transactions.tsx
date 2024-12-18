@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS, icons } from "@/constants";
-import { transactionsData } from "@/utils/usersData";
+import { transactionsData, usersData } from "@/utils/usersData";
 import { Image } from "expo-image";
 import { useTheme } from "@/contexts/themeContext";
 import { TouchableOpacity } from "react-native-gesture-handler";
@@ -22,7 +22,9 @@ import { useQuery } from "@tanstack/react-query";
 import { getTransactions, getCustomerTransactions } from "@/utils/queries/adminQueries";
 
 import { token } from "@/utils/apiConfig";
-
+import { useAuth } from "@/contexts/authContext";
+import { getTransactionForAgent } from "@/utils/queries/agentQueries";
+import { Transaction } from "@/utils/queries/datainterfaces";
 const getRandomStatus = () => {
   const statuses = ["successfull", "failed", "pending"];
   return statuses[Math.floor(Math.random() * statuses.length)];
@@ -36,17 +38,17 @@ const Transactions: React.FC<{ isShown: boolean, customerId?: string }> = ({ isS
   const { dark } = useTheme();
   const [activeBtn, setActiveBtn] = useState("All");
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [filteredData, setFilteredData] = useState([]);
+  const [filteredData, setFilteredData] = useState<Transaction[]>([]);
+
   const [selectedOption, setSelectedOption] = useState("Last 30 days");
+  const [selectedTransaction,setSelectedTransaction] = useState<Transaction | null>(null);
   const [query, setQuery] = useState("");
   const [menuVisible, setMenuVisible] = useState<number | null>(null);
   const [transactionModalVisible, setTransactionModalVisible] = useState(false);
-
+const {userData,token}=useAuth();
   const textColor = {
     color: dark ? COLORS.white : COLORS.black,
   };
-
-
   const {
     data: customerTransactions,
     isLoading,
@@ -59,23 +61,53 @@ const Transactions: React.FC<{ isShown: boolean, customerId?: string }> = ({ isS
         : getTransactions({ token }),
     enabled: !!token && (!!customerId || !customerId),
   });
+  const {
+    data: agentTransactions,
+    isLoadingAgentTransactions,
+    isErrorAgentTransactions,
+  } = useQuery({
+    queryKey: ['agentTransactions'],
+    queryFn: () => getTransactionForAgent(token),
+    enabled: !!token
+  });
 
   // Update State on Data Fetch
   useEffect(() => {
-    if (customerTransactions?.data) {
-      setFilteredData(customerTransactions?.data);
+    if(userData?.role=='admin'){
+      setFilteredData(customerTransactions?.data || []);
+    }else{
+      setFilteredData(agentTransactions?.data || []);
+      console.log("Agent Transactions", agentTransactions);
     }
-  }, [customerTransactions]);
+   
+  }, [customerTransactions, agentTransactions]);
 
   // Search Filter Function
   const handleSearch = (text: string) => {
     setQuery(text);
-    const filtered = customerTransactions?.data.filter((item) =>
+  
+    if (text.trim() === "") {
+      // Reset to the full list when search query is empty
+      if (activeBtn === "All") {
+        if (userData?.role === 'admin') {
+          setFilteredData(customerTransactions?.data || []);
+        } else {
+          setFilteredData(agentTransactions?.data || []);
+        }
+      } else {
+        const filtered = (userData?.role === 'admin' ? customerTransactions?.data : agentTransactions?.data)?.filter(
+          (item) => item.department?.niche.toLowerCase() === activeBtn.toLowerCase()
+        );
+        setFilteredData(filtered || []);
+      }
+      return;
+    }
+  
+    const filtered = filteredData?.filter((item) =>
       item.customer.username.toLowerCase().includes(text.toLowerCase())
     );
     setFilteredData(filtered || []);
   };
-
   const handlePressModal = () => {
     setIsModalVisible(!isModalVisible);
     setMenuVisible(null);
@@ -85,7 +117,21 @@ const Transactions: React.FC<{ isShown: boolean, customerId?: string }> = ({ isS
 
   const handlePress = (btn: string) => {
     setActiveBtn(btn);
+  
+    if (btn === "All") {
+      if (userData?.role === 'admin') {
+        setFilteredData(customerTransactions?.data || []);
+      } else {
+        setFilteredData(agentTransactions?.data || []);
+      }
+    } else {
+      const filtered = (userData?.role === 'admin' ? customerTransactions?.data : agentTransactions?.data)?.filter(
+        (item) => item.department?.niche.toLowerCase() === btn.toLowerCase()
+      );
+      setFilteredData(filtered || []);
+    }
   };
+  
 
   const handleMenuToggle = (index: number) => {
     setMenuVisible(menuVisible === index ? null : index);
@@ -97,7 +143,7 @@ const Transactions: React.FC<{ isShown: boolean, customerId?: string }> = ({ isS
   };
 
   // Render Each Row
-  const renderRow = ({ item, index }) => {
+  const renderRow = ({ item, index }: { item: Transaction; index: number }) => {
     const getStatusBgColor = (status: string) => {
       if (status === "pending") return COLORS.warning;
       if (status === "successfull") return COLORS.primary;
@@ -106,12 +152,15 @@ const Transactions: React.FC<{ isShown: boolean, customerId?: string }> = ({ isS
     };
 
     const handleCustomerDetails = () => {
-      router.push(`/profile?id=${item.customer.id}`)
+      router.push(`/profile?id=${item.customer?.id.toString()}`);
       setMenuVisible(null);
     }
 
-    const handleTransactionDetails = () => {
-      handleTransactionModal(item.id)
+    const handleTransactionDetails = (
+      id:number,item: Transaction
+    ) => {
+      handleTransactionModal(id.toString());
+      setSelectedTransaction(item);
       setMenuVisible(null);
     }
 
@@ -119,7 +168,7 @@ const Transactions: React.FC<{ isShown: boolean, customerId?: string }> = ({ isS
       <View style={tableHeader.row} key={index}>
         <View style={tableHeader.nameLocationCell}>
           <Text style={[tableHeader.cell, textColor]}>
-            {item.customer.username}
+            {item.customer?.username}
           </Text>
         </View>
 
@@ -136,8 +185,8 @@ const Transactions: React.FC<{ isShown: boolean, customerId?: string }> = ({ isS
         >
           {item.status}
         </Text>
-        <Text style={[tableHeader.cell, textColor]}>{item.cardType}</Text>
-        <Text style={[tableHeader.cell, textColor]}>{item.amountNaira}</Text>
+        <Text style={[tableHeader.cell, textColor,{textTransform:"capitalize"}]}> {item.department?.niche} {item.department?.Type}</Text>
+        <Text style={[tableHeader.cell, textColor]}>{item.amount}</Text>
         <Text style={[tableHeader.cell, textColor]}>
           {new Date(item.createdAt).toLocaleDateString()}
         </Text>
@@ -162,7 +211,8 @@ const Transactions: React.FC<{ isShown: boolean, customerId?: string }> = ({ isS
                 { backgroundColor: dark ? COLORS.dark2 : COLORS.white },
               ]}
             >
-              {isShown && (
+              {isShown && userData?.role === "admin"  && (
+                
                 <TouchableOpacity style={[tableHeader.dropdownItem]}>
                   <Text
                     style={textColor}
@@ -174,7 +224,7 @@ const Transactions: React.FC<{ isShown: boolean, customerId?: string }> = ({ isS
               )}
               <TouchableOpacity
                 style={[tableHeader.dropdownItem]}
-                onPress={handleTransactionDetails}
+                onPress={()=>handleTransactionDetails(item.id,item)}
               >
                 <Text style={textColor}>View Transaction Details</Text>
               </TouchableOpacity>
@@ -202,7 +252,7 @@ const Transactions: React.FC<{ isShown: boolean, customerId?: string }> = ({ isS
           >
             Transactions
           </Text>
-          <View
+          {/* <View
             style={[
               styles.pickerContainer,
               { backgroundColor: dark ? COLORS.dark2 : COLORS.white },
@@ -234,7 +284,7 @@ const Transactions: React.FC<{ isShown: boolean, customerId?: string }> = ({ isS
                 />
               )}
             />
-          </View>
+          </View> */}
         </View>
         <View style={{ padding: 10 }}>
           <View style={styles.row}>
@@ -365,7 +415,7 @@ const Transactions: React.FC<{ isShown: boolean, customerId?: string }> = ({ isS
               </Text>
               <Text style={[tableHeader.headerCell, textColor]}>Status</Text>
               <Text style={[tableHeader.headerCell, textColor]}>
-                Card Type
+                Department
               </Text>
               <Text style={[tableHeader.headerCell, textColor]}>
                 Amount (₦)
@@ -383,9 +433,10 @@ const Transactions: React.FC<{ isShown: boolean, customerId?: string }> = ({ isS
         </ScrollView>
 
         <FullTransactionModal
-          transactionId="4"
+          transactionId=""
           visible={transactionModalVisible}
           onClose={() => setTransactionModalVisible(false)}
+          transactionData={selectedTransaction}
         />
       </ScrollView>
     </SafeAreaView>

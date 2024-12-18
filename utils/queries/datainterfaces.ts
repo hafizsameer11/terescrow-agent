@@ -95,8 +95,8 @@ export interface Transaction {
   updatedAt: string;
 
   // References
-  department: Department;
-  category: Category;
+  department?: Department;
+  category?: Category;
   agent?: Agent;
   customer?: Customer;
 }
