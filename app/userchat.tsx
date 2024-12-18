@@ -10,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import ChatPfpNav from '@/components/ChatPfpNav';
 import { COLORS, images } from '@/constants';
 import { useTheme } from '@/contexts/themeContext';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Text } from 'react-native';
 import { Image } from 'expo-image';
 import { FlatList } from 'react-native';
@@ -92,8 +92,17 @@ const UserChat = () => {
     mutationKey: ['read-all-messages'],
     mutationFn: readAllMessages,
     onSuccess: (data) => {
+      console.log('read chats');
       queryClient.invalidateQueries({ queryKey: ['all-chats-with-team'] });
       queryClient.refetchQueries({ queryKey: ['all-chats-with-team'] });
+    },
+    onError: (error: ApiError) => {
+      console.log('reading failed', error);
+      showTopToast({
+        type: 'error',
+        text1: 'Error',
+        text2: error?.message || 'Failed to read messages',
+      });
     },
   });
 
@@ -101,49 +110,70 @@ const UserChat = () => {
     flatListRef.current?.scrollToEnd({ animated: true });
   };
 
-  // useFocusEffect(() => {
-  //   console.log('object');
-  //   readAll({
-  //     chatId: currChatId,
-  //     token,
-  //   });
-  // });
-
-  useEffect(() => {
-    if (currChatId) {
+  useFocusEffect(
+    useCallback(() => {
       readAll({
         chatId: currChatId,
         token,
       });
-    }
-  }, [currChatId]);
+      if (socket) {
+        console.log('messge event called');
+        socket.on(
+          'message',
+          ({ from, message }: { from: number; message: IResMessage }) => {
+            // console.log(from, message);
+            // console.log('My id: ', userData?.id);
+            // console.log('participants: ', currParticipantsIds.current);
+            if (
+              from == userData?.id ||
+              !currParticipantsIds.current.includes(from)
+            )
+              return;
+            queryClient.invalidateQueries({
+              queryKey: ['all-chats-with-team'],
+            });
+            setMessages((prevMessages) => [...prevMessages, message]);
+            setTimeout(() => {
+              scrollToBottom();
+            }, 200);
+          }
+        );
+      }
+      // Do something when the screen is focused
+      return () => {
+        // Do something when the screen is unfocused
+        console.log('message event off');
+        socket?.off('message');
+      };
+    }, [])
+  );
 
-  useEffect(() => {
-    if (socket) {
-      socket.on(
-        'message',
-        ({ from, message }: { from: number; message: IResMessage }) => {
-          console.log(from, message);
-          console.log('My id: ', userData?.id);
-          console.log('participants: ', currParticipantsIds.current);
-          if (
-            from == userData?.id ||
-            !currParticipantsIds.current.includes(from)
-          )
-            return;
-          queryClient.invalidateQueries({ queryKey: ['all-chats-with-team'] });
-          setMessages((prevMessages) => [...prevMessages, message]);
-          setTimeout(() => {
-            scrollToBottom();
-          }, 200);
-        }
-      );
-    }
+  // useEffect(() => {
+  //   if (socket) {
+  //     socket.on(
+  //       'message',
+  //       ({ from, message }: { from: number; message: IResMessage }) => {
+  //         console.log(from, message);
+  //         console.log('My id: ', userData?.id);
+  //         console.log('participants: ', currParticipantsIds.current);
+  //         if (
+  //           from == userData?.id ||
+  //           !currParticipantsIds.current.includes(from)
+  //         )
+  //           return;
+  //         queryClient.invalidateQueries({ queryKey: ['all-chats-with-team'] });
+  //         setMessages((prevMessages) => [...prevMessages, message]);
+  //         setTimeout(() => {
+  //           scrollToBottom();
+  //         }, 200);
+  //       }
+  //     );
+  //   }
 
-    return () => {
-      socket?.off('message');
-    };
-  }, [socket]);
+  //   return () => {
+  //     socket?.off('message');
+  //   };
+  // }, [socket]);
 
   useEffect(() => {
     if (chatDetailsData?.data) {
@@ -174,7 +204,7 @@ const UserChat = () => {
   //this event listener scrolls to bottom to view full content
   useEffect(() => {
     Keyboard.addListener('keyboardDidShow', () => {
-      console.log('ok');
+      // console.log('ok');
       setTimeout(() => scrollToBottom(), 200);
     });
 

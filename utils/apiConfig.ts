@@ -1,10 +1,10 @@
 // import { getTeamChatDetails } from "./queries/commonQueries";
 
-export const API_BASE_URL = 'http://192.168.1.3:8000';
+export const API_BASE_URL = 'http://192.168.1.8:8000';
 
 export const API_TEMPLATE_URL = API_BASE_URL + '/api/';
 
-const API_DOMAIN = 'http://192.168.1.3:8000/api';
+const API_DOMAIN = 'http://192.168.1.8:8000/api';
 
 export const API_ENDPOINTS = {
   COMMON: {
@@ -16,7 +16,7 @@ export const API_ENDPOINTS = {
     SendMessageToTeam: API_TEMPLATE_URL + 'send-message-to-team',
     GetTeamChatDetails: API_TEMPLATE_URL + 'get-team-chat-details', //chat id as param
     GetAllChatsWithTeam: API_TEMPLATE_URL + 'get-all-chats-with-team',
-    MarkAllAsRead: API_TEMPLATE_URL + '/public/read-all-messages',
+    MarkAllAsRead: API_TEMPLATE_URL + 'public/read-all-messages',
   },
   AGENT: {
     GetAllChatsWithCustomer:

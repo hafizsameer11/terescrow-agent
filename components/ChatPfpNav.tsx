@@ -30,9 +30,6 @@ const ChatPfpNav: React.FC<{
       const receiver = participants?.[0]?.user;
       profileName = receiver?.firstname + ' ' + receiver?.lastname;
       profilePicture = receiver?.profilePicture!;
-      console.log('receiverId: ', receiver);
-      // console.log(onlineAgents);
-      console.log(isAdminOnline);
       onlineAgents.forEach((agent) => {
         if (+agent.userId == +receiver?.id) {
           receiverStatus = 'Online';
@@ -52,7 +49,7 @@ const ChatPfpNav: React.FC<{
     }
   }
 
-  console.log(receiverStatus);
+  // console.log(receiverStatus);
   const backPressHandler = () => {
     router.back();
   };
@@ -69,7 +66,13 @@ const ChatPfpNav: React.FC<{
       <View style={styles.mainContentContainer}>
         <View>
           <Image
-            source={profilePicture || images.avatar}
+            source={
+              profilePicture
+                ? profilePicture
+                : chatDetails?.chatType == ChatType.group_chat
+                ? icons.people
+                : icons.profile
+            }
             style={{ width: 58, height: 58 }}
           />
         </View>

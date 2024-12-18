@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { View, FlatList, ScrollView, StyleSheet } from 'react-native';
 import { useTheme } from '@/contexts/themeContext';
 import { Colors } from '@/constants/Colors';
@@ -10,8 +10,12 @@ import TeamChatContactList from '@/components/TeamChatContactList';
 import TeamGroupModal from '@/components/TeamGroupModal';
 import { useSocket } from '@/contexts/socketContext';
 import { useAuth } from '@/contexts/authContext';
-import { QueryClient, useQuery } from '@tanstack/react-query';
-import { ChatType, getCustomerChatDetails } from '@/utils/queries/agentQueries';
+import { QueryClient, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  ChatType,
+  getCustomerChatDetails,
+  IResMessage,
+} from '@/utils/queries/agentQueries';
 import {
   getAllTeamChats,
   ITeamChatResponse,
@@ -20,21 +24,14 @@ import { icons, images } from '@/constants';
 import { sortChatsByLatestMessage } from '@/utils/helpers';
 import LoadingOverlay from '@/components/LoadingOverlay';
 import { Text } from 'react-native';
-
-interface User {
-  id: string;
-}
-
-interface selectedPeopleGroup {
-  id: string;
-  name: string;
-  pfp: string;
-}
+import { useFocusEffect } from 'expo-router';
 
 const TeamCommunication = () => {
   const { dark } = useTheme();
   const { token, userData } = useAuth();
   const { socket } = useSocket();
+  const queryClient = useQueryClient();
+  const currChatIds = useRef<number[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [displayChats, setDisplayChats] = useState<ITeamChatResponse['data']>(
     []
@@ -51,6 +48,7 @@ const TeamCommunication = () => {
     queryFn: () => getAllTeamChats(token),
   });
 
+  // console.log('hi');
   const selectCategoryHandler = (selected: string) => {
     console.log(selected);
     setSelectedCategory(selected);
@@ -60,17 +58,36 @@ const TeamCommunication = () => {
     setModalVisibility(modalState);
   };
 
-  useEffect(() => {
-    if (allChatsData?.data) {
-      setDisplayChats(sortChatsByLatestMessage(allChatsData?.data)!);
-    }
-  }, [allChatsData]);
+  const filteredChatsWithCategory = useCallback(
+    (chatsData: ITeamChatResponse['data']) => {
+      switch (selectedCategory) {
+        case 'All':
+          return sortChatsByLatestMessage(chatsData);
 
-  useEffect(() => {
-    if (!searchTerm && allChatsData)
-      return setDisplayChats(allChatsData?.data!);
-    if (searchTerm && displayChats) {
-      const filteredChats = [...displayChats].filter((chat) => {
+        case 'Group':
+          const groupChats = [...chatsData].filter(
+            (chat) => chat.chatType === ChatType.group_chat
+          );
+          return sortChatsByLatestMessage(groupChats);
+
+        case 'Unread':
+          const unreadChats = [...chatsData].filter((chat) => {
+            if (!chat.messages || chat.messages.length === 0) return false;
+            return !chat.messages[0].isRead;
+          });
+          return sortChatsByLatestMessage(unreadChats);
+
+        default:
+          return sortChatsByLatestMessage(chatsData); // Handle cases where no category matches
+      }
+    },
+    [selectedCategory] // Dependency array
+  );
+
+  const filterBySearchTerm = useCallback(
+    (chats: ITeamChatResponse['data']) => {
+      if (!searchTerm.trim()) return chats;
+      const filteredChats = [...chats].filter((chat) => {
         if (chat.chatType === ChatType.group_chat)
           return chat.chatGroup?.groupName
             .toLowerCase()
@@ -80,28 +97,48 @@ const TeamCommunication = () => {
           .toLowerCase()
           .includes(searchTerm.toLowerCase());
       });
+
+      return filteredChats;
+    },
+    [searchTerm] // Dependency array
+  );
+
+  useEffect(() => {
+    if (allChatsData?.data) {
+      currChatIds.current = [...allChatsData?.data].map((chat) => chat.id);
+      const filteredChats = applyFilters(allChatsData?.data);
       setDisplayChats(filteredChats);
     }
-  }, [searchTerm]);
+  }, [allChatsData, searchTerm, selectedCategory]);
 
-  // const filterDataHandler = (selectedItem: string) => {
-  //   let filteredData = DUMMY_ALL;
-  //   // Filter by category
-  //   if (selectedItem === 'Group') {
-  //     filteredData = filteredData.filter((item) => item.group);
-  //   } else if (selectedItem === 'Unread') {
-  //     filteredData = filteredData.filter((item) => !item.seen);
-  //   }
+  //refetch query when a new message comes or when the component gains focus
+  useFocusEffect(
+    useCallback(() => {
+      queryClient.refetchQueries({ queryKey: ['all-chats-with-team'] });
+      if (socket) {
+        socket.on(
+          'message',
+          ({ from, message }: { from: number; message: IResMessage }) => {
+            if (currChatIds.current.includes(message.chatId)) {
+              queryClient.refetchQueries({
+                queryKey: ['all-chats-with-team'],
+              });
+            }
+          }
+        );
+      }
 
-  //   // Filter by search term
-  //   if (searchTerm) {
-  //     filteredData = filteredData.filter((item) =>
-  //       item.name.toLowerCase().includes(searchTerm.toLowerCase())
-  //     );
-  //   }
+      return () => {
+        if (socket) {
+          socket?.off('message');
+        }
+      };
+    }, [])
+  );
 
-  //   return filteredData;
-  // };
+  const applyFilters = (chats: ITeamChatResponse['data']) => {
+    return filterBySearchTerm(filteredChatsWithCategory(chats)!);
+  };
 
   const handleSearchChange = (searchTerm: string) => {
     setSearchTerm(searchTerm); // Update the search term state
