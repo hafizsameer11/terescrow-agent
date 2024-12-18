@@ -92,6 +92,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
           admin: NonAgentUser | null;
         }) => {
           if (agents?.length > 0) {
+            // console.log(agents);
             setOnlineAgents((previous) => [...previous, ...agents]);
           }
           if (userData?.role !== UserRoles.admin && admin) {
