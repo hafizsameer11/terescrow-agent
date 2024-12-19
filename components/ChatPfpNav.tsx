@@ -8,6 +8,11 @@ import { Colors } from '@/constants/Colors';
 import { ITeamChatDetailsResponse } from '@/utils/queries/commonQueries';
 import { ChatType } from '@/utils/queries/agentQueries';
 import { useSocket } from '@/contexts/socketContext';
+import { useEffect } from 'react';
+
+let profilePicture: string = '';
+let profileName: string = '';
+let receiverStatus = 'Offline';
 
 const ChatPfpNav: React.FC<{
   chatDetails: ITeamChatDetailsResponse['data'] | undefined;
@@ -15,44 +20,49 @@ const ChatPfpNav: React.FC<{
   const { dark } = useTheme();
   const { onlineAgents, isAdminOnline } = useSocket();
   const router = useRouter();
-  let profilePicture: string = '';
-  let profileName: string = '';
-  let receiverStatus = '';
 
   // console.log(onlineAgents);
-  if (chatDetails) {
-    const { chatGroup, chatType, participants } = chatDetails;
+  useEffect(() => {
+    if (!chatDetails) return;
 
-    if (chatType == ChatType.group_chat) {
-      profileName = chatGroup?.groupName!;
-      profilePicture = chatGroup?.groupProfile!;
-    } else {
-      const receiver = participants?.[0]?.user;
-      profileName = receiver?.firstname + ' ' + receiver?.lastname;
-      profilePicture = receiver?.profilePicture!;
-      console.log('receiverId: ', receiver);
-      // console.log(onlineAgents);
-      console.log(isAdminOnline);
-      onlineAgents.forEach((agent) => {
-        if (+agent.userId == +receiver?.id) {
-          receiverStatus = 'Online';
-        }
-      });
+    const { chatType, chatGroup, participants } = chatDetails;
+    const receiver = participants?.[0]?.user;
+
+    receiverStatus = 'Offline';
+
+    if (chatType !== ChatType.group_chat && receiver) {
+      // Check if the receiver is online
+      const isReceiverOnline = onlineAgents.some(
+        (agent) => +agent.userId === +receiver.id
+      );
+      console.log('Online agents: ');
+      console.log(onlineAgents);
+      onlineAgents.forEach((agent) => console.log(agent));
+      // console.log(receiver.id, isReceiverOnline);
+
+      receiverStatus = isReceiverOnline ? 'Online' : 'Offline';
+
+      // If receiver is offline, check admin online receiverStatus
       if (
-        (!receiverStatus || receiverStatus == 'Offline') &&
+        receiverStatus === 'Offline' &&
         isAdminOnline &&
-        +participants[0]?.user.id == +isAdminOnline.userId
+        +isAdminOnline.userId === +receiver.id
       ) {
         receiverStatus = 'Online';
-      } else {
-        if (!receiverStatus) {
-          receiverStatus = 'Offline';
-        }
       }
+      // console.log(receiverStatus);
     }
-  }
 
-  console.log(receiverStatus);
+    // Assign profile details based on chat type
+    if (chatType === ChatType.group_chat && chatGroup) {
+      profileName = chatGroup.groupName!;
+      profilePicture = chatGroup.groupProfile!;
+    } else if (receiver) {
+      profileName = `${receiver.firstname} ${receiver.lastname}`;
+      profilePicture = receiver.profilePicture!;
+    }
+  }, [onlineAgents, chatDetails, isAdminOnline]);
+
   const backPressHandler = () => {
     router.back();
   };
@@ -69,7 +79,13 @@ const ChatPfpNav: React.FC<{
       <View style={styles.mainContentContainer}>
         <View>
           <Image
-            source={profilePicture || images.avatar}
+            source={
+              profilePicture
+                ? profilePicture
+                : chatDetails?.chatType == ChatType.group_chat
+                ? icons.people
+                : icons.profile
+            }
             style={{ width: 58, height: 58 }}
           />
         </View>
@@ -83,7 +99,7 @@ const ChatPfpNav: React.FC<{
             {profileName || 'Unknown'}
           </Text>
 
-          {chatDetails?.chatType == ChatType.team_chat && receiverStatus && (
+          {chatDetails?.chatType == ChatType.team_chat && (
             <Text
               style={[
                 styles.agentStatus,

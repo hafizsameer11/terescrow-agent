@@ -50,9 +50,11 @@ const TeamChatContactList: React.FC<{
           >
             {props.recentMsg}
           </Text>
-          <View style={styles.unreadMsgContainer}>
-            <Text style={styles.unreadMessage}>{props.msgCount}</Text>
-          </View>
+          {props?.msgCount > 0 && (
+            <View style={styles.unreadMsgContainer}>
+              <Text style={styles.unreadMessage}>{props.msgCount}</Text>
+            </View>
+          )}
         </View>
       </View>
     </Pressable>

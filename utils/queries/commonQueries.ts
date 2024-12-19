@@ -42,6 +42,7 @@ export const getSubCategories = async (
 export const getAllTeamChats = async (
   token: string
 ): Promise<ITeamChatResponse> => {
+  // console.log('messages fetching...');
   return await apiCall(
     API_ENDPOINTS.COMMON.GetAllTeamChats,
     'GET',

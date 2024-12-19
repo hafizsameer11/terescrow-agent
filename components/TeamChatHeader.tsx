@@ -11,7 +11,7 @@ const TeamChatHeader: React.FC<{
 }> = ({ setModalVisible }) => {
   const { userData } = useAuth();
   const { dark } = useTheme();
-  console.log(userData);
+  // console.log(userData);
   const router = useRouter();
   return (
     <View style={styles.header}>

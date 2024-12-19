@@ -5,6 +5,7 @@ import { Image } from 'expo-image';
 import { useAuth } from '@/contexts/authContext';
 import { COLORS } from '@/constants';
 import { ITeamChatDetailsResponse } from '@/utils/queries/commonQueries';
+import { timeFormatter } from '@/utils/helpers';
 
 const TeamMessageCom = ({
   messageData,
@@ -18,7 +19,7 @@ const TeamMessageCom = ({
     (participant) => participant.user.id === messageData.senderId
   )?.user;
 
-  console.log(participants);
+  // console.log(participants);
   // console.log(messageData);
   return (
     <View
@@ -31,6 +32,7 @@ const TeamMessageCom = ({
       ]}
     >
       {/* Profile Picture */}
+
       <Image
         source={[
           messageData.senderId === userData?.id
@@ -39,7 +41,6 @@ const TeamMessageCom = ({
         ]}
         style={styles.profilePicture}
       />
-
       {/* Message Content */}
       <View
         style={[
@@ -70,7 +71,7 @@ const TeamMessageCom = ({
               },
             ]}
           >
-            {new Date().toLocaleTimeString()}
+            {timeFormatter(messageData.createdAt)}
           </Text>
         </View>
         {/* )}  */}

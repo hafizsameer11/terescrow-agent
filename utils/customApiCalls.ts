@@ -38,7 +38,7 @@ export const apiCall = async (
     let response: AxiosResponse | undefined;
     switch (method) {
       case 'GET':
-        console.log(headers);
+        // console.log(headers);
         response = await axios.get(url, { headers });
         break;
 

@@ -33,7 +33,7 @@ interface showTopToastProps {
 export const sortChatsByLatestMessage = (
   chats: ITeamChatResponse['data'] | undefined
 ): typeof chats => {
-  if (!chats) return undefined;
+  if (!chats || chats.length === 0) return undefined;
 
   return [...chats].sort((a, b) => {
     const latestMessageA = a.messages[0]?.createdAt

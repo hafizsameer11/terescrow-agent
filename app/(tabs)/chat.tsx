@@ -9,7 +9,7 @@ import {
 import { useTheme } from '@/contexts/themeContext';
 import { Image } from 'expo-image';
 import { COLORS, icons } from '@/constants';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ChatContactList from '@/components/ChatContactList';
 import LoadingOverlay from '@/components/LoadingOverlay';
 import { useQuery } from '@tanstack/react-query';
@@ -18,44 +18,76 @@ import {
   getAllChatsWithCustomer,
 } from '@/utils/queries/agentQueries';
 import { useAuth } from '@/contexts/authContext';
+import { useSocket } from '@/contexts/socketContext';
 
 const ChatScreen = () => {
   const { dark } = useTheme();
   const { token } = useAuth();
+  const { socket } = useSocket(); 
   const [selectedCategory, setSelectedCategory] = useState<ChatStatus | 'All'>('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [dropDownVisibility, setDropDownVisibility] = useState(false);
+  const chatIdsRef = useRef<number[]>([]);  
+  const [displayChats, setDisplayChats] = useState([]);
 
+  // Fetch all customer chats
   const {
     data: allChatsData,
     isLoading: allChatsLoading,
     isError: isAllChatsError,
     error: allChatsError,
+    refetch,
   } = useQuery({
     queryKey: ['all-chats-with-customer'],
-    refetchInterval: 1500,
+    refetchInterval: 1500,  // Polling every 1.5 seconds
     queryFn: () => getAllChatsWithCustomer(token),
+    enabled: !!token,
   });
 
-  const handleSearchChange = (term: string) => {
-    setSearchTerm(term);
-  };
+  // Update available chat IDs and apply filters when fetching data succeeds
+  useEffect(() => {
+    if (allChatsData?.data) {
+      chatIdsRef.current = allChatsData.data.map((chat) => chat.id);
+      const filteredChats = applyFilters(allChatsData.data); 
+      setDisplayChats(filteredChats); 
+    }
+  }, [allChatsData, searchTerm, selectedCategory]);
+
+  // Handle incoming messages via WebSocket
+  useEffect(() => {
+    if (socket) {
+      socket.on('message', (newMessage) => {
+        if (newMessage?.chatId && chatIdsRef.current.includes(newMessage.chatId)) {
+          console.log('New Matched Chat ID:', newMessage.chatId);
+          refetch();  
+        }
+      });
+    }
+    return () => {
+      if (socket) {
+        socket.off('message');  
+      }
+    };
+  }, [socket, refetch]);
+
+  const handleSearchChange = (term: string) => setSearchTerm(term);
 
   const selectedCategoryHandler = (category: ChatStatus | 'All') => {
     setSelectedCategory(category);
     setDropDownVisibility(false);
   };
 
-  const toggleDropDownVisibility = () => {
-    setDropDownVisibility(!dropDownVisibility);
-  };
+  const toggleDropDownVisibility = () => setDropDownVisibility(!dropDownVisibility);
 
-  const filteredChats = allChatsData?.data?.filter((chat) => {
-    const matchesCategory = selectedCategory === 'All' || chat.chatStatus === selectedCategory;
-    const matchesSearch = chat.customer.firstname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      chat.customer.lastname.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const applyFilters = (chats: any[]) => {
+    return chats.filter((chat) => {
+      const matchesCategory = selectedCategory === 'All' || chat.chatStatus === selectedCategory;
+      const matchesSearch =
+        chat.customer.firstname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        chat.customer.lastname.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesCategory && matchesSearch;
+    });
+  };
 
   return (
     <View style={[styles.container, dark && { backgroundColor: COLORS.black }]}>
@@ -107,7 +139,7 @@ const ChatScreen = () => {
       </View>
 
       <FlatList
-        data={filteredChats}
+        data={displayChats}
         style={styles.chatList}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
@@ -142,7 +174,7 @@ const styles = StyleSheet.create({
   mainHeading: {
     fontSize: 18,
     fontWeight: '500',
-  marginBottom: 5,
+    marginBottom: 5,
   },
   textDetail: {
     fontSize: 14,
@@ -179,7 +211,6 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     flex: 1,
-    position: 'relative',
     justifyContent: 'center',
   },
   searchIcon: {
@@ -208,11 +239,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
     elevation: 5,
     borderRadius: 5,
-    shadowRadius: 5,
-    shadowOpacity: 0.5,
-    shadowColor: COLORS.greyscale900,
     backgroundColor: COLORS.white,
-    shadowOffset: { width: 0, height: 2 },
   },
   dropDownItem: {
     paddingVertical: 8,
