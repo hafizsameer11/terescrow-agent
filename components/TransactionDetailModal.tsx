@@ -33,28 +33,29 @@ const FullTransactionModal: React.FC<KYCModalProps> = ({
   };
 
   const [formData, setFormData] = useState({
-    amount: "",
-    serviceType: "",
-    giftCardType: "",
-    giftCardSubType: "",
-    transactionId: "",
-    assignedAgent: "",
-    status: "",
+    Amount: "",
+    Department: "",
+    ServiceType: "",
+    SubService: "",
+    TransactionId: "",
+    Customer: "",
+    Status: "",
   });
 
   useEffect(() => {
-    if (transactionData) {
+
+    console.log('transactionData', transactionData)
       setFormData({
-        Amount: transactionData.amount.toString() || "",
-        Department: transactionData.department?.title || "",
-        ServiceType: transactionData.department?.Type || "",
-        SubService: transactionData.category?.title || "",
-        TransactionId: transactionData.id.toString() || "",
-        Customer: transactionData.customer?.username || "",
-        Status: transactionData.status || "",
+        Amount: transactionData?.amount.toString() || "",
+        Department: transactionData?.department?.title || "",
+        ServiceType: transactionData?.department?.Type || "",
+        SubService: transactionData?.category?.title || "",
+        TransactionId: transactionData?.id.toString() || "",
+        Customer: transactionData?.customer?.username || "",
+        Status: transactionData?.status || "",
       });
-    }
-  }, [transactionId]);
+
+  }, []);
 
   return (
     <Modal visible={visible} transparent animationType="slide">

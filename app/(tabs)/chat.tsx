@@ -28,7 +28,7 @@ const ChatScreen = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [dropDownVisibility, setDropDownVisibility] = useState(false);
   const chatIdsRef = useRef<number[]>([]);  
-  const [displayChats, setDisplayChats] = useState([]);
+  const [displayChats, setDisplayChats] = useState<any[]> ([]);
 
   // Fetch all customer chats
   const {
@@ -132,6 +132,7 @@ const ChatScreen = () => {
           <TextInput
             placeholder="Search customer name"
             placeholderTextColor={dark ? COLORS.grayscale400 : COLORS.black}
+            
             style={[styles.searchInput, dark && { color: COLORS.white }]}
             onChangeText={handleSearchChange}
           />
@@ -212,6 +213,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     flex: 1,
     justifyContent: 'center',
+    padding:0,
   },
   searchIcon: {
     position: 'absolute',
@@ -223,7 +225,7 @@ const styles = StyleSheet.create({
   searchInput: {
     borderWidth: 1,
     borderRadius: 16,
-    paddingVertical: 8,
+    paddingVertical: 10,
     paddingRight: 16,
     paddingLeft: 37,
     color: COLORS.black,

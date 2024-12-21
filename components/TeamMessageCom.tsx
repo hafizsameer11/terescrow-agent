@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/authContext';
 import { COLORS } from '@/constants';
 import { ITeamChatDetailsResponse } from '@/utils/queries/commonQueries';
 import { timeFormatter } from '@/utils/helpers';
+import { API_BASE_URL } from '@/utils/apiConfig';
 
 const TeamMessageCom = ({
   messageData,
@@ -18,9 +19,13 @@ const TeamMessageCom = ({
   const sender = participants?.find(
     (participant) => participant.user.id === messageData.senderId
   )?.user;
-
-  // console.log(participants);
-  // console.log(messageData);
+  const profilePictureUri = `${API_BASE_URL}:8000/uploads/${
+    messageData.senderId === userData?.id
+      ? userData?.profilePicture
+      : sender?.profilePicture
+  }`;
+  
+  console.log('Profile Picture URI:', profilePictureUri);
   return (
     <View
       style={[
@@ -34,11 +39,12 @@ const TeamMessageCom = ({
       {/* Profile Picture */}
 
       <Image
-        source={[
-          messageData.senderId === userData?.id
-            ? userData?.profilePicture
-            : sender?.profilePicture,
-        ]}
+        source={{
+          uri: `${API_BASE_URL}/uploads/${messageData.senderId === userData?.id
+              ? userData?.profilePicture
+              : sender?.profilePicture
+            }`,
+        }}
         style={styles.profilePicture}
       />
       {/* Message Content */}

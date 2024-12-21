@@ -9,12 +9,12 @@ const API_DOMAIN = "https://46.202.154.203/api";
 export const API_ENDPOINTS = {
   COMMON: {
     login: API_TEMPLATE_URL + 'public/login',
-    GetActionCatagories: API_TEMPLATE_URL + 'public/categories', //with dept id parameter
-    GetActionSubacategories: API_TEMPLATE_URL + 'public/subcategories', //inside query parameter, need dept id and cat id
+    GetActionCatagories: API_TEMPLATE_URL + 'public/categories', 
+    GetActionSubacategories: API_TEMPLATE_URL + 'public/subcategories', 
     GetActionDepartments: API_TEMPLATE_URL + 'public/departments',
     GetAllTeamChats: API_TEMPLATE_URL + 'get-all-teams-chats',
     SendMessageToTeam: API_TEMPLATE_URL + 'send-message-to-team',
-    GetTeamChatDetails: API_TEMPLATE_URL + 'get-team-chat-details', //chat id as param
+    GetTeamChatDetails: API_TEMPLATE_URL + 'get-team-chat-details', 
     GetAllChatsWithTeam: API_TEMPLATE_URL + 'get-all-chats-with-team',
     MarkAllAsRead: API_TEMPLATE_URL + '/public/read-all-messages',
     GetAgentStats: API_TEMPLATE_URL + 'agent/utilities/get-agent-stats',
@@ -23,9 +23,9 @@ export const API_ENDPOINTS = {
   AGENT: {
     GetAllChatsWithCustomer:
       API_TEMPLATE_URL + 'agent/get-all-chats-with-customer',
-    GetCustomerChatDetails: API_TEMPLATE_URL + 'agent/get-chat', //pass chat id as param
+    GetCustomerChatDetails: API_TEMPLATE_URL + 'agent/get-chat', 
     SendMessageToCustomer: API_TEMPLATE_URL + 'agent/send-to-customer',
-    ChangeChatStatus: API_TEMPLATE_URL + 'agent/change-chat-status', // body {chatId, setStatus}
+    ChangeChatStatus: API_TEMPLATE_URL + 'agent/change-chat-status', 
     CreateCryptoTransaction:
       API_TEMPLATE_URL + 'agent/create-crypto-transaction',
     CreateCardTransaction: API_TEMPLATE_URL + 'agent/create-card-transaction',
@@ -40,7 +40,6 @@ export const API_ENDPOINTS = {
 };
 
 const OUR_ENDPOINT = {
-  //Sir wale.
   CUSTOMER: {
     AllCustomers: API_DOMAIN + "/admin/operations/get-all-customers",
     CustomerDetails: API_DOMAIN + "/admin/operations/get-customer-details",
@@ -53,6 +52,7 @@ const OUR_ENDPOINT = {
     GetRate: API_DOMAIN + '/admin/operations/get-rate',
     GetTeam: API_DOMAIN + '/admin/operations/get-team-members',
     GetCategories: API_DOMAIN + '/admin/operations/get-all-categories',
+    GetAllAgents: API_DOMAIN + '/admin/operations/get-all-agents',
     GetSubCategories: API_DOMAIN + '/admin/operations/get-all-subcategories',
     GetAllUsers: API_DOMAIN + '/admin/operations/get-all-users',
     GetBanner: API_DOMAIN + '/admin/operations/get-all-banners',

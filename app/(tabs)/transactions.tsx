@@ -33,7 +33,6 @@ const getRandomStatus = () => {
 
 const Transactions: React.FC<{ isShown: boolean, customerId?: string }> = ({ isShown = true, customerId }) => {
 
-  console.log("Inside the Transaction Part", customerId);
 
   const { dark } = useTheme();
   const [activeBtn, setActiveBtn] = useState("All");
@@ -76,11 +75,11 @@ const {userData,token}=useAuth();
     if(userData?.role=='admin'){
       setFilteredData(customerTransactions?.data || []);
     }else{
-      setFilteredData(agentTransactions?.data || []);
-      console.log("Agent Transactions", agentTransactions);
+      setFilteredData(agentTransactions?.data || [] );
+      console.log("agentTransactions",agentTransactions?.data);
     }
    
-  }, [customerTransactions, agentTransactions]);
+  }, [agentTransactions]);
 
   // Search Filter Function
   const handleSearch = (text: string) => {
@@ -92,7 +91,7 @@ const {userData,token}=useAuth();
         if (userData?.role === 'admin') {
           setFilteredData(customerTransactions?.data || []);
         } else {
-          setFilteredData(agentTransactions?.data || []);
+          setFilteredData(agentTransactions?.data|| []);
         }
       } else {
         const filtered = (userData?.role === 'admin' ? customerTransactions?.data : agentTransactions?.data)?.filter(
@@ -139,6 +138,7 @@ const {userData,token}=useAuth();
 
   const handleTransactionModal = (transactionId: string) => {
     setTransactionModalVisible(!transactionModalVisible);
+
     setMenuVisible(null)
   };
 
@@ -159,11 +159,11 @@ const {userData,token}=useAuth();
     const handleTransactionDetails = (
       id:number,item: Transaction
     ) => {
-      handleTransactionModal(id.toString());
       setSelectedTransaction(item);
+      handleTransactionModal(id.toString());
       setMenuVisible(null);
+      console.log("selected transaction",selectedTransaction);
     }
-
     return (
       <View style={tableHeader.row} key={index}>
         <View style={tableHeader.nameLocationCell}>

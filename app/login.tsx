@@ -24,6 +24,7 @@ const Login = () => {
     mutationKey: ['login'],
     mutationFn: loginUser,
     onSuccess: async (data) => {
+      console.log("login:",data)
       try {
         await setToken(data.token);  // Correctly await setToken
         await setUserData(data?.data);  // Correctly await setUserData

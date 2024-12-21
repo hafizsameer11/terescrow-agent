@@ -17,6 +17,7 @@ const ChatContactList: React.FC<{
   id: string;
   messageCount?: number;
 }> = (props) => {
+  console.log(props.pfp);
   const router = useRouter();
   const { dark } = useTheme();
   return (
