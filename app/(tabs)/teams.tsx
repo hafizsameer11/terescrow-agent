@@ -340,7 +340,7 @@ export default function Department() {
           </TouchableOpacity>
         </View>
 
-      <ScrollView horizontal>
+      <ScrollView horizontal style={{ marginTop: 20 }}>
         <View>
           <View
             style={[
@@ -356,7 +356,7 @@ export default function Department() {
             <Text style={[tableHeader.headerCell, textColor]}>Role</Text>
             <Text style={[tableHeader.headerCell, textColor]}>Action</Text>
           </View>
-          <View style={{marginBottom: 100}}>
+          <View style={{marginBottom: 50}}>
             {filteredData.map((item, index) => renderRow(item, index))}
           </View>
         </View>
@@ -406,6 +406,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignSelf: "flex-start",
     alignItems: "center",
+    marginLeft: 10,
   },
   container: {
     display: "flex",
@@ -501,6 +502,7 @@ const tableHeader = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
     paddingHorizontal: 10,
+    flex: 1,
   },
   tableBody: {
     paddingTop: 10,
@@ -515,11 +517,11 @@ const tableHeader = StyleSheet.create({
   },
   cell: {
     flex: 1,
+    paddingHorizontal: 10,
     width: '100%',
     textAlign: "center",
   },
   actionCell: {
-    // flex: 1,
     alignItems: "center",
     justifyContent: "center",
   },

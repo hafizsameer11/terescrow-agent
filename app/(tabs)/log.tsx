@@ -219,14 +219,14 @@ const Log = () => {
               },
             ]}
           >
-            <Text style={[tableHeader.headerCell, textColor]}>Name</Text>
-            <Text style={[tableHeader.headerCell, textColor]}>Type</Text>
+            <Text style={[tableHeader.headerCell, textColor, { paddingRight: 40}]}>Name</Text>
+            <Text style={[tableHeader.headerCell, textColor, { paddingRight: 20}]}>Type</Text>
             <Text style={[tableHeader.headerCell, textColor]}>Amount ($)</Text>
             <Text style={[tableHeader.headerCell, textColor]}>
               Amount (NGN)
             </Text>
-            <Text style={[tableHeader.headerCell, textColor]}>Profit</Text>
-            <Text style={[tableHeader.headerCell, textColor]}>Paid</Text>
+            <Text style={[tableHeader.headerCell, textColor, { paddingRight: 30}]}>Profit</Text>
+            <Text style={[tableHeader.headerCell, textColor, { paddingRight: 20}]}>Paid</Text>
             <Text style={[tableHeader.headerCell, textColor]}>Logged by</Text>
             <Text style={[tableHeader.headerCell, textColor]}>Actions</Text>
           </View>
@@ -258,6 +258,7 @@ const styles = StyleSheet.create({
   scrollContainer: {
     paddingHorizontal: 13,
     marginBottom: 40,
+    paddingTop: 20,
   },
   subHeader: {
     fontSize: 16,
