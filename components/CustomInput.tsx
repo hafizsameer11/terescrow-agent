@@ -99,6 +99,8 @@ const Input: FC<InputProps> = (props) => {
               fontWeight: props.fontWeight || FONTS.Regular,
               paddingLeft: props.icon ? 40 : 15,
               paddingRight: 40,
+              top: isFocused ? 5 : 0,
+              
               borderColor: props.errorText
                 ? COLORS.error
                 : isFocused
@@ -119,6 +121,7 @@ const Input: FC<InputProps> = (props) => {
                 styles.icon,
                 {
                   tintColor: isFocused ? COLORS.primary : '#BCBCBC',
+                  top: isFocused ? 6 : 3,
                 },
               ]}
             />
@@ -176,7 +179,7 @@ const styles = StyleSheet.create({
   input: {
     width: '100%',
     fontSize: SIZES.body3,
-    paddingVertical: 16,
+    paddingVertical: 15,
     color: COLORS.black,
     position: 'relative',
     borderRadius: SIZES.padding,
