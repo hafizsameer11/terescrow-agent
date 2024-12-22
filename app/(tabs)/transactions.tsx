@@ -19,7 +19,10 @@ import Box from "@/components/DashboardBox";
 import { Route, router } from "expo-router";
 import FullTransactionModal from "@/components/TransactionDetailModal";
 import { useQuery } from "@tanstack/react-query";
-import { getTransactions, getCustomerTransactions } from "@/utils/queries/adminQueries";
+import {
+  getTransactions,
+  getCustomerTransactions,
+} from "@/utils/queries/adminQueries";
 
 import { token } from "@/utils/apiConfig";
 import { useAuth } from "@/contexts/authContext";
@@ -30,9 +33,10 @@ const getRandomStatus = () => {
   return statuses[Math.floor(Math.random() * statuses.length)];
 };
 
-
-const Transactions: React.FC<{ isShown: boolean, customerId?: string }> = ({ isShown = true, customerId }) => {
-
+const Transactions: React.FC<{ isShown: boolean; customerId?: string }> = ({
+  isShown = true,
+  customerId,
+}) => {
   console.log("Inside the Transaction Part", customerId);
 
   const { dark } = useTheme();
@@ -41,11 +45,12 @@ const Transactions: React.FC<{ isShown: boolean, customerId?: string }> = ({ isS
   const [filteredData, setFilteredData] = useState<Transaction[]>([]);
 
   const [selectedOption, setSelectedOption] = useState("Last 30 days");
-  const [selectedTransaction,setSelectedTransaction] = useState<Transaction | null>(null);
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<Transaction | null>(null);
   const [query, setQuery] = useState("");
   const [menuVisible, setMenuVisible] = useState<number | null>(null);
   const [transactionModalVisible, setTransactionModalVisible] = useState(false);
-const {userData,token}=useAuth();
+  const { userData, token } = useAuth();
   const textColor = {
     color: dark ? COLORS.white : COLORS.black,
   };
@@ -54,7 +59,9 @@ const {userData,token}=useAuth();
     isLoading,
     isError,
   } = useQuery({
-    queryKey: customerId ? ["customerDetails", customerId] : ["customerTransactions"],
+    queryKey: customerId
+      ? ["customerDetails", customerId]
+      : ["customerTransactions"],
     queryFn: () =>
       customerId
         ? getCustomerTransactions({ token, id: customerId })
@@ -66,43 +73,47 @@ const {userData,token}=useAuth();
     isLoadingAgentTransactions,
     isErrorAgentTransactions,
   } = useQuery({
-    queryKey: ['agentTransactions'],
+    queryKey: ["agentTransactions"],
     queryFn: () => getTransactionForAgent(token),
-    enabled: !!token
+    enabled: !!token,
   });
 
   // Update State on Data Fetch
   useEffect(() => {
-    if(userData?.role=='admin'){
+    if (userData?.role == "admin") {
       setFilteredData(customerTransactions?.data || []);
-    }else{
+    } else {
       setFilteredData(agentTransactions?.data || []);
       console.log("Agent Transactions", agentTransactions);
     }
-   
   }, [customerTransactions, agentTransactions]);
 
   // Search Filter Function
   const handleSearch = (text: string) => {
     setQuery(text);
-  
+
     if (text.trim() === "") {
       // Reset to the full list when search query is empty
       if (activeBtn === "All") {
-        if (userData?.role === 'admin') {
+        if (userData?.role === "admin") {
           setFilteredData(customerTransactions?.data || []);
         } else {
           setFilteredData(agentTransactions?.data || []);
         }
       } else {
-        const filtered = (userData?.role === 'admin' ? customerTransactions?.data : agentTransactions?.data)?.filter(
-          (item) => item.department?.niche.toLowerCase() === activeBtn.toLowerCase()
+        const filtered = (
+          userData?.role === "admin"
+            ? customerTransactions?.data
+            : agentTransactions?.data
+        )?.filter(
+          (item) =>
+            item.department?.niche.toLowerCase() === activeBtn.toLowerCase()
         );
         setFilteredData(filtered || []);
       }
       return;
     }
-  
+
     const filtered = filteredData?.filter((item) =>
       item.customer.username.toLowerCase().includes(text.toLowerCase())
     );
@@ -113,25 +124,26 @@ const {userData,token}=useAuth();
     setMenuVisible(null);
   };
 
- 
-
   const handlePress = (btn: string) => {
     setActiveBtn(btn);
-  
+
     if (btn === "All") {
-      if (userData?.role === 'admin') {
+      if (userData?.role === "admin") {
         setFilteredData(customerTransactions?.data || []);
       } else {
         setFilteredData(agentTransactions?.data || []);
       }
     } else {
-      const filtered = (userData?.role === 'admin' ? customerTransactions?.data : agentTransactions?.data)?.filter(
+      const filtered = (
+        userData?.role === "admin"
+          ? customerTransactions?.data
+          : agentTransactions?.data
+      )?.filter(
         (item) => item.department?.niche.toLowerCase() === btn.toLowerCase()
       );
       setFilteredData(filtered || []);
     }
   };
-  
 
   const handleMenuToggle = (index: number) => {
     setMenuVisible(menuVisible === index ? null : index);
@@ -139,7 +151,7 @@ const {userData,token}=useAuth();
 
   const handleTransactionModal = (transactionId: string) => {
     setTransactionModalVisible(!transactionModalVisible);
-    setMenuVisible(null)
+    setMenuVisible(null);
   };
 
   // Render Each Row
@@ -154,15 +166,13 @@ const {userData,token}=useAuth();
     const handleCustomerDetails = () => {
       router.push(`/profile?id=${item.customer?.id.toString()}`);
       setMenuVisible(null);
-    }
+    };
 
-    const handleTransactionDetails = (
-      id:number,item: Transaction
-    ) => {
+    const handleTransactionDetails = (id: number, item: Transaction) => {
       handleTransactionModal(id.toString());
       setSelectedTransaction(item);
       setMenuVisible(null);
-    }
+    };
 
     return (
       <View style={tableHeader.row} key={index}>
@@ -172,20 +182,27 @@ const {userData,token}=useAuth();
           </Text>
         </View>
 
+        <View style={[tableHeader.cell, { alignItems: "flex-start" }]}>
+          <Text
+            style={[
+              {
+                backgroundColor: getStatusBgColor(item.status),
+                borderRadius: 5,
+                padding: 4,
+                height: 30,
+                color: COLORS.white,
+              },
+            ]}
+          >
+            {item.status}
+          </Text>
+        </View>
         <Text
-          style={[
-            {
-              backgroundColor: getStatusBgColor(item.status),
-              borderRadius: 5,
-              color: COLORS.white,
-              padding: 4,
-              height: 30,
-            },
-          ]}
+          style={[tableHeader.cell, textColor, { textTransform: "capitalize" }]}
         >
-          {item.status}
+          {" "}
+          {item.department?.niche} {item.department?.Type}
         </Text>
-        <Text style={[tableHeader.cell, textColor,{textTransform:"capitalize"}]}> {item.department?.niche} {item.department?.Type}</Text>
         <Text style={[tableHeader.cell, textColor]}>{item.amount}</Text>
         <Text style={[tableHeader.cell, textColor]}>
           {new Date(item.createdAt).toLocaleDateString()}
@@ -198,8 +215,6 @@ const {userData,token}=useAuth();
               style={{
                 width: 20,
                 height: 20,
-                marginBottom: 17,
-                marginRight: 13,
                 tintColor: dark ? COLORS.white : COLORS.black,
               }}
             />
@@ -211,20 +226,16 @@ const {userData,token}=useAuth();
                 { backgroundColor: dark ? COLORS.dark2 : COLORS.white },
               ]}
             >
-              {isShown && userData?.role === "admin"  && (
-                
+              {isShown && userData?.role === "admin" && (
                 <TouchableOpacity style={[tableHeader.dropdownItem]}>
-                  <Text
-                    style={textColor}
-                    onPress={handleCustomerDetails}
-                  >
+                  <Text style={textColor} onPress={handleCustomerDetails}>
                     View Customer Details
                   </Text>
                 </TouchableOpacity>
               )}
               <TouchableOpacity
                 style={[tableHeader.dropdownItem]}
-                onPress={()=>handleTransactionDetails(item.id,item)}
+                onPress={() => handleTransactionDetails(item.id, item)}
               >
                 <Text style={textColor}>View Transaction Details</Text>
               </TouchableOpacity>
@@ -310,8 +321,8 @@ const {userData,token}=useAuth();
                     activeBtn === "All"
                       ? COLORS.white
                       : dark
-                        ? COLORS.white
-                        : COLORS.black,
+                      ? COLORS.white
+                      : COLORS.black,
                 },
               ]}
             >
@@ -333,8 +344,8 @@ const {userData,token}=useAuth();
                     activeBtn === "giftCard"
                       ? COLORS.white
                       : dark
-                        ? COLORS.white
-                        : COLORS.black,
+                      ? COLORS.white
+                      : COLORS.black,
                 },
               ]}
             >
@@ -356,8 +367,8 @@ const {userData,token}=useAuth();
                     activeBtn === "crypto"
                       ? COLORS.white
                       : dark
-                        ? COLORS.white
-                        : COLORS.black,
+                      ? COLORS.white
+                      : COLORS.black,
                 },
               ]}
             >
@@ -400,19 +411,18 @@ const {userData,token}=useAuth();
         />
 
         <ScrollView horizontal style={{ minHeight: 300 }}>
-          <View>
+          <View style={{ width: 800 }}>
             <View
               style={[
                 tableHeader.headerRow,
                 {
                   backgroundColor: dark ? COLORS.dark2 : COLORS.grayscale200,
                   borderColor: dark ? COLORS.dark2 : "#ccc",
+                  padding: 10,
                 },
               ]}
             >
-              <Text style={[tableHeader.headerCell, textColor]}>
-                Name
-              </Text>
+              <Text style={[tableHeader.headerCell, textColor]}>Name</Text>
               <Text style={[tableHeader.headerCell, textColor]}>Status</Text>
               <Text style={[tableHeader.headerCell, textColor]}>
                 Department
@@ -549,8 +559,8 @@ const tableHeader = StyleSheet.create({
   headerCell: {
     fontWeight: "bold",
     flex: 1,
-    paddingHorizontal: 10,
-    textAlign: "center",
+    justifyContent: "center",
+    alignItems: "center",
   },
   tableBody: {
     maxHeight: "85%",
@@ -561,11 +571,11 @@ const tableHeader = StyleSheet.create({
     paddingVertical: 15,
     borderBottomWidth: 1,
     borderColor: "#ccc",
+    padding: 10,
   },
   cell: {
     flex: 1,
-    paddingHorizontal: 10,
-    textAlign: "center",
+    alignItems: "center",
   },
   actionCell: {
     flex: 1,

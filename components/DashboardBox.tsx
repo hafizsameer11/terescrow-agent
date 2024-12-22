@@ -12,24 +12,45 @@ type BoxProps = {
   condition?: boolean;
 };
 
-const Box: React.FC<BoxProps> = ({ title, value, percentage, condition, simpleText }) => {
+const Box: React.FC<BoxProps> = ({
+  title,
+  value,
+  percentage,
+  condition,
+  simpleText,
+}) => {
   const { dark } = useTheme();
   return (
-    <View style={[styles.container, { backgroundColor: dark ? COLORS.dark2 : COLORS.white }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: dark ? COLORS.dark2 : COLORS.white },
+      ]}
+    >
       <View style={styles.header}>
-        <Text style={[styles.title, { color: dark ? COLORS.white : COLORS.gray }]}>{title}</Text>
+        <Text
+          style={[styles.title, { color: dark ? COLORS.white : COLORS.gray }]}
+        >
+          {title}
+        </Text>
         <View style={styles.percentageContainer}>
-          {condition && <Image source={icons.arrowUpSquare} style={styles.icon} />}
+          {condition && (
+            <Image source={icons.arrowUpSquare} style={styles.icon} />
+          )}
           {percentage !== undefined ? (
             <Text style={styles.percentage}>
               {percentage > 0 ? `${percentage}%` : `${percentage}%`}
             </Text>
           ) : (
-            simpleText && <Text style={styles.percentage}>{simpleText}</Text>  
+            simpleText && <Text style={styles.percentage}>{simpleText}</Text>
           )}
         </View>
       </View>
-      <Text style={[styles.value, { color: dark ? COLORS.white : COLORS.black }]}>{value}</Text>
+      <Text
+        style={[styles.value, { color: dark ? COLORS.white : COLORS.black }]}
+      >
+        {value}
+      </Text>
     </View>
   );
 };
@@ -52,6 +73,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   title: {
+    flex: 1,
     fontSize: 12,
   },
   percentageContainer: {
