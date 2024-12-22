@@ -239,11 +239,11 @@ export default function Department() {
                 Department Name
               </Text>
               <Text
-                style={[tableHeader.headerCell, textColor, { width: '25%' }]}
+                style={[tableHeader.headerCell, textColor, { flex: 1 }]}
               >
                 Status
               </Text>
-              <Text style={[tableHeader.headerCell, textColor]}>
+              <Text style={[tableHeader.headerCell, textColor, { flex: 1 }]}>
                 No of Agents
               </Text>
               <Text style={[tableHeader.headerCell, textColor]}>
@@ -273,7 +273,8 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     paddingHorizontal: 10,
-    marginBottom: 300,
+    marginBottom: 40,
+    paddingTop: 20,
   },
   container: {
     display: 'flex',

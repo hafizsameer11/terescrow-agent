@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContainer: {
-    paddingHorizontal: 10,
+    padding: 10,
   },
   container: {
     display: 'flex',
