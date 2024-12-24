@@ -9,12 +9,12 @@ const API_DOMAIN = "https://46.202.154.203/api";
 export const API_ENDPOINTS = {
   COMMON: {
     login: API_TEMPLATE_URL + 'public/login',
-    GetActionCatagories: API_TEMPLATE_URL + 'public/categories', 
-    GetActionSubacategories: API_TEMPLATE_URL + 'public/subcategories', 
+    GetActionCatagories: API_TEMPLATE_URL + 'public/categories',
+    GetActionSubacategories: API_TEMPLATE_URL + 'public/subcategories',
     GetActionDepartments: API_TEMPLATE_URL + 'public/departments',
     GetAllTeamChats: API_TEMPLATE_URL + 'get-all-teams-chats',
     SendMessageToTeam: API_TEMPLATE_URL + 'send-message-to-team',
-    GetTeamChatDetails: API_TEMPLATE_URL + 'get-team-chat-details', 
+    GetTeamChatDetails: API_TEMPLATE_URL + 'get-team-chat-details',
     GetAllChatsWithTeam: API_TEMPLATE_URL + 'get-all-chats-with-team',
     MarkAllAsRead: API_TEMPLATE_URL + '/public/read-all-messages',
     GetAgentStats: API_TEMPLATE_URL + 'agent/utilities/get-agent-stats',
@@ -23,9 +23,9 @@ export const API_ENDPOINTS = {
   AGENT: {
     GetAllChatsWithCustomer:
       API_TEMPLATE_URL + 'agent/get-all-chats-with-customer',
-    GetCustomerChatDetails: API_TEMPLATE_URL + 'agent/get-chat', 
+    GetCustomerChatDetails: API_TEMPLATE_URL + 'agent/get-chat',
     SendMessageToCustomer: API_TEMPLATE_URL + 'agent/send-to-customer',
-    ChangeChatStatus: API_TEMPLATE_URL + 'agent/change-chat-status', 
+    ChangeChatStatus: API_TEMPLATE_URL + 'agent/change-chat-status',
     CreateCryptoTransaction:
       API_TEMPLATE_URL + 'agent/create-crypto-transaction',
     CreateCardTransaction: API_TEMPLATE_URL + 'agent/create-card-transaction',
@@ -33,6 +33,8 @@ export const API_ENDPOINTS = {
     GetAllNotifications: API_TEMPLATE_URL + 'agent/utilities/get-all-notifications',
     GetCustomerNotifications: API_TEMPLATE_URL + 'agent/utilities/get-customer-notifications',
     GetTransactionForAgent: API_TEMPLATE_URL + 'agent/utilities/get-transactions-for-agent',
+    GetPendingChats: API_TEMPLATE_URL + 'agent/utilities/get-all-default-chats',
+    TakeOverDefaultChat: API_TEMPLATE_URL + 'agent/utilities/take-over-chat',
   },
   ADMIN: {
     CreateChatGroup: API_DOMAIN + '/admin/create-chat-group',
@@ -75,4 +77,4 @@ const OUR_ENDPOINT = {
 }
 const token =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTQsInVzZXJuYW1lIjoianV0anV0dSEiLCJyb2xlIjoiYWdlbnQiLCJpYXQiOjE3MzQyOTU3NjksImV4cCI6MTczNDM4MjE2OX0.FYQfKL0OxfQcGP4RJEk-UQlafXlGUSqwopk6R8Ire1o";
-export {token, OUR_ENDPOINT ,API_DOMAIN};
+export { token, OUR_ENDPOINT, API_DOMAIN };

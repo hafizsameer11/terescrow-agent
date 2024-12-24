@@ -136,10 +136,7 @@ export default function TabLayout() {
         screenOptions={{
           drawerActiveTintColor: COLORS.primary,
           drawerActiveBackgroundColor: COLORS.white,
-          // headerShown: false,
-          // headerStyle: {
-          //   backgroundColor: dark ? COLORS.dark1 : COLORS.transparentWhite,
-          // },
+   
           header: (props) => (
             <Header onPress={() => props.navigation.openDrawer()} />
           ),

@@ -20,6 +20,12 @@ export const topMenuItems = [
     roles: ["admin", "agent"],
   },
   {
+    title: "Pending Chat",
+    name: "pendingchat",
+    icon: icons.chat,
+    roles: ["admin", "agent"],
+  },
+  {
     title: "Transactions",
     name: "transactions",
     icon: icons.sendMoney,
