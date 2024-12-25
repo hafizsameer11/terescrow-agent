@@ -19,8 +19,8 @@ export default function HomeScreen() {
   const [selectedOption, setSelectedOption] = useState('Year');
   const [menuVisible, setMenuVisible] = useState<number | null>(null);
   const { dark } = useTheme();
-  const {userData}=useAuth();
-  const {token}=useAuth();
+  const { userData } = useAuth();
+  const { token } = useAuth();
   const {
     data: agtenStatsData,
     isLoading: agentStatsLoading,
@@ -45,7 +45,7 @@ export default function HomeScreen() {
     refetchInterval: 30000,
 
   });
- 
+
   return (
     <View
       style={[
@@ -59,7 +59,7 @@ export default function HomeScreen() {
           <Text
             style={[
               styles.title,
-              { color: dark ? COLORS.white : COLORS.black,paddingTop:20 },
+              { color: dark ? COLORS.white : COLORS.black, paddingTop: 20 },
             ]}
           >
             Dashboard
@@ -99,107 +99,108 @@ export default function HomeScreen() {
         </View>
         {/* {u} */}
         {userData?.role === 'admin' ? (
-          
-        <View style={{ padding: 10 }}>
-          <View style={styles.row}>
-            <Box title="Total Income" value="$1,000" percentage={7} condition />
-            <Box title="Total Inflow" value="$500" percentage={5} condition />
-          </View>
-          <View style={styles.row}>
-            <Box
-              title="Total Expense"
-              value="$1,000"
-              percentage={8}
-              condition
-            />
-            <Box title="Total Outflow" value="$500" percentage={4} condition />
-          </View>
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: 'bold',
-              marginVertical: 15,
-              color: dark ? COLORS.white : COLORS.black,
-            }}
-          >
-            Rates
-          </Text>
-          <View style={styles.row}>
-            <Box
-              title="Crypto buy"
-              value="$1,000"
-              simpleText="Edit"
-              condition={false}
-            />
-            <Box
-              title="Crypto sell"
-              value="$1,000"
-              simpleText="Edit"
-              condition={false}
-            />
-          </View>
-          <View style={styles.row}>
-            <Box
-              title="Crypto buy"
-              value="$1,000"
-              simpleText="Edit"
-              condition={false}
-            />
-            <Box
-              title="Gift card sell"
-              value="$1,000"
-              simpleText="Edit"
-              condition={false}
-            />
-          </View>
-        </View>
-        ):
-        (  <View style={{ padding: 10 }}>
-          <View style={styles.row}>
-            <Box title="Total Chats" value={agtenStatsData?.data.totalChats.toString() || '0'} percentage={7} condition />
-            <Box title="SuccessFull Transactions" value={agtenStatsData?.data.successfulllTransactions.toString() || '0'} percentage={5} condition />
-          </View>
-          <View style={styles.row}>
-            <Box
-              title="Pending Chats"
-              value={agtenStatsData?.data.pendingChats.toString() || '0'}
-              percentage={8}
-              condition
-            />
-            <Box title="Declined Chats" value={agtenStatsData?.data.declinedChats.toString() || '0'} percentage={0} condition />
-          </View>
-       
-        </View>
 
-        )}
+          <View style={{ padding: 10 }}>
+            <View style={styles.row}>
+              <Box title="Total Income" value="$1,000" percentage={7} condition />
+              <Box title="Total Inflow" value="$500" percentage={5} condition />
+            </View>
+            <View style={styles.row}>
+              <Box
+                title="Total Expense"
+                value="$1,000"
+                percentage={8}
+                condition
+              />
+              <Box title="Total Outflow" value="$500" percentage={4} condition />
+            </View>
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: 'bold',
+                marginVertical: 15,
+                color: dark ? COLORS.white : COLORS.black,
+              }}
+            >
+              Rates
+            </Text>
+            <View style={styles.row}>
+              <Box
+                title="Crypto buy"
+                value="$1,000"
+                simpleText="Edit"
+                condition={false}
+              />
+              <Box
+                title="Crypto sell"
+                value="$1,000"
+                simpleText="Edit"
+                condition={false}
+              />
+            </View>
+            <View style={styles.row}>
+              <Box
+                title="Crypto buy"
+                value="$1,000"
+                simpleText="Edit"
+                condition={false}
+              />
+              <Box
+                title="Gift card sell"
+                value="$1,000"
+                simpleText="Edit"
+                condition={false}
+              />
+            </View>
+          </View>
+        ) :
+          (<View style={{ padding: 10 }}>
+            <View style={styles.row}>
+              <Box title="Total Chats" value={agtenStatsData?.data.totalChats.toString() || '0'} percentage={7} condition />
+              <Box title="SuccessFull Transactions" value={agtenStatsData?.data.successfulllTransactions.toString() || '0'} percentage={5} condition />
+            </View>
+            <View style={styles.row}>
+              <Box
+                title="Pending Chats"
+                value={agtenStatsData?.data.pendingChats.toString() || '0'}
+                percentage={8}
+                condition
+              />
+              <Box title="Declined Chats" value={agtenStatsData?.data.declinedChats.toString() || '0'} percentage={0} condition />
+            </View>
+
+          </View>
+
+          )}
         {userData?.role === 'admin' ? (
-            <View>
+          <View>
             <RecentChats indexChats />
           </View>
-        ):
-        (
-          <View style={{ padding: 10 }}>
-            <Text>Recent Chats</Text>
-            <FlatList
-            data={allChatsData?.data}
-            style={styles.chatList}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <ChatContactList
-                id={item.id.toString()}
-                pfp={item.customer.profilePicture}
-                name={item.customer.username}
-                icon={icons.gallery}
-                time={item?.recentMessageTimestamp}
-                msg={item?.recentMessage?.message}
-                status={item.chatStatus}
-                messageCount={item.messagesCount}
+        ) :
+          (
+            <View style={{ padding: 10 }}>
+              <Text>Recent Chats</Text>
+              <FlatList
+                data={allChatsData?.data}
+                style={styles.chatList}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={({ item }) => (
+                  <ChatContactList
+                    id={item.id.toString()}
+                    iswhiteBg={true}
+                    pfp={item.customer.profilePicture}
+                    name={`${item.department?.title} - ${item.customer.firstname} ${item.customer.lastname} `}
+                    icon={icons.gallery}
+                    time={item?.recentMessageTimestamp}
+                    msg={item?.recentMessage?.message}
+                    status={item.chatStatus}
+                    messageCount={item.messagesCount}
+                  />
+                )}
               />
-            )}
-          />
-          </View>
-        )}
-      
+            </View>
+          )}
+
       </ScrollView>
     </View>
   );

@@ -16,21 +16,21 @@ const ChatContactList: React.FC<{
   status: ChatStatus;
   id: string;
   messageCount?: number;
+  isdefault?: boolean;
+  iswhiteBg?: boolean;
 }> = (props) => {
   console.log(props.pfp);
   const router = useRouter();
   const { dark } = useTheme();
   return (
     <Pressable
-      onPress={() => router.push(`/transactionchat?id=${props.id}`)}
-      style={styles.container}
+      onPress={() => router.push(`/transactionchat?id=${props.id} ${props.isdefault ? '&default="true"' : ''}`)}
+      style={[styles.container, { backgroundColor: props.iswhiteBg ? COLORS.white : COLORS.grayscale100 }]}
     >
       {/* Profile Image */}
       <Image source={props.pfp || icons.profile} style={styles.profileImage} />
 
-      {/* Right Section */}
       <View style={styles.rightContainer}>
-        {/* Name and Date Row */}
         <View style={styles.nameTimeRow}>
           <Text style={[styles.nameText, dark && { color: Colors.dark.text }]}>
             {props.name}
@@ -50,22 +50,35 @@ const ChatContactList: React.FC<{
               {props.msg}
             </Text>
           </View>
-          <View style={styles.unreadMsgContainer}>
-            <Text style={styles.unreadMessage}>{props.messageCount}</Text>
-          </View>
+          <Text
+            style={[
+              styles.circle,
+              {
+                backgroundColor:
+                  props.status === "successful"
+                    ? "green"
+                    : props.status === "declined"
+                      ? "red"
+                      : "yellow", // Default to yellow for "pending"
+                color: COLORS.white,
+              },
+            ]}
+          >
+            {/* {props.productId} */}
+          </Text>
         </View>
-        <View
+        {/* <View
           style={[
             styles.status,
             props.status === ChatStatus.pending
               ? { backgroundColor: '#FDFFA3' }
               : props.status === ChatStatus.successful
-              ? { backgroundColor: '#A3FFBC' }
-              : { backgroundColor: '#FFA3A3' },
+                ? { backgroundColor: '#A3FFBC' }
+                : { backgroundColor: '#FFA3A3' },
           ]}
         >
           <Text>{props.status}</Text>
-        </View>
+        </View> */}
       </View>
     </Pressable>
   );
@@ -74,20 +87,27 @@ const ChatContactList: React.FC<{
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    marginBottom: 23,
+    marginBottom: 7,
+    display: 'flex',
+    alignItems: 'center',
+    backgroundColor: COLORS.grayscale100,
+    padding: 10,
+    borderRadius: 10,
+
   },
   profileImage: {
     width: 50,
     height: 50,
     borderRadius: 25,
     marginRight: 10,
-    marginTop: 10,
+    borderWidth: 2,
+    borderColor: COLORS.green,
   },
   rightContainer: {
     flex: 1,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.grayscale400,
+    // paddingBottom: 16,
+    // borderBottomWidth: 1,
+    // borderBottomColor: COLORS.grayscale400,
   },
   nameTimeRow: {
     flexDirection: 'row',
@@ -95,7 +115,7 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   nameText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
   },
   time: {
@@ -134,8 +154,20 @@ const styles = StyleSheet.create({
   status: {
     alignSelf: 'flex-start',
     paddingVertical: 4,
-    marginTop: 6,
+    marginTop: 0,
     paddingHorizontal: 8,
+    // bo r d e  []
+    borderRadius: 5,
+  },
+  circle: {
+    width: 10,
+    height: 10,
+    marginLeft: 5,
+    textAlign: "center",
+    borderRadius: 999,
+    justifyContent: "center",
+    fontSize: 10,
+
   },
 });
 

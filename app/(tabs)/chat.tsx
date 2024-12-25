@@ -147,7 +147,7 @@ const ChatScreen = () => {
           <ChatContactList
             id={item.id.toString()}
             pfp={item.customer.profilePicture}
-            name={`${item.customer.firstname} ${item.customer.lastname}`}
+            name={`${item.department.title} - ${item.customer.firstname} ${item.customer.lastname} `}
             icon={icons.gallery}
             time={item.recentMessageTimestamp}
             msg={item.recentMessage?.message}

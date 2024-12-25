@@ -1,6 +1,7 @@
 import Toast from 'react-native-toast-message';
 import { ITeamChatResponse } from './queries/commonQueries';
 import { IAllCustomerChatsRes } from './queries/agentQueries';
+import { API_BASE_URL } from './apiConfig';
 
 export const showTopToast = (props: showTopToastProps) => {
   Toast.show({
@@ -64,4 +65,8 @@ export const sortCustomerChatsByLatestMessage = (
     // Sort in descending order of the latest message's createdAt
     return latestMessageB - latestMessageA;
   });
+};
+
+export const getImageUrl = (imageName: string): string => {
+  return `${API_BASE_URL}/uploads/${imageName}`;
 };

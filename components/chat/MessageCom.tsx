@@ -3,6 +3,7 @@ import React from 'react';
 import { IRenderMessage } from '@/app/transactionchat';
 import { Image } from 'expo-image';
 import { COLORS } from '@/constants';
+import { getImageUrl } from '@/utils/helpers';
 
 type PropTypes = {
   messageData: IRenderMessage;
@@ -10,6 +11,7 @@ type PropTypes = {
 };
 
 const MessageCom = ({ messageData, setImagePreview }: PropTypes) => {
+  console.log("Message Data", messageData);
   return (
     <View
       style={[
@@ -19,9 +21,9 @@ const MessageCom = ({ messageData, setImagePreview }: PropTypes) => {
     >
       {messageData.image && (
         <TouchableOpacity
-          onPress={() => setImagePreview(messageData.image as string)}
+          onPress={() => setImagePreview(getImageUrl(messageData?.image || '') as string)}
         >
-          <Image source={messageData.image} style={styles.dynamicImage} />
+          <Image source={{ uri: getImageUrl(messageData.image) }} style={styles.dynamicImage} />
         </TouchableOpacity>
       )}
       {!messageData.image && (

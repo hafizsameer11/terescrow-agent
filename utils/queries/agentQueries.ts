@@ -12,6 +12,16 @@ export const getAllChatsWithCustomer = async (
     token
   );
 };
+export const getAllDefaultChats = async (
+  token: string
+): Promise<IDefaultChats> => {
+  return await apiCall(
+    API_ENDPOINTS.AGENT.GetPendingChats,
+    'GET',
+    undefined,
+    token
+  );
+};
 
 export const getCustomerChatDetails = async (
   chatId: string,
@@ -25,46 +35,46 @@ export const getCustomerChatDetails = async (
   );
 };
 
-export const getAgentStats=async (token: string):Promise<StatsResponse>=>{
+export const getAgentStats = async (token: string): Promise<StatsResponse> => {
   return await apiCall(
     API_ENDPOINTS.COMMON.GetAgentStats,
     'GET',
     undefined,
     token
   );
-  
+
 }
-export const getTeamNotifications=async (token: string):Promise<IInAppNotificationResponse>=>{
+export const getTeamNotifications = async (token: string): Promise<IInAppNotificationResponse> => {
   return await apiCall(
     API_ENDPOINTS.AGENT.GetTeamNotifications,
     'GET',
     undefined,
     token
   );
-  
+
 }
 
 
-export const getCustomerNotifications=async (token: string):Promise<IInAppNotificationResponse>=>{
+export const getCustomerNotifications = async (token: string): Promise<IInAppNotificationResponse> => {
   return await apiCall(
     API_ENDPOINTS.AGENT.GetCustomerNotifications,
     'GET',
     undefined,
     token
   );
-  
+
 }
 
-export const getAllNotiications=async (token: string):Promise<IInAppNotificationResponse>=>{
+export const getAllNotiications = async (token: string): Promise<IInAppNotificationResponse> => {
   return await apiCall(
     API_ENDPOINTS.AGENT.GetAllNotifications,
     'GET',
     undefined,
     token
   );
-  
+
 }
-export const getTransactionForAgent=async (token: string):Promise<CustomerTransactionResponse>=>{
+export const getTransactionForAgent = async (token: string): Promise<CustomerTransactionResponse> => {
   return await apiCall(
     API_ENDPOINTS.AGENT.GetTransactionForAgent,
     'GET',
@@ -76,13 +86,13 @@ export const getTransactionForAgent=async (token: string):Promise<CustomerTransa
 export interface IInAppNotificationResponse extends ApiResponse {
   data: InAppNotifications[]
 }
-export interface InAppNotifications{
+export interface InAppNotifications {
   id: number,
   title: string,
- description: string,
- type: string,
- createdAt: string,
- isRead: boolean,
+  description: string,
+  type: string,
+  createdAt: string,
+  isRead: boolean,
 
 }
 interface StatsData {
@@ -106,6 +116,18 @@ export interface IAllCustomerChatsRes extends ApiResponse {
     recentMessageTimestamp: Date;
     chatStatus: ChatStatus;
     messagesCount: number;
+    department?: IDepartment;
+  }[];
+}
+export interface IDefaultChats extends ApiResponse {
+  data: {
+    id: number;
+    customer: IUser;
+    recentMessage: IResMessage;
+    recentMessageTimestamp: Date;
+    chatStatus: ChatStatus;
+    messagesCount: number;
+    department: IDepartment;
   }[];
 }
 
@@ -160,6 +182,7 @@ export interface IResMessage {
   senderId: number;
   receiverId: number;
   isRead: boolean;
+  image?: string;
 }
 
 export enum ChatStatus {

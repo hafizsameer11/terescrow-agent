@@ -14,6 +14,17 @@ export const sendMessageToCustomer = async (
     token
   );
 };
+export const overTakeChat = async (
+  chatId: string,
+  token: string
+): Promise<ApiResponse> => (
+  await apiCall(
+    `${API_ENDPOINTS.AGENT.TakeOverDefaultChat}/${chatId}`,
+    'POST',
+    undefined,
+    token
+  )
+)
 
 export const changeChatStatus = async (
   data: { chatId: string; setStatus: ChatStatus },

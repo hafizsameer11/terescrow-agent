@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '@/contexts/themeContext';
 import { Colors } from '@/constants/Colors';
 import { ChatStatus } from '@/utils/queries/agentQueries';
+import { useEffect } from 'react';
 
 const TransChatNav: React.FC<{
   image: string;
@@ -13,11 +14,14 @@ const TransChatNav: React.FC<{
   userName: string;
   currentState?: ChatStatus;
   showNotes: () => void;
+  isdefault?: string;
   changeChatStatus: (state: ChatStatus) => void;
 }> = (props) => {
   const { dark } = useTheme();
   const router = useRouter();
-
+  useEffect(() => {
+    console.log('TransChatNav checking default ', props.isdefault);
+  }, []);
   const backPressHandler = () => {
     router.back();
   };
@@ -70,44 +74,47 @@ const TransChatNav: React.FC<{
           </Text>
           <Text style={[styles.agentUserName]}>{props.userName}</Text>
         </View>
-        {props.currentState && props.currentState == ChatStatus.pending && (
+        {props.currentState &&
+          props.currentState == ChatStatus.pending &&
+          !props.isdefault && ( // Add the condition to hide if isdefault exists
+            <View style={styles.iconsContainer}>
+              <View style={styles.iconContainer}>
+                <Pressable
+                  style={styles.pressIcon}
+                  onPress={() => props.changeChatStatus(ChatStatus.declined)}
+                >
+                  <Image source={icons.close2} style={styles.iconStyle} />
+                </Pressable>
+              </View>
+              <View style={styles.iconContainer}>
+                <Pressable style={styles.pressIcon} onPress={props.showNotes}>
+                  <Image source={icons.notification2} style={styles.iconStyle} />
+                </Pressable>
+              </View>
+              <View style={styles.iconContainer}>
+                <Pressable
+                  style={styles.pressIcon}
+                  onPress={() => props.changeChatStatus(ChatStatus.successful)}
+                >
+                  <Image source={icons.check2} style={styles.iconStyle} />
+                </Pressable>
+              </View>
+            </View>
+          )}
+        {/* {props.isdefault && (
           <View style={styles.iconsContainer}>
-            {/* {props.currentState && (
-            <> */}
             <View style={styles.iconContainer}>
               <Pressable
-                style={styles.pressIcon}
-                onPress={() => props.changeChatStatus(ChatStatus.declined)}
-                // onPress={!props.isCurrentlyConfirmed ? props.onDecline : null}
+                style={[styles.pressIcon, { borderRadius: 10, }]}
+                onPress={() => console.log("overtake clicked")}
               >
-                <Image source={icons.close2} style={styles.iconStyle} />
+                <Text style={{ color: COLORS.black }}>Overtake</Text>
               </Pressable>
             </View>
-            {/* <View style={styles.iconContainer}>
-            <Pressable
-              style={styles.pressIcon}
-              // onPress={!props.isCurrentlyConfirmed ? props.onProcess : null}
-            >
-              <Image source={icons.hourGlass} style={styles.iconStyle} />
-            </Pressable>
-          </View> */}
-            <View style={styles.iconContainer}>
-              <Pressable style={styles.pressIcon} onPress={props.showNotes}>
-                <Image source={icons.notification2} style={styles.iconStyle} />
-              </Pressable>
-            </View>
-            <View style={styles.iconContainer}>
-              <Pressable
-                style={styles.pressIcon}
-                onPress={() => props.changeChatStatus(ChatStatus.successful)}
-              >
-                <Image source={icons.check2} style={styles.iconStyle} />
-              </Pressable>
-            </View>
-            {/* </>
-          )} */}
+           
           </View>
-        )}
+        )} */}
+
       </View>
     </View>
   );
