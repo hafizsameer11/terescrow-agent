@@ -48,6 +48,7 @@ type Proptypes = {
 const cardTypesData = [
   { id: 1, title: 'E-code' },
   { id: 2, title: 'Physical Card' },
+  {id: 3, title: 'Paper Code' },
 ];
 
 const NewTransaction: React.FC<Proptypes> = ({
