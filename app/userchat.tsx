@@ -29,7 +29,7 @@ import { NavigationProp } from '@react-navigation/native';
 import { getTeamChatDetails } from '@/utils/queries/commonQueries';
 import { useAuth } from '@/contexts/authContext';
 import { useSocket } from '@/contexts/socketContext';
-import { ChatType, IResMessage } from '@/utils/queries/agentQueries';
+import { ChatType, getAllQuickReplies, IResMessage } from '@/utils/queries/agentQueries';
 import {
   readAllMessages,
   sendMessageToTeam,
@@ -68,13 +68,24 @@ const UserChat = () => {
     queryKey: ['team-chat-details', currChatId],
     queryFn: () => getTeamChatDetails(token, currChatId),
   });
+  const { data: quickRepliesData } = useQuery({
 
+    queryKey: ['quickReplies'],
+    queryFn: () => getAllQuickReplies(token),
+    enabled: !!token,
+  });
+  // useEffect(() => {
+  //   if (quickRepliesData?.data) {
+  //     setQuickReplies(quickRepliesData?.data);
+  //   }
+  // }, [quickRepliesData]);
   const { mutate: sendMessage, isPending: sendingMessage } = useMutation({
     mutationKey: ['send-team-message'],
-    mutationFn: (data: { message: string; chatId: number }) =>
+    mutationFn: (data: FormData) =>
       sendMessageToTeam(data, token),
     onSuccess: (data) => {
       if (data?.data) {
+        console.log(data);
         setMessages((prevMessages) => [...prevMessages, data?.data]);
       }
     },
@@ -187,16 +198,21 @@ const UserChat = () => {
   }, [chatDetailsData]);
 
   const handleSendMessage = (message?: string, image?: any) => {
-    if (!image && !message) return;
+    if (!image && !message?.trim()) return;
+    const formData = new FormData();
+    formData.append("chatId", currChatId.toString());
 
-    console.log(message);
-
-    if (message) {
-      sendMessage({
-        message,
-        chatId: Number(currChatId),
-      });
+    if (message?.trim()) {
+      formData.append("message", message);
     }
+    if (image) {
+      formData.append("image", {
+        uri: image,
+        type: "image/jpeg",
+        name: "chat-image.jpg",
+      } as unknown as Blob);
+    }
+    sendMessage(formData);
   };
 
   // console.log(chatDetailsData?.data);
@@ -239,6 +255,7 @@ const UserChat = () => {
         />
 
         <MessageInput
+        quickReplies={quickRepliesData?.data}
           sendMessage={handleSendMessage}
           sendingMessage={sendingMessage}
         />

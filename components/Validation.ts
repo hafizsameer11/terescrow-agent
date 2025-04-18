@@ -30,7 +30,6 @@ export const validationEditProfile = Yup.object().shape({
 
   country: Yup.string().required('Country is required'),
 
-  password: Yup.string().required('Password is required'),
 });
 
 export const validationNewNotification = Yup.object().shape({

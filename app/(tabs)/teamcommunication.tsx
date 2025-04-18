@@ -105,13 +105,13 @@ const TeamCommunication = () => {
 
   useEffect(() => {
     if (allChatsData?.data) {
+      console.log(allChatsData?.data);
       currChatIds.current = [...allChatsData?.data].map((chat) => chat.id);
       const filteredChats = applyFilters(allChatsData?.data);
       setDisplayChats(filteredChats);
     }
   }, [allChatsData, searchTerm, selectedCategory]);
 
-  //refetch query when a new message comes or when the component gains focus
   useFocusEffect(
     useCallback(() => {
       queryClient.refetchQueries({ queryKey: ['all-chats-with-team'] });
@@ -163,10 +163,8 @@ const TeamCommunication = () => {
       )}
       {/* Header */}
       <TeamChatHeader setModalVisible={modalVisibilityHandler} />
-      {/* Search bar */}
       <ScrollView style={{ paddingHorizontal: 15 }}>
         <TeamChatSearch isDarkMode={dark} onSearchChange={handleSearchChange} />
-        {/* Category */}
         <TeamChatCategorys
           onSelectHandler={selectCategoryHandler}
           selectedCategory={selectedCategory}
@@ -182,16 +180,24 @@ const TeamCommunication = () => {
             let profileName;
             let recentDate;
             let recentMessage;
-
+            item.participants.forEach(element => {
+              console.log(element)
+            });
+            console.log("item details", item)
             if (item.chatGroup) {
               profileName = item.chatGroup.groupName;
-              profilePicture = item.chatGroup?.groupProfile;
+              profilePicture = '';
             } else {
-              const receiver = item.participants.filter(
+              // Filter participants to exclude the current user
+              const otherParticipants = item.participants.filter(
                 (participant) => participant.user.id !== userData?.id
-              )[0]?.user;
-              profileName = receiver?.firstname + ' ' + receiver?.lastname;
-              profilePicture = receiver?.profilePicture;
+              );
+
+              const receiver = otherParticipants.length > 0 ? otherParticipants[0].user : null;
+              profileName = receiver
+                ? `${receiver.firstname || ''} ${receiver.lastname || ''}`.trim()
+                : 'Unknown User';
+              profilePicture = receiver?.profilePicture ;
             }
 
             if (item.messages.length > 0) {
@@ -203,12 +209,7 @@ const TeamCommunication = () => {
               <TeamChatContactList
                 id={item.id.toString()}
                 pfp={
-                  profilePicture
-                    ? profilePicture
-                    : item.chatType == ChatType.group_chat
-                    ? icons.people
-                    : icons.profile
-                }
+                  profilePicture}
                 name={profileName}
                 date={recentDate}
                 recentMsg={recentMessage || 'No recent message'}
@@ -217,6 +218,8 @@ const TeamCommunication = () => {
               />
             );
           }}
+
+
           scrollEnabled={false}
         />
         {/* Modal */}

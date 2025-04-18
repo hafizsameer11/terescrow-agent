@@ -9,6 +9,8 @@ import { ITeamChatDetailsResponse } from '@/utils/queries/commonQueries';
 import { ChatType } from '@/utils/queries/agentQueries';
 import { useSocket } from '@/contexts/socketContext';
 import { useEffect } from 'react';
+import { API_BASE_URL } from '@/utils/apiConfig';
+import { getImageUrl } from '@/utils/helpers';
 
 let profilePicture: string = '';
 let profileName: string = '';
@@ -56,10 +58,10 @@ const ChatPfpNav: React.FC<{
     // Assign profile details based on chat type
     if (chatType === ChatType.group_chat && chatGroup) {
       profileName = chatGroup.groupName!;
-      profilePicture = chatGroup.groupProfile!;
+      profilePicture ='';
     } else if (receiver) {
       profileName = `${receiver.firstname} ${receiver.lastname}`;
-      profilePicture = receiver.profilePicture!;
+      profilePicture = receiver.profilePicture || '';
     }
   }, [onlineAgents, chatDetails, isAdminOnline]);
 
@@ -74,19 +76,16 @@ const ChatPfpNav: React.FC<{
         dark
           ? { backgroundColor: COLORS.black }
           : { backgroundColor: COLORS.white },
+          {borderBottomColor: COLORS.grayscale200,borderBottomWidth:1}, 
       ]}
     >
       <View style={styles.mainContentContainer}>
         <View>
           <Image
             source={
-              profilePicture
-                ? profilePicture
-                : chatDetails?.chatType == ChatType.group_chat
-                ? icons.people
-                : icons.profile
+            { uri: getImageUrl(profilePicture) }
             }
-            style={{ width: 58, height: 58 }}
+            style={{ width: 48, height: 48,borderRadius:99 }}
           />
         </View>
         <View style={styles.mainTextContainer}>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,13 @@ import {
 } from "react-native";
 import { Image } from "expo-image"; // For displaying images
 import { COLORS, icons } from "@/constants"; // Replace with your icon source path
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createNoteForCustomer, deleteNoteForCustomer, sendMessageToCustomer } from "@/utils/mutations/agentMutations";
+import { useAuth } from "@/contexts/authContext";
+import { showTopToast } from "@/utils/helpers";
+import { ApiError } from "@/utils/customApiCalls";
+import { getNotesForCustomer } from "@/utils/queries/agentQueries";
+import { ActivityIndicator } from "react-native-paper";
 
 interface Note {
   id: string;
@@ -21,57 +28,99 @@ interface Note {
 const ChatNotes: React.FC<{
   closeNotes: () => void;
   showNotesSate: boolean;
+  userId: number;
 }> = (props) => {
   const [isNewNoteModalVisible, setNewNoteModalVisible] = useState(false);
-  const [notes, setNotes] = useState<Note[]>([
-    {
-      id: "1",
-      text: "Customer is kind and reputable and respectful, doesnt stress me at all, but does not like waiting for too long",
-      date: "Nov 7, 2024 - 10:22 am",
-      savedBy: "Dave",
-    },
-    {
-      id: "2",
-      text: "Customer is kind and reputable and respectful, doesnt stress me at all, but does not like waiting for too long",
-      date: "Nov 7, 2024 - 10:22 am",
-      savedBy: "Dave",
-    },
-  ]);
+  const { token, userData } = useAuth();
 
+  const queryClient = useQueryClient();
   const [newNoteText, setNewNoteText] = useState("");
 
   // const toggleMainModal = () => {
   //   setMainModalVisible(!isMainModalVisible);
   // };
+  const { mutate: createNote, isPending: messsageSending } = useMutation({
 
+    mutationFn: (data: { userId: number, note: string }) =>
+      createNoteForCustomer(data, token),
+    mutationKey: ['create-note-for-customer'],
+    onSuccess: (data) => {
+      setNewNoteText(""); // Clear input field
+      toggleNewNoteModal();
+      setNewNoteModalVisible(false);
+      console.log("created siccessfully", data)
+    },
+    onError: (error: ApiError) => {
+      console.log(error);
+      showTopToast({
+        type: 'error',
+        text1: 'Error',
+        text2: error.message,
+      });
+    },
+  });
+  const { mutate: deleteNot, isPending: deleteNotPending } = useMutation({
+
+    mutationFn: (noteid: number) =>
+      deleteNoteForCustomer(noteid, token),
+    mutationKey: ['delete-note'],
+    onSuccess: (data) => {
+      setNewNoteText(""); // Clear input field
+      toggleNewNoteModal();
+      setNewNoteModalVisible(false);
+      console.log("created siccessfully", data)
+    },
+    onError: (error: ApiError) => {
+      console.log(error);
+      showTopToast({
+        type: 'error',
+        text1: 'Error',
+        text2: error.message,
+      });
+    },
+  });
   const toggleNewNoteModal = () => {
     setNewNoteModalVisible(!isNewNoteModalVisible);
   };
-
+  const {
+    data: notDetailsData,
+    isLoading: notDetailsLoading,
+    isError: isChatDetailsError,
+    error: chatDetailsError,
+  } = useQuery({
+    queryKey: ['notes-for-customer'],
+    queryFn: () => getNotesForCustomer(token, props.userId.toString()),
+  });
+  // const [mutated, setMutated] = useState(false);
   const addNewNote = () => {
     if (newNoteText.trim()) {
-      const newNote: Note = {
-        id: (notes.length + 1).toString(),
-        text: newNoteText.trim(),
-        date: new Date().toLocaleString(),
-        savedBy: "You",
-      };
-      setNotes([newNote, ...notes]);
-      setNewNoteText(""); // Clear input field
+      console.log("Calling createNote with data:", { userId: props.userId, note: newNoteText });
+      createNote({ userId: props.userId, note: newNoteText });
       toggleNewNoteModal();
+      setNewNoteModalVisible(false);
+      queryClient.invalidateQueries(['notes-for-customer'])
+
+
     } else {
       alert("Please enter some text for the note!");
     }
   };
 
-  const deleteNote = (id: string) => {
-    setNotes(notes.filter((note) => note.id !== id));
-  };
 
+  const deleteNote = (id: string) => {
+    deleteNot(parseInt(id));
+    queryClient.invalidateQueries(['notes-for-customer'])
+    // setNotes(notes.filter((note) => note.id !== id));
+  };
+  console.log("UserId", props.userId)
   const editNote = (id: string) => {
     alert(`Edit note with ID: ${id}`);
   };
-
+  useEffect(() => {
+    if (notDetailsData) {
+      console.log("notDetailsData", notDetailsData)
+    }
+  }, [notDetailsData])
   return (
     <>
       {/* Main Modal */}
@@ -80,61 +129,60 @@ const ChatNotes: React.FC<{
         transparent={true}
         animationType="fade"
       >
-        <View style={styles.modalBackground}>
-          <View style={styles.container}>
-            {/* Close Icon */}
-            <TouchableOpacity
-              style={styles.closeIcon}
-              onPress={props.closeNotes}
-            >
-              <Image source={icons.close2} style={{ width: 30, height: 30 }} />
-            </TouchableOpacity>
-
-            {/* Header */}
-            <View style={styles.headerContainer}>
-              <Text style={styles.headerText}>Notes History</Text>
+        {notDetailsLoading ? (
+          <ActivityIndicator size="large" color="#0000ff" />
+        )
+          :
+          <View style={styles.modalBackground}>
+            <View style={styles.container}>
+              {/* Close Icon */}
               <TouchableOpacity
-                style={styles.newNoteButton}
-                onPress={toggleNewNoteModal}
+                style={styles.closeIcon}
+                onPress={props.closeNotes}
               >
-                <Text style={styles.newNoteText}>New Note</Text>
+                <Image source={icons.close2} style={{ width: 30, height: 30 }} />
               </TouchableOpacity>
-            </View>
 
-            {/* List */}
-            <View style={{ flex: 1 }}>
-              <FlatList
-                style={styles.notesList}
-                data={notes}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                  <View style={styles.noteItem}>
-                    <Text style={styles.noteText}>{item.text}</Text>
-                    <Text style={styles.noteMeta}>
-                      {item.date} Saved by {item.savedBy}
-                    </Text>
-                    <View style={styles.actions}>
-                      <TouchableOpacity onPress={() => editNote(item.id)}>
-                        <Text
-                          style={[styles.actionText, { color: COLORS.green }]}
-                        >
-                          Edit
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => deleteNote(item.id)}>
-                        <Text
-                          style={[styles.actionText, { color: COLORS.red }]}
-                        >
-                          Delete
-                        </Text>
-                      </TouchableOpacity>
+              {/* Header */}
+              <View style={styles.headerContainer}>
+                <Text style={styles.headerText}>Notes History</Text>
+                <TouchableOpacity
+                  style={styles.newNoteButton}
+                  onPress={toggleNewNoteModal}
+                >
+                  <Text style={styles.newNoteText}>New Note</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* List */}
+              <View style={{ flex: 1 }}>
+                <FlatList
+                  style={styles.notesList}
+                  data={notDetailsData?.data}
+                  keyExtractor={(item) => item.id}
+                  renderItem={({ item }) => (
+                    <View style={styles.noteItem}>
+                      <Text style={styles.noteText}>{item.note}</Text>
+                      <Text style={styles.noteMeta}>
+                        {new Date(item.createdAt).toLocaleString()}
+                        {' '} Saved by {item.agent.username}
+                      </Text>
+                      <View style={styles.actions}>
+                        <TouchableOpacity onPress={() => deleteNote(item.id)}>
+                          <Text
+                            style={[styles.actionText, { color: COLORS.red }]}
+                          >
+                            Delete
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
                     </View>
-                  </View>
-                )}
-              />
+                  )}
+                />
+              </View>
             </View>
           </View>
-        </View>
+        }
       </Modal>
 
       {/* New Note Modal */}

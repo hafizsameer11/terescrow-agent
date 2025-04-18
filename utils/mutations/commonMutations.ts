@@ -9,12 +9,15 @@ export const loginUser = async (data: {
 }): Promise<ILoginResponse> => {
   return await apiCall(API_ENDPOINTS.COMMON.login, 'POST', data);
 };
+export const loginAgent = async (data: {
+  email: string;
+  password: string;
+}): Promise<ILoginResponse> => {
+  return await apiCall(API_ENDPOINTS.COMMON.AgntLogin, 'POST', data);
+};
 
 export const sendMessageToTeam = async (
-  data: {
-    message: string;
-    chatId: number;
-  },
+  data:FormData,
   token: string
 ): Promise<ISendMessageToTeamResponse> => {
   console.log(data, token);
@@ -53,6 +56,9 @@ interface ILoginResponse {
     role: UserRoles;
     createdAt?: string;
     gender?: string;
+    assignedDepartments: { department: { id: number; title: string } }[];
+
+
   };
   token: string;
 }

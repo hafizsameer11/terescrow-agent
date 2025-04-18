@@ -1,6 +1,6 @@
 // import { number, string } from 'yup'
 // import { number, string } from 'yup'
-import { OUR_ENDPOINT } from '../apiConfig';
+import { API_ENDPOINTS, OUR_ENDPOINT } from '../apiConfig';
 import { apiCall, ApiResponse } from '../customApiCalls';
 import { IUser } from './agentQueries';
 import {
@@ -14,6 +14,7 @@ import {
   CreateBannerResponse,
   CreateCategoryResponse,
   CreateDepartmentResponse,
+  CustomDetialResponse,
   Customer,
   CustomerTransactionResponse,
   Department,
@@ -46,7 +47,7 @@ export const getCustomerDetails = async ({
 }: {
   token: string;
   id: string;
-}): Promise<AllCustomerRespone> => {
+}): Promise<CustomDetialResponse> => {
   return await apiCall(
     `${OUR_ENDPOINT.CUSTOMER.CustomerDetails}/${id}`,
     'GET',
@@ -68,18 +69,17 @@ export const getCustomerTransactions = async ({
     token
   );
 };
-export const getTransactions = async ({
-  token,
-}: {
-  token: string;
-}): Promise<CustomerTransactionResponse> => {
+
+
+
+export const getAllTransactions = async (token: string): Promise<CustomerTransactionResponse> => {
   return await apiCall(
-    `${OUR_ENDPOINT.OPERATIONS.Traansactions}`,
+    OUR_ENDPOINT.OPERATIONS.Traansactions,
     'GET',
     undefined,
     token
   );
-};
+}
 
 export const getDepartments = async ({
   token,
@@ -426,21 +426,51 @@ export const editNotification = async ({
     token
   );
 };
-export const deleteNotification = async ({
-  token,
-  id,
-}: {
-  token: string;
-  id: string;
-}): Promise<NotificationResponse> => {
+// export const deleteNotification = async ({
+//   token,
+//   id,
+// }: {
+//   token: string;
+//   id: string;
+// }): Promise<NotificationResponse> => {
+//   return await apiCall(
+//     `${OUR_ENDPOINT.OPERATIONS.DeleteNotification}/${id}`,
+//     'GET',
+//     undefined,
+//     token
+//   );
+// };
+
+
+//new queries
+export const getAdminDashboardStats = async (token: string): Promise<AdminDashboardStatsResponse> => {
   return await apiCall(
-    `${OUR_ENDPOINT.OPERATIONS.DeleteNotification}/${id}`,
+    OUR_ENDPOINT.OPERATIONS.DashBoardStats,
     'GET',
     undefined,
     token
   );
-};
 
+}
+export const getCustomerStats = async (token: string): Promise<CustomerStatsResponse> => {
+  return await apiCall(
+    OUR_ENDPOINT.OPERATIONS.CustomerStats,
+    'GET',
+    undefined,
+    token
+  );
+
+}
+
+export const getDepartmentStats = async (token: string): Promise<DepartmentStatsResponse> => {
+  return await apiCall(
+    OUR_ENDPOINT.OPERATIONS.DepartmentStats,
+    'GET',
+    undefined,
+    token
+  );
+
+}
 export interface AllAgentsResponse extends ApiResponse {
   data: {
     user: IUser;
@@ -455,4 +485,80 @@ export interface AllAgentsResponse extends ApiResponse {
 enum AgentStatus {
   online = 'online',
   offline = 'offline',
+}
+
+interface StatsData {
+  users: number
+  agents: number
+  transactions: number
+  categories: number
+  departments: number,
+  transactionAmountSum: number
+}
+interface StatsResponse {
+  status: string;
+  message: string;
+  data: StatsData;
+}
+interface CustomerStatsResponse {
+  status: string;
+  message: string;
+  data: CustomerStats
+}
+interface CustomerStats {
+  users: number
+  verifiedUsers: number
+}
+interface DepartmentStatsResponse {
+  status: string;
+  message: string;
+  data: DepartmentStats[]
+}
+interface DepartmentStats {
+  departmentName: string
+  amount: number
+}
+export interface AdminDashboardStatsResponse {
+  status: string
+  message: string
+  data: {
+    totalUsers: {
+      count: number
+      change: 'positive' | 'negative'
+      percentage: number
+    }
+    totalTransactions: {
+      count: number
+      change: 'positive' | 'negative'
+      percentage: number
+    }
+    totalDepartments: {
+      count: number
+    }
+    totalAgents: {
+      count: number
+      change: 'positive' | 'negative'
+      percentage: number
+    }
+    totalVerifiedUsers: {
+      count: number
+      change: 'positive' | 'negative'
+      percentage: number
+    }
+    totalInflow: {
+      current: number // Current total inflow amount
+      change: 'positive' | 'negative'
+      percentage: number
+    }
+    totalOutflow: {
+      current: number // Current total outflow amount
+      change: 'positive' | 'negative'
+      percentage: number
+    }
+    totalRevenue: {
+      current: number // Current total revenue amount
+      change: 'positive' | 'negative'
+      percentage: number
+    }
+  }
 }

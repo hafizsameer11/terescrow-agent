@@ -22,16 +22,37 @@ const Rates = () => {
 
   const handlePressModal = () => setIsModalVisible(!isModalVisible);
   const handlePress = (btn: string) => setActiveBtn(btn);
-
+  const getdatefromtimestamp = (timestamp: number) => {
+    const date = new Date(timestamp);
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+  const gettimefromtimestamp = (timestamp: number) => {
+    const date = new Date(timestamp);
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const seconds = date.getSeconds();
+    return `${hours}:${minutes}:${seconds}`;
+  };
   const renderRow = (item: any, index: number) => (
     <View key={index} style={tableHeader.row}>
+      <Text style={[tableHeader.cell, textColor]}>{getdatefromtimestamp(item.createdAt)}</Text>
+      <Text style={[tableHeader.cell, textColor]}>{gettimefromtimestamp(item.createdAt)}</Text>
+      <Text style={[tableHeader.cell, textColor]}>{item.rate}/1$</Text>
       <Text style={[tableHeader.cell, textColor]}>{item.agent}</Text>
-      <Text style={[tableHeader.cell, textColor]}>Crypto</Text>
-      <Text style={[tableHeader.cell, textColor]}>${item.amount}</Text>
-      <Text style={[tableHeader.cell, textColor]}>₦{item.amountNaira}</Text>
-      <Text style={[tableHeader.cell, textColor]}>₦{item.rate}</Text>
-      <Text style={[tableHeader.cell, textColor]}>Paid</Text>
-      <Text style={[tableHeader.cell, textColor]}>{item.agent}</Text>
+      {/* <Text style={[tableHeader.cell, textColor]}>₦{item.rate}</Text> */}
+      {/* <Text style={[tableHeader.cell, textColor]}>Paid</Text> */}
+      <Text style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+
+        <Text style={[tableHeader.cell, textColor]}>$ {item.amount} </Text>
+
+        <Text>
+          <Text style={[tableHeader.cell, { color: COLORS.gray, fontSize: 12 }]}>- ₦{item.amountNaira}</Text>
+        </Text>
+      </Text>
+      {/* </Text> */}
       {/* <View style={[tableHeader.actionCell]}>
         <TouchableOpacity>
           <Image source={icons.edit} style={styles.actionIcon} />
@@ -62,26 +83,10 @@ const Rates = () => {
           >
             Rates
           </Text>
-          <View style={[styles.headerButtonsContainer, { gap: 10 }]}>
-            {/* <Button
-              title="Add Custom Rate"
-              style={[styles.customBtn, { height: 45 }]}
-              fontSize={13}
-              textColor={COLORS.primary}
-            /> */}
-            <TouchableOpacity onPress={handlePressModal} style={styles.filterIconContainer}>
-              <Image
-                source={icons.filter}
-                style={[
-                  styles.filterIcon,
-                  { tintColor: dark ? COLORS.white : COLORS.black },
-                ]}
-              />
-            </TouchableOpacity>
-          </View>
+
         </View>
 
-        <View style={styles.headerButtonsContainer}>
+        {/* <View style={styles.headerButtonsContainer}>
           <TouchableOpacity
             onPress={() => handlePress('giftCardsRate')}
             style={[styles.button, activeBtn === 'giftCardsRate' && styles.activeButton]}
@@ -112,12 +117,12 @@ const Rates = () => {
               Crypto Rate
             </Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
 
         <ScrollView horizontal>
           <View>
             <View style={[tableHeader.headerRow, { backgroundColor: dark ? COLORS.dark2 : COLORS.grayscale200 }]}>
-              {['Name', 'Type', 'Amount ($)', 'Amount (NGN)', 'Rate', 'Paid', 'Logged by'].map((header, idx) => (
+              {['Date', 'Time', 'Rate', 'Logged By', 'Amount'].map((header, idx) => (
                 <Text key={idx} style={[tableHeader.headerCell, textColor]}>{header}</Text>
               ))}
             </View>
@@ -144,7 +149,7 @@ const styles = StyleSheet.create({
   scrollContainer: { paddingHorizontal: 13 },
   headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, paddingHorizontal: 10 },
   headerText: { fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
-  headerButtonsContainer: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  headerButtonsContainer: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 20 },
   button: { paddingVertical: 12, paddingHorizontal: 10, backgroundColor: 'transparent' },
   activeButton: { backgroundColor: COLORS.primary, borderRadius: 10 },
   buttonText: { fontWeight: 'bold' },
@@ -156,7 +161,7 @@ const styles = StyleSheet.create({
 
 const tableHeader = StyleSheet.create({
   headerRow: { flexDirection: 'row', paddingVertical: 10, borderBottomWidth: 1, backgroundColor: COLORS.grayscale200 },
-  headerCell: { fontWeight: 'bold', flex: 1, paddingHorizontal: 10, textAlign: 'center' },
+  headerCell: { fontWeight: 'bold', flex: 1, paddingHorizontal: 10, textAlign: 'center', width: 120 },
   tableBody: { maxHeight: '85%', paddingTop: 10 },
   row: { flexDirection: 'row', paddingVertical: 15, borderBottomWidth: 1, borderColor: '#ccc' },
   cell: { flex: 1, paddingHorizontal: 10, textAlign: 'center' },

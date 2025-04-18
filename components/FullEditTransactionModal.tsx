@@ -68,7 +68,12 @@ const FullEditTransactionModal: React.FC<KYCModalProps> = ({
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
-
+  const formatLabel = (key: string) => {
+    return key
+      .replace(/([A-Z])/g, " $1") // Add space before uppercase letters
+      .replace(/^./, (str) => str.toUpperCase()); // Capitalize the first letter
+  };
+  
   return (
     <Modal visible={visible} transparent animationType="slide">
       <View style={styles.modalOverlay}>

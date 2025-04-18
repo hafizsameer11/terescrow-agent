@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from "react";
 import {
   Modal,
   StyleSheet,
@@ -5,404 +6,230 @@ import {
   TouchableOpacity,
   View,
   ScrollView,
-  ViewStyle,
+  Alert,
 } from "react-native";
 import { Image } from "expo-image";
-import React, { useEffect, useState } from "react";
-import { useTheme } from "@/contexts/themeContext";
-import { COLORS, icons } from "@/constants";
 import * as ImagePicker from "expo-image-picker";
 import { Formik } from "formik";
-import { validationEditProfile, validationNewNotification } from "./Validation";
+import { useTheme } from "@/contexts/themeContext";
+import { COLORS, icons } from "@/constants";
 import Input from "./CustomInput";
 import Button from "./Button";
-import NewNotificationModal from "./NewNotification";
+import { validationEditProfile } from "./Validation";
 import { useAuth } from "@/contexts/authContext";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { getImageUrl, showTopToast } from "@/utils/helpers";
+import { editAgentProfile } from "@/utils/mutations/agentMutations";
 
-const dummyNotifications = [
-  {
-    description:
-      "Your trade has been successfully placed, you are welcome to try out our new offers on Bitcoin and Ethereum",
-    date: "Nov 7, 2024 - 10:22 am",
-    sendingBy: "Send by Alucard",
-    isDelivered: "Delivered",
-  },
-  {
-    description:
-      "Your trade has been successfully placed, you are welcome to try out our new offers on Bitcoin and Ethereum",
-    date: "Nov 7, 2024 - 10:22 am",
-    sendingBy: "Send by Alucard",
-    isDelivered: "Delivered",
-  },
-  {
-    description:
-      "Your trade has been successfully placed, you are welcome to try out our new offers on Bitcoin and Ethereum",
-    date: "Nov 7, 2024 - 10:22 am",
-    sendingBy: "Send by Alucard",
-    isDelivered: "Delivered",
-  },
-  {
-    description:
-      "Your trade has been successfully placed, you are welcome to try out our new offers on Bitcoin and Ethereum",
-    date: "Nov 7, 2024 - 10:22 am",
-    sendingBy: "Send by Alucard",
-    isDelivered: "Delivered",
-  },
-  {
-    description:
-      "Your trade has been successfully placed, you are welcome to try out our new offers on Bitcoin and Ethereum",
-    date: "Nov 7, 2024 - 10:22 am",
-    sendingBy: "Send by Alucard",
-    isDelivered: "Delivered",
-  },
-  {
-    description:
-      "Your trade has been successfully placed, you are welcome to try out our new offers on Bitcoin and Ethereum",
-    date: "Nov 7, 2024 - 10:22 am",
-    sendingBy: "Send by Alucard",
-    isDelivered: "Delivered",
-  },
-];
-
-const EditProfileModal = ({
-  visible,
-  onClose,
-  userName,
-  onImageSelect,
-  mode,
-  setMode = () => {},
-}: any) => {
+const EditProfileModal = ({ visible, onClose }: any) => {
   const { dark } = useTheme();
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [isNewNotificationVisible, setIsNewNotificationVisible] =
-    useState(false);
-    const {userData} = useAuth();
+  const { userData, token } = useAuth();
 
-  const handleNewNotificationPress = () => {
-    onClose();
-    setMode("newNotification");
-    setIsNewNotificationVisible(true);
-  };
-  const [formData, setFormData] = useState({
-    firstname: userData?.firstname || "",
-    username: userData?.username || "",
-    email: userData?.email || "",
-    phoneNumber: userData?.phoneNumber || "",
-    gender: userData?.gender || "",
-    country: userData?.country || "",
-    profilePicture: userData?.profilePicture || null,
+  const queryClient = useQueryClient();
+  const [selectedImage, setSelectedImage] = useState<string | undefined>(
+    undefined
+  );
+
+  const { mutate: editAgentProfileData } = useMutation({
+    mutationFn: (data: any) => editAgentProfile(data, token, userData?.id),
+    onSuccess: () => {
+      showTopToast({
+        type: "success",
+        text1: "Success",
+        text2: "Profile updated successfully",
+      });
+      // queryClient.invalidateQueries("userProfile");
+      onClose();
+    },
+    onError: (error: any) => {
+      showTopToast({
+        type: "error",
+        text1: "Error",
+        text2: error?.message || "Something went wrong",
+      });
+    },
   });
 
-  console.log(mode);
-  const handleImagePicker = async () => {
+  const handleImagePicker = async (setFieldValue: any) => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status === "granted") {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 1,
-      });
+    if (status !== "granted") {
+      Alert.alert("Permission required", "Media library access is required.");
+      return;
+    }
 
-      if (!result.canceled && result.assets) {
-        setFormData({ ...formData, profilePicture: result.assets[0].uri });
-      }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets) {
+      const imageUri = result.assets[0].uri;
+      setSelectedImage(imageUri);
+      setFieldValue("profilePicture", imageUri);
     }
   };
+  useEffect(() => {
 
-  const styleContent: ViewStyle = {
-    width: mode === "editProfile" ? "90%" : "100%",
-    position: mode === "editProfile" ? "absolute" : "relative",
-    bottom: mode === "editProfile" ? undefined : 0,
-    borderRadius: mode === "editProfile" ? 20 : "",
-    height: mode === "editProfile" ? 600 : "80%",
-    flex: 1,
-    marginTop: mode === "editProfile" ? 0 : 60,
-    borderTopLeftRadius: mode === "editProfile" ? 10 : 15,
-    borderTopRightRadius: mode === "editProfile" ? 10 : 15,
-  };
+    setSelectedImage(getImageUrl(userData?.profilePicture));
 
+  }, [userData?.profilePicture]);
   return (
-    <>
-      <Modal
-        visible={visible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={onClose}
-      >
-        <View style={styles.modalOverlay}>
-          <View
-            style={[
-              styles.modalContent,
-              { backgroundColor: dark ? COLORS.dark2 : COLORS.white },
-              styleContent,
-            ]}
-          >
-            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <Image
-                source={icons.close2}
-                style={{
-                  width: 25,
-                  height: 25,
-                  tintColor: dark ? COLORS.white : COLORS.black,
-                }}
-              />
-            </TouchableOpacity>
+    <Modal
+      visible={visible}
+      transparent={true}
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <View style={styles.modalOverlay}>
+        <View
+          style={[
+            styles.modalContent,
+            { backgroundColor: dark ? COLORS.dark2 : COLORS.white },
+          ]}
+        >
+          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+            <Image
+              source={icons.close2}
+              style={{
+                width: 25,
+                height: 25,
+                tintColor: dark ? COLORS.white : COLORS.black,
+              }}
+            />
+          </TouchableOpacity>
 
-            <Text
+          <Text style={[styles.modalTitle, { color: dark ? COLORS.white : COLORS.black }]}>
+            Edit Profile
+          </Text>
+
+          {selectedImage ? (
+            <Image source={{ uri: selectedImage }} style={styles.image} />
+          ) : (
+            <View
               style={[
-                styles.modalTitle,
-                { color: dark ? COLORS.white : COLORS.black },
+                styles.profileAvatar,
+                { backgroundColor: dark ? COLORS.dark3 : COLORS.grayscale200 },
               ]}
             >
-              {mode === "editProfile"
-                ? "Edit Profile"
-                : mode === "notifications"
-                ? "Notifications"
-                : "New Notification"}
-            </Text>
+              <Text
+                style={[
+                  styles.profileAvatarText,
+                  { color: dark ? COLORS.white : COLORS.black },
+                ]}
+              >
+                {userData?.username?.charAt(0)?.toUpperCase() || "U"}
+              </Text>
+            </View>
+          )}
 
-            {mode === "editProfile" && (
-              <>
-                {!selectedImage && (
-                  <View
-                    style={[
-                      styles.profileAvatar,
-                      {
-                        backgroundColor: dark
-                          ? COLORS.dark3
-                          : COLORS.grayscale200,
-                      },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.profileAvatarText,
-                        { color: dark ? COLORS.white : COLORS.black },
-                      ]}
-                    >
-                      {userName}
-                    </Text>
-                  </View>
-                )}
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => handleImagePicker(Formik.setFieldValue)}
+          >
+            <Text style={styles.buttonText}>Change</Text>
+          </TouchableOpacity>
 
-                {selectedImage && (
-                  <Image source={{ uri: selectedImage }} style={styles.image} />
-                )}
-
-                <TouchableOpacity
-                  style={styles.button}
-                  onPress={handleImagePicker}
-                >
-                  <Text style={styles.buttonText}>Change</Text>
-                </TouchableOpacity>
-
-                <ScrollView contentContainerStyle={styles.scrollContent}>
-                  <Formik
-                    initialValues={{
-                      name: userData?.firstname,
-                      userName: userData?.username,
-                      email: userData?.email,
-                      phoneNumber: userData?.phoneNumber,
-                      gender: userData?.gender,
-                      // password:,
-                      country: userData?.country,
-                    }}
-                    validationSchema={validationEditProfile}
-                    onSubmit={() => {
-                      onClose();
-                    }}
-                  >
-                    {({
-                      handleChange,
-                      handleBlur,
-                      handleSubmit,
-                      values,
-                      errors,
-                      touched,
-                    }) => (
-                      <View>
-                        <Input
-                          id="name"
-                          label="Name"
-                          onChangeText={handleChange("name")}
-                          onBlur={handleBlur("name")}
-                          value={values.name}
-                          errorText={
-                            errors.name && touched.name ? errors.name : ""
-                          }
-                          showCheckbox={false}
-                        />
-
-                        <Input
-                          id="userName"
-                          label="User Name"
-                          onChangeText={handleChange("userName")}
-                          onBlur={handleBlur("userName")}
-                          value={values.userName}
-                          errorText={
-                            errors.userName && touched.userName
-                              ? errors.userName
-                              : ""
-                          }
-                          showCheckbox={false}
-                        />
-
-                        <Input
-                          id="email"
-                          label="Email"
-                          onChangeText={handleChange("email")}
-                          onBlur={handleBlur("email")}
-                          value={values.email}
-                          errorText={
-                            errors.email && touched.email ? errors.email : ""
-                          }
-                          showCheckbox={false}
-                        />
-
-                        <Input
-                          id="phoneNumber"
-                          label="Phone Number"
-                          onChangeText={handleChange("phoneNumber")}
-                          onBlur={handleBlur("phoneNumber")}
-                          value={values.phoneNumber}
-                          errorText={
-                            errors.phoneNumber && touched.phoneNumber
-                              ? errors.phoneNumber
-                              : ""
-                          }
-                          showCheckbox={false}
-                        />
-
-                        <Input
-                          id="gender"
-                          label="Gender"
-                          onChangeText={handleChange("gender")}
-                          onBlur={handleBlur("gender")}
-                          value={values.gender}
-                          errorText={
-                            errors.gender && touched.gender ? errors.gender : ""
-                          }
-                          showCheckbox={false}
-                        />
-
-                        <Input
-                          id="password"
-                          label="Password"
-                          onChangeText={handleChange("password")}
-                          onBlur={handleBlur("password")}
-                          value={values.password}
-                          errorText={
-                            errors.password && touched.password
-                              ? errors.password
-                              : ""
-                          }
-                          showCheckbox={false}
-                        />
-
-                        <Input
-                          id="country"
-                          label="Country"
-                          onChangeText={handleChange("country")}
-                          onBlur={handleBlur("country")}
-                          value={values.country}
-                          errorText={
-                            errors.country && touched.country
-                              ? errors.country
-                              : ""
-                          }
-                          showCheckbox={false}
-                        />
-                        <Button title="Login" onPress={() => handleSubmit()} />
-                      </View>
-                    )}
-                  </Formik>
-                </ScrollView>
-              </>
-            )}
-
-            {/* {mode === "notifications" && (
-              <>
-                <View style={{ alignItems: "flex-start", width: "100%" }}>
-                  <Button
-                    title="New Notification"
-                    style={{ borderRadius: 10 }}
-                    onPress={handleNewNotificationPress}
+          <ScrollView contentContainerStyle={styles.scrollContent}>
+            <Formik
+              initialValues={{
+                firstname: userData?.firstname || "",
+                lastname: userData?.lastname || "",
+                username: userData?.username || "",
+                email: userData?.email || "",
+                phoneNumber: userData?.phoneNumber || "",
+                gender: userData?.gender || "",
+                country: userData?.country || "",
+                profilePicture: selectedImage || "",
+              }}
+              // validationSchema={validationEditProfile}
+              onSubmit={(values) => {
+                const payload = { ...values, profilePicture: selectedImage };
+                console.log("payload", payload);
+                editAgentProfileData(payload);
+              }}
+            >
+              {({
+                handleChange,
+                handleBlur,
+                handleSubmit,
+                values,
+                errors,
+                touched,
+              }) => (
+                <View>
+                  <Input
+                    id="firstname"
+                    label="First Name"
+                    onChangeText={handleChange("firstname")}
+                    onBlur={handleBlur("firstname")}
+                    value={values.firstname}
+                    errorText={touched.firstname && errors.firstname}
                   />
-                </View>
-                <ScrollView contentContainerStyle={styles.scrollContent}>
-                  <View style={{ marginTop: 20 }}>
-                    {dummyNotifications.map((notification, index) => (
-                      <View
-                        key={index}
-                        style={[
-                          {
-                            padding: 10,
-                          },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            {
-                              color: dark ? COLORS.white : COLORS.black,
-                              fontSize: 13,
-                              marginBottom: 8,
-                            },
-                          ]}
-                        >
-                          {notification.description}
-                        </Text>
 
-                        <View
-                          style={{ flexDirection: "row", alignItems: "center" }}
-                        >
-                          <Text
-                            style={[
-                              {
-                                color: dark ? COLORS.white : COLORS.black,
-                                fontSize: 10,
-                                marginRight: 10,
-                              },
-                            ]}
-                          >
-                            {notification.date}
-                          </Text>
-                          <Text
-                            style={[
-                              {
-                                color: dark ? COLORS.white : COLORS.black,
-                                fontSize: 10,
-                                marginRight: 10,
-                              },
-                            ]}
-                          >
-                            {notification.sendingBy}
-                          </Text>
-                          <Text
-                            style={[
-                              {
-                                color: dark ? COLORS.white : COLORS.black,
-                                fontSize: 10,
-                              },
-                            ]}
-                          >
-                            {notification.isDelivered}
-                          </Text>
-                        </View>
-                      </View>
-                    ))}
-                  </View>
-                </ScrollView>
-              </>
-            )} */}
-          </View>
+                  <Input
+                    id="lastname"
+                    label="Last Name"
+                    onChangeText={handleChange("lastname")}
+                    onBlur={handleBlur("lastname")}
+                    value={values.lastname}
+                    errorText={touched.lastname && errors.lastname}
+                  />
+
+                  <Input
+                    id="username"
+                    label="Username"
+                    onChangeText={handleChange("username")}
+                    onBlur={handleBlur("username")}
+                    value={values.username}
+                    errorText={touched.username && errors.username}
+                  />
+
+                  <Input
+                    id="email"
+                    label="Email"
+                    onChangeText={handleChange("email")}
+                    onBlur={handleBlur("email")}
+                    value={values.email}
+                    errorText={touched.email && errors.email}
+                  />
+
+                  <Input
+                    id="phoneNumber"
+                    label="Phone Number"
+                    onChangeText={handleChange("phoneNumber")}
+                    onBlur={handleBlur("phoneNumber")}
+                    value={values.phoneNumber}
+                    errorText={touched.phoneNumber && errors.phoneNumber}
+                  />
+
+                  <Input
+                    id="gender"
+                    label="Gender"
+                    onChangeText={handleChange("gender")}
+                    onBlur={handleBlur("gender")}
+                    value={values.gender}
+                    errorText={touched.gender && errors.gender}
+                  />
+
+                  <Input
+                    id="country"
+                    label="Country"
+                    onChangeText={handleChange("country")}
+                    onBlur={handleBlur("country")}
+                    value={values.country}
+                    errorText={touched.country && errors.country}
+                  />
+
+                  <Button title="Save" onPress={handleSubmit} />
+                </View>
+              )}
+            </Formik>
+          </ScrollView>
         </View>
-      </Modal>
-      <NewNotificationModal
-        visible={isNewNotificationVisible}
-        onClose={() => setIsNewNotificationVisible(false)}
-      />
-    </>
+      </View>
+    </Modal>
   );
 };
 
@@ -418,16 +245,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "90%",
     height: 600,
-    position: "absolute",
-    bottom: 0,
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 20,
-  },
-  userName: {
-    fontSize: 40,
     fontWeight: "bold",
     marginBottom: 20,
   },
@@ -436,11 +256,7 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 50,
     marginBottom: 20,
-  },
-  noImageText: {
-    fontSize: 16,
-    fontStyle: "italic",
-    marginBottom: 20,
+    resizeMode: "cover",
   },
   button: {
     paddingVertical: 6,

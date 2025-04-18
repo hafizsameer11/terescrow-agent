@@ -9,6 +9,7 @@ import EditProfileModal from '@/components/EditProfileModal';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '@/contexts/authContext';
+import { router } from 'expo-router';
 
 const Profile = () => {
   const [user, setUser] = useState({
@@ -27,9 +28,9 @@ const Profile = () => {
   const [selectedImage, setSelectedImage] = useState<String | null>(null);
   const [mode, setMode] = useState('editProfile');
   const { dark } = useTheme();
-  const {token,userData} = useAuth();
+  const { token, userData } = useAuth();
   const userInitial = name.charAt(0).toUpperCase();
-
+  const { logout } = useAuth();
   const handlePress = (btn: string) => {
     setActiveBtn(btn);
   };
@@ -42,6 +43,12 @@ const Profile = () => {
     setSelectedImage(uri);
   };
 
+  const handleLogout = () => {
+    // logout();
+    // router.replace('');
+    // setUser(null); naviage to login using replace methode
+
+  };
   return (
     <View
       style={[
@@ -50,18 +57,20 @@ const Profile = () => {
       ]}
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {userData?.role == 'admin' && (
+
         <View
           style={[
             styles.headerButtonsContainer,
-            { borderColor: dark ? COLORS.dark2 : '#ccc' },
+
           ]}
         >
-          <TouchableOpacity
-            onPress={() => handlePress('profile')}
+
+
+          {/* <TouchableOpacity
+            onPress={() => handleLogout()}
             style={[
               styles.button,
-              activeBtn === 'profile' && styles.activeButton,
+              styles.logOutButton,
             ]}
           >
             <Text
@@ -72,40 +81,18 @@ const Profile = () => {
                     activeBtn === 'profile'
                       ? COLORS.white
                       : dark
-                      ? COLORS.white
-                      : COLORS.black,
+                        ? COLORS.white
+                        : COLORS.black,
                 },
               ]}
             >
-              Profile
+              Logout
             </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => handlePress('roleManagement')}
-            style={[
-              styles.button,
-              activeBtn === 'roleManagement' && styles.activeButton,
-            ]}
-          >
-            <Text
-              style={[
-                styles.buttonText,
-                {
-                  color:
-                    activeBtn === 'roleManagement'
-                      ? COLORS.white
-                      : dark
-                      ? COLORS.white
-                      : COLORS.black,
-                },
-              ]}
-            >
-              Role Management
-            </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
-          
-        )}
+
+
+
         <View style={styles.profileContainer}>
           <View style={styles.profileAvatar}>
             {selectedImage ? (
@@ -170,7 +157,7 @@ const Profile = () => {
             >
               <Text style={{ fontWeight: 'bold' }}>Gender:</Text> {userData?.gender}
             </Text>
-            <Text
+            {/* <Text
               style={[
                 styles.accountActivitiesSubTitle,
                 {
@@ -181,7 +168,7 @@ const Profile = () => {
             >
               <Text style={{ fontWeight: 'bold' }}>Date Added:</Text>{' '}
               {userData?.createdAt}
-            </Text>
+            </Text> */}
           </View>
         </View>
         <View
@@ -198,38 +185,58 @@ const Profile = () => {
           >
             Account Activities
           </Text>
-          {/* <View
+
+          <View>
+
+            {userData?.accountActivity?.map((item, index) => (
+              <Text
+                key={index}
+                style={[
+                  styles.accountActivitiesSubTitle,
+                  { fontWeight: 'bold', color: dark ? COLORS.white : COLORS.black },
+                ]}
+              >
+
+                <Text style={{ fontWeight: '400' }}>  {item.description}</Text>
+                <Text style={{ fontWeight: '200', fontSize: 10 }}>  {item.createdAt.split('T')[0]}</Text>
+              </Text>
+            ))}
+          </View>
+        </View>
+        {
+          userData?.role !== 'admin' &&
+          <View
             style={[
-              styles.accountActivitiesSubContainer,
-              { borderBottomWidth: 1, borderColor: '#ccc' },
+              styles.accountActivitiesContainer,
+              { backgroundColor: dark ? COLORS.dark2 : COLORS.white },
             ]}
           >
             <Text
               style={[
-                styles.accountActivitiesSubTitle,
+                styles.accountActivitiesTitle,
                 { color: dark ? COLORS.white : COLORS.black },
               ]}
             >
-              Date Joined
+              Department Assigned
             </Text>
-            <Text style={{ color: dark ? COLORS.white : COLORS.black }}>
-              Nov 7, 2024 - 4:30PM
-            </Text>
+            <View>
+
+              {userData?.assignedDepartments?.map((item, index) => (
+                <Text
+                  key={index}
+                  style={[
+                    styles.accountActivitiesSubTitle,
+                    { fontWeight: 'bold', color: dark ? COLORS.white : COLORS.black },
+                  ]}
+                >
+                  Title:
+                  <Text style={{ fontWeight: '400' }}>  {item.department.title}</Text>
+                </Text>
+              ))}
+            </View>
+
           </View>
-          <View style={styles.accountActivitiesSubContainer}>
-            <Text
-              style={[
-                styles.accountActivitiesSubTitle,
-                { color: dark ? COLORS.white : COLORS.black },
-              ]}
-            >
-              Password Reset
-            </Text>
-            <Text style={{ color: dark ? COLORS.white : COLORS.black }}>
-              Nov 7, 2024 - 4:30PM
-            </Text>
-          </View> */}
-        </View>
+        }
         <EditProfileModal
           visible={isModalVisible}
           onClose={() => setModalVisible(false)}
@@ -262,8 +269,11 @@ const styles = StyleSheet.create({
   headerButtonsContainer: {
     flexDirection: 'row',
     borderRadius: 10,
+
+    justifyContent: 'space-between',
     borderWidth: 1,
-    alignSelf: 'flex-start',
+    borderColor: 'transparent'
+    // alignSelf: 'flex-start',
   },
   profileAvatarImage: {
     width: 70,
@@ -277,6 +287,10 @@ const styles = StyleSheet.create({
   },
   activeButton: {
     backgroundColor: COLORS.primary,
+    borderRadius: 10,
+  },
+  logOutButton: {
+    backgroundColor: COLORS.red,
     borderRadius: 10,
   },
   buttonText: {

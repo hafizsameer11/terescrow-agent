@@ -1,21 +1,23 @@
 {
   "expo": {
-    "name": "terescrow-frontend",
-    "slug": "terescrow-frontend",
+    "name": "Tercescrow Team",
+    "slug": "terescrow-agent",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/icons/app-icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.TercescrowTeam"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/icons/app-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.hafizsameer12.terescrowagent"
     },
     "web": {
       "bundler": "metro",
@@ -27,7 +29,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/splash.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
@@ -36,6 +38,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "f4b7b9c4-df8e-45a7-878b-f0ebfb763d11"
+      }
     }
   }
 }

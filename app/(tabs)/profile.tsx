@@ -42,48 +42,48 @@ const Profile = () => {
 
   const { dark } = useTheme();
 
-// Store or Retrieve Customer ID
-useEffect(() => {
-  const manageCustomerId = async () => {
-    try {
-      let storedId = id;
+  // Store or Retrieve Customer ID
+  useEffect(() => {
+    const manageCustomerId = async () => {
+      try {
+        let storedId = id;
 
-      if (!storedId) {
-        storedId = await AsyncStorage.getItem("customerId");
-      } else {
-        await AsyncStorage.setItem("customerId", storedId);
+        if (!storedId) {
+          storedId = await AsyncStorage.getItem("customerId");
+        } else {
+          await AsyncStorage.setItem("customerId", storedId);
+        }
+
+        if (storedId) setCustomerId(storedId);
+      } catch (error) {
+        console.error("Error managing customer ID:", error);
       }
+    };
+    manageCustomerId();
+  }, [id]);
 
-      if (storedId) setCustomerId(storedId);
-    } catch (error) {
-      console.error("Error managing customer ID:", error);
-    }
-  };
-  manageCustomerId();
-}, [id]);
+  console.log("Stored Customer ID:", customerId);
 
-console.log("Stored Customer ID:", customerId);
+  // Fetch Customer Details using React Query
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ["customerDetails", customerId],
+    queryFn: () => getCustomerDetails({ token, id: customerId! }),
+    enabled: Boolean(customerId),
 
-// Fetch Customer Details using React Query
-const { data, isLoading, isError, error } = useQuery({
-  queryKey: ["customerDetails", customerId],
-  queryFn: () => getCustomerDetails({ token, id: customerId! }),
-  enabled: Boolean(customerId),
+    // Automatically refetch when customerId changes
+    refetchOnWindowFocus: true,
+    retry: 2,
 
-  // Automatically refetch when customerId changes
-  refetchOnWindowFocus: true,
-  retry: 2,
-
-  // Optional: Handle errors if needed
-  onError: (error) => {
-    console.error("Error fetching customer details:", error);
-  },
-});
+    // Optional: Handle errors if needed
+    onError: (error) => {
+      console.error("Error fetching customer details:", error);
+    },
+  });
 
 
   const customer: Customer | undefined = data?.data;
   const { email, phoneNumber, gender, country } = customer || {};
-
+console.log("Customer Data:", customer);
   // Handle Button Press
   const handlePress = (btn: string) => {
     setActiveBtn(btn);
@@ -182,7 +182,7 @@ const { data, isLoading, isError, error } = useQuery({
                   </Text>
                 </View>
 
-                <View style={{ flexDirection: 'row', gap: 10 }}>
+                {/* <View style={{ flexDirection: 'row', gap: 10 }}>
                   <TouchableOpacity
                     style={[
                       styles.profileEditButton,
@@ -213,7 +213,7 @@ const { data, isLoading, isError, error } = useQuery({
                       ]}
                     />
                   </TouchableOpacity>
-                </View>
+                </View> */}
               </View>
 
               <ProfileDetails
@@ -237,24 +237,28 @@ const { data, isLoading, isError, error } = useQuery({
                 >
                   Account Activities
                 </Text>
-                <View
-                  style={[
-                    styles.accountActivitiesSubContainer,
-                    { borderBottomWidth: 1, borderColor: '#ccc' },
-                  ]}
-                >
-                  <Text
+                {customer?.AccountActivity?.map((activity, index) => (
+
+                  <View
+                    key={index}
                     style={[
-                      styles.accountActivitiesSubTitle,
-                      { color: dark ? COLORS.white : COLORS.black },
+                      styles.accountActivitiesSubContainer,
+                      { borderBottomWidth: 1, borderColor: '#ccc' },
                     ]}
                   >
-                    Date Joined
-                  </Text>
-                  <Text style={{ color: dark ? COLORS.white : COLORS.black }}>
-                    Nov 7, 2024 - 4:30PM
-                  </Text>
-                </View>
+                    <Text
+                      style={[
+                        styles.accountActivitiesSubTitle,
+                        { color: dark ? COLORS.white : COLORS.black },
+                      ]}
+                    >
+                      {activity.description}
+                    </Text>
+                    <Text style={{ color: dark ? COLORS.white : COLORS.black ,fontSize: 12, opacity: 0.7, marginTop: 5 }}>
+                      {activity.createdAt.split('T')[0]}
+                    </Text>
+                  </View>
+                ))}
               </View>
             </>
           )}
@@ -393,6 +397,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   accountActivitiesSubTitle: {
-    fontWeight: 'bold',
+    fontWeight: 'semibold',
   },
 });

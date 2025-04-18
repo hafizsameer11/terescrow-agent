@@ -1,32 +1,39 @@
+import React, { useState } from 'react';
 import {
   ActivityIndicator,
-  FlatList,
   Modal,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
+  Image,
+  FlatList,
 } from 'react-native';
-import React, { useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/themeContext';
 import { COLORS } from '@/constants';
 import * as ImagePicker from 'expo-image-picker';
+import { QuickReply } from '@/utils/queries/agentQueries';
+import { useAuth } from '@/contexts/authContext';
 
 interface MessageInputProps {
   sendMessage: (message?: string, image?: string) => void;
   sendingMessage: boolean;
+  quickReplies: QuickReply[];
 }
 
 const MessageInput: React.FC<MessageInputProps> = ({
   sendMessage,
   sendingMessage,
+  quickReplies,
 }) => {
   const { dark } = useTheme();
   const [input, setInput] = useState<string>('');
   const [isImagePickerOpen, setIsImagePickerOpen] = useState<boolean>(false);
-
+  const [isQuickRepliesOpen, setIsQuickRepliesOpen] = useState<boolean>(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+const {userData} = useAuth();
   const handleSendMessage = () => {
     if (input.trim()) {
       sendMessage(input);
@@ -42,7 +49,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
     });
 
     if (!result.canceled) {
-      sendMessage('', result.assets[0].uri);
+      setImagePreview(result.assets[0].uri);
       setIsImagePickerOpen(false);
     }
   };
@@ -54,9 +61,21 @@ const MessageInput: React.FC<MessageInputProps> = ({
     });
 
     if (!result.canceled) {
-      sendMessage('', result.assets[0].uri);
+      setImagePreview(result.assets[0].uri);
     }
     setIsImagePickerOpen(false);
+  };
+
+  const sendImage = () => {
+    if (imagePreview) {
+      sendMessage('', imagePreview);
+      setImagePreview(null);
+    }
+  };
+
+  const handleQuickReplySelect = (message: string) => {
+    setInput((prev) => (prev ? `${prev} ${message}` : message));
+    setIsQuickRepliesOpen(false);
   };
 
   return (
@@ -66,12 +85,21 @@ const MessageInput: React.FC<MessageInputProps> = ({
           onPress={() => setIsImagePickerOpen(true)}
           style={styles.iconButton}
         >
-          <Ionicons
-            name="image-outline"
-            size={24}
-            color={dark ? COLORS.white : COLORS.black}
-          />
+          <Ionicons name="image-outline" size={24} color={dark ? COLORS.white : COLORS.black} />
         </TouchableOpacity>
+{
+  userData?.role != 'admin' && (
+    <TouchableOpacity
+    onPress={() => setIsQuickRepliesOpen(!isQuickRepliesOpen)}
+    style={styles.iconButton}
+  >
+    <Ionicons name="chatbubble-ellipses-outline" size={24} color={dark ? COLORS.white : COLORS.black} />
+  </TouchableOpacity>
+
+  )
+
+}
+       
         <TextInput
           style={[
             styles.input,
@@ -84,18 +112,12 @@ const MessageInput: React.FC<MessageInputProps> = ({
           multiline
           maxLength={500}
         />
-        <TouchableOpacity
-          onPress={handleSendMessage}
-          style={styles.sendMessage}
-        >
+        <TouchableOpacity onPress={handleSendMessage} style={styles.sendMessage}>
           {sendingMessage ? (
-            <ActivityIndicator size="small" color="#fff" />
+            <ActivityIndicator size="small" color={COLORS.primary} />
           ) : (
             <Text
-              style={[
-                { fontWeight: 'bold' },
-                dark ? { color: COLORS.white } : { color: COLORS.black },
-              ]}
+              style={[{ fontWeight: 'bold' }, dark ? { color: COLORS.white } : { color: COLORS.black }]}
             >
               Send
             </Text>
@@ -109,20 +131,42 @@ const MessageInput: React.FC<MessageInputProps> = ({
             <TouchableOpacity onPress={pickImage} style={styles.optionButton}>
               <Text style={styles.optionText}>Pick from Gallery</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={captureImage}
-              style={styles.optionButton}
-            >
+            <TouchableOpacity onPress={captureImage} style={styles.optionButton}>
               <Text style={styles.optionText}>Capture from Camera</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setIsImagePickerOpen(false)}
-              style={styles.optionButton}
-            >
+            <TouchableOpacity onPress={() => setIsImagePickerOpen(false)} style={styles.optionButton}>
               <Text style={styles.optionText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </Modal>
+      )}
+
+      {imagePreview && (
+        <Modal transparent={true} visible={!!imagePreview}>
+          <View style={styles.previewContainer}>
+            <Image source={{ uri: imagePreview }} style={styles.previewImage} />
+            <TouchableOpacity onPress={() => setImagePreview(null)} style={styles.closeButton}>
+              <Ionicons name="close" size={24} color={COLORS.black} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={sendImage} style={styles.sendButton}>
+              <Text style={styles.sendText}>Send Image</Text>
+            </TouchableOpacity>
+          </View>
+        </Modal>
+      )}
+
+      {isQuickRepliesOpen && (
+        <View style={styles.quickRepliesContainer}>
+          <FlatList
+            data={quickReplies}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item }) => (
+              <TouchableOpacity style={styles.quickReply} onPress={() => handleQuickReplySelect(item.message)}>
+                <Text style={styles.quickReplyText}>{item.message}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
       )}
     </>
   );
@@ -131,21 +175,6 @@ const MessageInput: React.FC<MessageInputProps> = ({
 export default MessageInput;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  chatContainer: { padding: 10 },
-  messageContainer: {
-    maxWidth: '70%',
-    borderRadius: 10,
-    marginVertical: 5,
-    paddingVertical: 10,
-  },
-  userMessage: { alignSelf: 'flex-end' },
-  otherMessage: { alignSelf: 'flex-start' },
-  userMessageTextColor: { backgroundColor: '#DCF8C6' },
-  otherMessageTextColor: { backgroundColor: '#E5E5E5' },
-  messageText: { fontSize: 16, padding: 15, borderRadius: 8 },
-  timestamp: { fontSize: 12, marginTop: 5, color: COLORS.grayscale400 },
-  dynamicImage: { width: '100%', height: undefined, aspectRatio: 1 },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -171,6 +200,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 50,
     borderColor: COLORS.grayscale400,
+    marginHorizontal: 5,
   },
   sendMessage: {
     position: 'absolute',
@@ -201,14 +231,49 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
     justifyContent: 'center',
+    alignItems: 'center',
   },
-  previewImage: { width: '100%', height: '100%', resizeMode: 'contain' },
+  previewImage: {
+    width: '90%',
+    height: '60%',
+    resizeMode: 'contain',
+  },
   closeButton: {
     position: 'absolute',
-    top: 20,
-    left: 20,
+    top: 40,
+    right: 20,
     backgroundColor: COLORS.white,
     borderRadius: 50,
-    padding: 5,
+    padding: 10,
+  },
+  sendButton: {
+    position: 'absolute',
+    bottom: 40,
+    backgroundColor: COLORS.primary,
+    padding: 15,
+    borderRadius: 10,
+  },
+  sendText: {
+    color: COLORS.white,
+    fontWeight: 'bold',
+  },
+  quickRepliesContainer: {
+    position: 'absolute',
+    bottom: 80,
+    left: 20,
+    right: 20,
+    backgroundColor: COLORS.white,
+    borderRadius: 10,
+    padding: 10,
+  },
+  quickReply: {
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray,
+  },
+  quickReplyText: {
+    fontSize: 16,
+    color: COLORS.black,
   },
 });

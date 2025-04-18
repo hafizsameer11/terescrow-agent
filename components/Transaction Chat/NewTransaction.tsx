@@ -57,7 +57,7 @@ const NewTransaction: React.FC<Proptypes> = ({
   currDepartment,
   currCategory,
 }) => {
-    const { token, userData } = useAuth();
+  const { token, userData } = useAuth();
   const [selectedSubCategoryId, setSelectedSubCategoryId] = useState('');
   const resetButtonRef = useRef<typeof TouchableOpacity>(null);
   const queryClient = useQueryClient();
@@ -126,41 +126,10 @@ const NewTransaction: React.FC<Proptypes> = ({
     setSelectedSubCategoryId('');
     setVisibility(false);
   };
-
-  // const setDepartmentValue = (field: string, id: string) => {
-  //   if (id.toString() == selectedDepartmentId) return;
-  //   setSelectedDepartmentId(id.toString());
-  //   setSelectedCategoryId('');
-  //   setSelectedSubCategoryId('');
-  // };
-  // const setCategoryValue = (field: string, id: string) => {
-  //   if (id.toString() == selectedCategoryId) return;
-  //   setSelectedCategoryId(id.toString());
-  //   setSelectedSubCategoryId('');
-  // };
-
   const setSubCategoryValue = (field: string, id: string) => {
     // if (id.toString() == selectedSubCategoryId) return;
     setSelectedSubCategoryId(id.toString());
   };
-
-  // const selectCurrDepartment = (field: string, id: string) => {
-  //   if (id.toString() == selectedDepartmentId) return;
-  //   setSelectedDepartmentId(id.toString());
-  //   setSelectedCategoryId('');
-  //   setSelectedSubcategoryId('');
-  // };
-  // const selectCurrCategory = (field: string, id: string) => {
-  //   if (id.toString() == selectedCategoryId) return;
-  //   setSelectedCategoryId(id.toString());
-  //   setSelectedSubcategoryId('');
-  // };
-
-  // const selectCurrSubCategory = (field: string, id: string) => {
-  //   console.log(id);
-  //   setSelectedSubcategoryId(id.toString());
-  // };
-
   return (
     <>
       <Modal animationType="fade" transparent={true} visible={visibility}>
@@ -201,6 +170,7 @@ const NewTransaction: React.FC<Proptypes> = ({
                 fromAddress: '',
                 cardType: '',
                 cardNumber: '',
+                profit: '',
               }}
               onSubmit={(values) => {
                 console.log(values);
@@ -218,6 +188,7 @@ const NewTransaction: React.FC<Proptypes> = ({
                   subCategoryId: +selectedSubCategoryId,
                   countryId: 2,
                   chatId: +currChatId,
+                  profit: +values.profit,
                 };
                 if (currDepartment.title.includes('Crypto') || currDepartment.title.includes('crypto')) {
                   cryptoTrasaction({
@@ -288,7 +259,7 @@ const NewTransaction: React.FC<Proptypes> = ({
                             modalLabel="Select SubCategory"
                             placeholder="-Select Subcategory-"
                             setFieldValue={setSubCategoryValue}
-                            // error={errors.subCategoryId}
+                          // error={errors.subCategoryId}
                           />
                         ) : isLoadingSubcategories ? (
                           <ActivityIndicator
@@ -310,50 +281,63 @@ const NewTransaction: React.FC<Proptypes> = ({
                               id="amount"
                               value={values.amount}
                               keyboardType="numeric"
-                              // placeholder="Enter amount in dollars"
                               onChangeText={(text: string) => {
                                 setFieldValue('amount', text);
-                                setFieldValue(
-                                  'amountNaira',
-                                  (+text * +values.exchangeRate)
-                                    .toFixed(2)
-                                    .toString()
-                                );
+                                if (values.exchangeRate) {
+                                  // Automatically calculate Naira when the exchange rate exists
+                                  setFieldValue(
+                                    'amountNaira',
+                                    (+text * +values.exchangeRate).toFixed(2).toString()
+                                  );
+                                }
                               }}
-                              onBlur={handleBlur('amountInDollars')}
-                              errorText={
-                                touched.amount ? errors.amount : undefined
-                              }
-                              readOnly={!values.exchangeRate}
+                              onBlur={handleBlur('amount')}
+                              errorText={touched.amount ? errors.amount : undefined}
                             />
                             <Input
                               id="exchangeRate"
                               label="Exchange Rate (Naira per Dollar)"
                               value={values.exchangeRate} // Controlled value
-                              onChangeText={handleChange('exchangeRate')}
-                              // placeholder="Enter exchange rate"
-                              errorText={
-                                touched.exchangeRate
-                                  ? errors.exchangeRate
-                                  : undefined
-                              }
                               keyboardType="numeric"
+                              onChangeText={(text: string) => {
+                                setFieldValue('exchangeRate', text);
+                                if (values.amount) {
+                                  // Automatically calculate Naira when the dollar amount exists
+                                  setFieldValue(
+                                    'amountNaira',
+                                    (+values.amount * +text).toFixed(2).toString()
+                                  );
+                                }
+                              }}
+                              errorText={
+                                touched.exchangeRate ? errors.exchangeRate : undefined
+                              }
                             />
 
                             <Input
                               id="amountNaira"
                               label="Amount in Naira"
                               value={values.amountNaira}
-                              onChangeText={handleChange('amountNaira')}
-                              // placeholder="Amount in Naira"
                               keyboardType="numeric"
-                              errorText={
-                                touched.amountNaira
-                                  ? errors.amountNaira
-                                  : undefined
-                              }
+                              errorText={touched.amountNaira ? errors.amountNaira : undefined}
                               readOnly
                             />
+
+                            <Input
+                              id="profit"
+                              value={values.profit}
+                              onChangeText={handleChange('profit')}
+                              onBlur={handleBlur('profi')}
+                              label="Profit "
+                              // placeholder="Enter card number"
+                              errorText={
+                                touched.profit
+                                  ? errors.profit
+                                  : undefined
+                              }
+                              keyboardType="default"
+                            />
+
                             {+currDepartment.title.includes('gift') || +currDepartment.title.includes('Gift') || +currDepartment.title.includes('card') || +currDepartment.title.includes('Card') ? (
                               <>
                                 <CustomSelect
@@ -377,7 +361,7 @@ const NewTransaction: React.FC<Proptypes> = ({
                                       ? errors.cardNumber
                                       : undefined
                                   }
-                                  keyboardType="numeric"
+                                  keyboardType="default"
                                 />
                               </>
                             ) : (

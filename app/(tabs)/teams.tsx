@@ -18,6 +18,7 @@ import Button from "@/components/Button";
 import { getTeam } from "@/utils/queries/adminQueries";
 import { token } from "@/utils/apiConfig";
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
 
 const getRandomStatus = () => {
   const statuses = ["successfull", "failed", "pending"];
@@ -38,6 +39,7 @@ const getRandomStatus = () => {
 export default function Department() {
   const [query, setQuery] = useState("");
   const { dark } = useTheme();
+  const { push } = useRouter();
   const [activeBtn, setActiveBtn] = useState("active");
   const [filteredData, setFilteredData] = useState([]);
   const [selectedOption, setSelectedOption] = useState("Role");
@@ -53,7 +55,7 @@ export default function Department() {
     queryFn: () => getTeam({ token }),
     enabled: !!token,
   });
-  console.log("Team Data",teamData);
+  console.log("Team Data", teamData);
   const handleMenuToggle = (index: string) => {
     if (menuVisible === index) {
       setMenuVisible(null);
@@ -91,19 +93,19 @@ export default function Department() {
 
     const handleViewCustomerDetails = (customerId: number) => {
       // Search in both sources
-      const customer =
-        getAllCustomerss?.data.find(
-          (item: Customer) => item.id === customerId
-        ) ||
-        customerTransactions?.data.find(
-          (item: Transaction) => item.customer?.id === customerId
-        )?.customer;
-    
-      console.log("The Details", customer);
-      setMenuVisible(null);
-    
-      if (customer) {
-        push(`/profile?id=${customer.id}`);
+      // const customer =
+      //   getAllCustomerss?.data.find(
+      //     (item: Customer) => item.id === customerId
+      //   ) ||
+      //   customerTransactions?.data.find(
+      //     (item: Transaction) => item.customer?.id === customerId
+      //   )?.customer;
+
+      // console.log("The Details", customer);
+      // setMenuVisible(null);
+
+      if (customerId) {
+        push(`/profile?id=${customerId}`);
       } else {
         console.error("Customer not found");
       }
@@ -111,7 +113,7 @@ export default function Department() {
 
     return (
       <View style={tableHeader.row} key={index}>
-        <View style={[tableHeader.cell, tableHeader.nameCell, {width: '50%'}]}>
+        <View style={[tableHeader.cell, tableHeader.nameCell, { width: '50%' }]}>
           <Image
             source={icons.userDefault}
             style={{
@@ -138,48 +140,48 @@ export default function Department() {
         </Text>
         <Text style={[tableHeader.cell, textColor]}>{item.user.role}</Text>
         <Text>
-        <View style={styles.menuContainer}>
-                <TouchableOpacity onPress={() => handleMenuToggle(item.id)}>
-                  <Image
-                    source={icons.threeDots}
-                    style={[
-                      styles.dotsImage,
-                      { tintColor: dark ? COLORS.white : COLORS.black },
-                    ]}
-                  />
+          <View style={styles.menuContainer}>
+            <TouchableOpacity onPress={() => handleMenuToggle(item.id)}>
+              <Image
+                source={icons.threeDots}
+                style={[
+                  styles.dotsImage,
+                  { tintColor: dark ? COLORS.white : COLORS.black },
+                ]}
+              />
+            </TouchableOpacity>
+
+            {menuVisible === item.id && (
+              <View
+                style={[
+                  styles.dropdownMenu,
+                  { backgroundColor: dark ? COLORS.dark2 : COLORS.white },
+                ]}
+              >
+                <TouchableOpacity
+                  onPress={() => handleViewCustomerDetails(item.user.id)}
+                >
+                  <Text style={[styles.dropdownItem, textColor]}>
+                    View Member Details
+                  </Text>
                 </TouchableOpacity>
 
-                {menuVisible === item.id && (
-                  <View
-                    style={[
-                      styles.dropdownMenu,
-                      { backgroundColor: dark ? COLORS.dark2 : COLORS.white },
-                    ]}
-                  >
-                    <TouchableOpacity
-                      onPress={() => handleViewCustomerDetails(item.id)}
-                    >
-                      <Text style={[styles.dropdownItem, textColor]}>
-                        View Customer Details
-                      </Text>
-                    </TouchableOpacity>
+                {/* <TouchableOpacity
+                // onPress={() => handleTransactionModal(item.id)}
+                >
+                  <Text style={[styles.dropdownItem, textColor]}>
+                    View Transaction Details
+                  </Text>
+                </TouchableOpacity>
 
-                    <TouchableOpacity
-                      // onPress={() => handleTransactionModal(item.id)}
-                    >
-                      <Text style={[styles.dropdownItem, textColor]}>
-                        View Transaction Details
-                      </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity>
-                      <Text style={[styles.dropdownItem, textColor]}>
-                        Notifications
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
+                <TouchableOpacity>
+                  <Text style={[styles.dropdownItem, textColor]}>
+                    Notifications
+                  </Text>
+                </TouchableOpacity> */}
               </View>
+            )}
+          </View>
         </Text>
         <View style={[tableHeader.actionCell, tableHeader.nameCell]}>
           {/* <Button
@@ -231,7 +233,7 @@ export default function Department() {
           /> */}
         </View>
 
-        <View style={{ padding: 10 }}>
+        {/* <View style={{ padding: 10 }}>
           <View style={styles.row}>
             <Box title="Total Income" value="$1,000" percentage={7} condition />
             <Box title="Total Inflow" value="$500" percentage={5} condition />
@@ -245,7 +247,7 @@ export default function Department() {
             />
             <Box title="Total Outflow" value="$500" percentage={4} condition />
           </View>
-        </View>
+        </View> */}
 
         <View
           style={{
@@ -280,7 +282,7 @@ export default function Department() {
             />
           </View>
 
-          <View
+          {/* <View
             style={[
               styles.pickerContainer,
               { backgroundColor: dark ? COLORS.dark2 : COLORS.white },
@@ -311,13 +313,13 @@ export default function Department() {
                 />
               )}
             />
-          </View>
+          </View> */}
         </View>
 
         <View
           style={[
             styles.headerButtonsContainer,
-            { borderColor: dark ? COLORS.dark2 : "#ccc", borderWidth: 1 },
+            { borderColor: dark ? COLORS.dark2 : "#ccc", borderWidth: 1,marginBottom:10 },
           ]}
         >
           <TouchableOpacity
@@ -340,27 +342,27 @@ export default function Department() {
           </TouchableOpacity>
         </View>
 
-      <ScrollView horizontal>
-        <View>
-          <View
-            style={[
-              tableHeader.headerRow,
-              {
-                backgroundColor: dark ? COLORS.dark2 : COLORS.grayscale200,
-                borderColor: dark ? COLORS.dark2 : "#ccc",
-              },
-            ]}
-          >
-            <Text style={[tableHeader.headerCell, textColor]}>Team Name</Text>
-            <Text style={[tableHeader.headerCell, textColor]}>Date Added</Text>
-            <Text style={[tableHeader.headerCell, textColor]}>Role</Text>
-            <Text style={[tableHeader.headerCell, textColor]}>Action</Text>
+        <ScrollView horizontal>
+          <View>
+            <View
+              style={[
+                tableHeader.headerRow,
+                {
+                  backgroundColor: dark ? COLORS.dark2 : COLORS.grayscale200,
+                  borderColor: dark ? COLORS.dark2 : "#ccc",
+                },
+              ]}
+            >
+              <Text style={[tableHeader.headerCell, textColor]}>Team Name</Text>
+              <Text style={[tableHeader.headerCell, textColor]}>Date Added</Text>
+              <Text style={[tableHeader.headerCell, textColor]}>Role</Text>
+              <Text style={[tableHeader.headerCell, textColor]}>Action</Text>
+            </View>
+            <View style={{ marginBottom: 100 }}>
+              {filteredData.map((item, index) => renderRow(item, index))}
+            </View>
           </View>
-          <View style={{marginBottom: 100}}>
-            {filteredData.map((item, index) => renderRow(item, index))}
-          </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
       </ScrollView>
     </SafeAreaView>
   );
@@ -432,19 +434,20 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontWeight: "bold",
-    
+
   },
   searchContainer: {
     alignItems: "center",
+    display: "flex",
     borderWidth: 1,
     borderRadius: 8,
-    width: "70%",
+    width: "100%",
     paddingHorizontal: 10,
     marginBottom: 15,
   },
   searchBar: {
-    height: 35,
-    width: "70%",
+    height: 45,
+    width: "85%",
   },
   title: {
     fontSize: 20,

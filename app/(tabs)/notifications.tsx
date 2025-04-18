@@ -138,7 +138,7 @@ const Notifications = () => {
                 {teamNotifications?.data.map((notification, index) => (
                   <View key={index}>
                     <Text style={[styles.person, textColor]}>
-                      {notification.title}
+                      You have a new notification
                       <Text style={styles.description}>
                         {'  '}
                         {notification.description}

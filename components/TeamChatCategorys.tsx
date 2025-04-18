@@ -18,11 +18,11 @@ const getPressableStyles = (
   if (isDarkMode) {
     return isSelected
       ? {
-          backgroundColor: COLORS.primary,
-        }
+        backgroundColor: COLORS.primary,
+      }
       : {
-          backgroundColor: COLORS.dark3,
-        };
+        backgroundColor: COLORS.dark3,
+      };
   }
 
   return isSelected

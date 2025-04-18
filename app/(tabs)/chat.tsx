@@ -22,13 +22,13 @@ import { useSocket } from '@/contexts/socketContext';
 
 const ChatScreen = () => {
   const { dark } = useTheme();
-  const { token } = useAuth();
-  const { socket } = useSocket(); 
+  const { token, userData } = useAuth();
+  const { socket } = useSocket();
   const [selectedCategory, setSelectedCategory] = useState<ChatStatus | 'All'>('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [dropDownVisibility, setDropDownVisibility] = useState(false);
-  const chatIdsRef = useRef<number[]>([]);  
-  const [displayChats, setDisplayChats] = useState<any[]> ([]);
+  const chatIdsRef = useRef<number[]>([]);
+  const [displayChats, setDisplayChats] = useState<any[]>([]);
 
   // Fetch all customer chats
   const {
@@ -44,28 +44,25 @@ const ChatScreen = () => {
     enabled: !!token,
   });
 
-  // Update available chat IDs and apply filters when fetching data succeeds
   useEffect(() => {
     if (allChatsData?.data) {
       chatIdsRef.current = allChatsData.data.map((chat) => chat.id);
-      const filteredChats = applyFilters(allChatsData.data); 
-      setDisplayChats(filteredChats); 
+      const filteredChats = applyFilters(allChatsData.data);
+      setDisplayChats(filteredChats);
     }
   }, [allChatsData, searchTerm, selectedCategory]);
-
-  // Handle incoming messages via WebSocket
   useEffect(() => {
     if (socket) {
       socket.on('message', (newMessage) => {
         if (newMessage?.chatId && chatIdsRef.current.includes(newMessage.chatId)) {
           console.log('New Matched Chat ID:', newMessage.chatId);
-          refetch();  
+          refetch();
         }
       });
     }
     return () => {
       if (socket) {
-        socket.off('message');  
+        socket.off('message');
       }
     };
   }, [socket, refetch]);
@@ -114,7 +111,7 @@ const ChatScreen = () => {
           </Pressable>
           {dropDownVisibility && (
             <View style={[styles.dropDown, dark && { backgroundColor: COLORS.dark3 }]}>
-              {['All', 'pending', 'successful', 'declined'].map((status) => (
+              {['All', 'pending', 'successful', 'declined','unsucessful'].map((status) => (
                 <Pressable
                   key={status}
                   style={styles.dropDownItem}
@@ -132,7 +129,7 @@ const ChatScreen = () => {
           <TextInput
             placeholder="Search customer name"
             placeholderTextColor={dark ? COLORS.grayscale400 : COLORS.black}
-            
+
             style={[styles.searchInput, dark && { color: COLORS.white }]}
             onChangeText={handleSearchChange}
           />
@@ -153,6 +150,8 @@ const ChatScreen = () => {
             msg={item.recentMessage?.message}
             status={item.chatStatus}
             messageCount={item.messagesCount}
+            isAdmin={userData?.role === 'admin'}
+          // isAdmin={underDampedSpringCalculations}
           />
         )}
       />
@@ -213,7 +212,8 @@ const styles = StyleSheet.create({
   searchContainer: {
     flex: 1,
     justifyContent: 'center',
-    padding:0,
+    padding: 0,
+    marginLeft:15
   },
   searchIcon: {
     position: 'absolute',

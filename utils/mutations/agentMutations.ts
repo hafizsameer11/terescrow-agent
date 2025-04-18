@@ -3,7 +3,7 @@ import { apiCall, ApiResponse } from '../customApiCalls';
 import { ChatStatus, IResMessage } from '../queries/agentQueries';
 
 export const sendMessageToCustomer = async (
-  data: { chatId: string; message: string },
+  data: FormData,
   token: string
 ): Promise<IMesssageToCustomer> => {
   console.log(data);
@@ -65,12 +65,38 @@ export const createCardTransaction = async ({
 
 export const editAgentProfile = async (
   data: EditAgentProfileReq,
-  token: string
+  token: string,
+  id: number
 ): Promise<ApiResponse> => {
-  return await apiCall(API_ENDPOINTS.COMMON.EditAgentProfile, 'POST', data, token);
+  return await apiCall(`${API_ENDPOINTS.COMMON.UpdateCustomer}/${id}`, 'POST', data, token);
 };
 
+export const createNoteForCustomer = async (
+  data: CreateNoteForCustomerReq,
+  token: string
+): Promise<ApiResponse> => (
+  await apiCall(API_ENDPOINTS.AGENT.CreateNoteForCustomer, 'POST', data, token
+  )
+)
+export const deleteNoteForCustomer = async (
+  noteId: number,
+  token: string
+): Promise<ApiResponse> => (
+  await apiCall(`${API_ENDPOINTS.AGENT.DeleteNote}/${noteId}`, 'GET', undefined, token)
+)
 
+export const updateQuickReply = async (
+  data: { message: string },
+  token: string,
+  id: number
+): Promise<ApiResponse> =>
+  await apiCall(`${API_ENDPOINTS.AGENT.UpdateQuickReply}/${id}`, 'POST', data, token)
+
+export const createQuickReply = async (
+  data: { message: string },
+  token: string
+): Promise<ApiResponse> =>
+  await apiCall(`${API_ENDPOINTS.AGENT.CreateQuickReplies}`, 'POST', data, token)
 interface IMesssageToCustomer extends ApiResponse {
   data: IResMessage;
 }
@@ -97,7 +123,7 @@ interface ICardTransactionReq extends ITransactionReq {
   departmentId?: number;
   categoryId?: number;
 }
-interface EditAgentProfileReq {
+export interface EditAgentProfileReq {
   firstname: string,
   lastname: string,
   profilePicture: string,
@@ -105,6 +131,10 @@ interface EditAgentProfileReq {
   phoneNumber: string,
   gender: string,
   username: string
-  password?: string,
   country?: string
+}
+export interface CreateNoteForCustomerReq {
+  userId: number,
+  note: string,
+  title?: string
 }

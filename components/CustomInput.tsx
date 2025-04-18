@@ -32,7 +32,7 @@ interface InputProps extends TextInputProps {
 
 const Input: FC<InputProps> = (props) => {
   const [isFocused, setIsFocused] = useState(props.readOnly ? true : false);
-  const [labelPosition] = useState(new Animated.Value(18));
+  const [labelPosition] = useState(new Animated.Value(props.value ? 2 : 18));
   const [isEditing, setIsEditing] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -41,28 +41,30 @@ const Input: FC<InputProps> = (props) => {
 
   const handleFocus = () => {
     setIsFocused(true);
+    animateLabel(true);
+  };
+
+  const handleBlur = () => {
+    if (!props.value) {
+      setIsFocused(false);
+      animateLabel(false);
+    }
+  };
+
+  const animateLabel = (up: boolean) => {
     Animated.timing(labelPosition, {
-      toValue: 2,
+      toValue: up ? 2 : 18,
       duration: 300,
       useNativeDriver: false,
     }).start();
-    if (!props.value) {
-      Animated.timing(labelPosition, {
-        toValue: 5,
-        duration: 300,
-        useNativeDriver: false,
-      }).start();
-    }
   };
 
-  const handleEditPress = () => {
-    setIsEditing(true);
-    if (props.showModal) {
-      setIsModalVisible(true);
+  useEffect(() => {
+    // Move label up if prefilled value exists
+    if (props.value || props.prefilledValue) {
+      animateLabel(true);
     }
-  };
-
-  const halfHeight = Dimensions.get('window').height / 2;
+  }, [props.value, props.prefilledValue]);
 
   return (
     <View style={styles.container}>
@@ -79,7 +81,7 @@ const Input: FC<InputProps> = (props) => {
             source={props.icon}
             style={[
               styles.icon,
-              { tintColor: isFocused ? COLORS.primary : '#BCBCBC' }, // Icon color based on focus
+              { tintColor: isFocused ? COLORS.primary : '#BCBCBC' },
             ]}
           />
         )}
@@ -89,6 +91,7 @@ const Input: FC<InputProps> = (props) => {
           secureTextEntry={props.id === 'password' && !isPasswordVisible}
           editable={props.isEditable !== false}
           onFocus={handleFocus}
+          onBlur={handleBlur}
           id={props.id}
           ref={inputRef}
           placeholderTextColor={isFocused ? COLORS.primary : '#BCBCBC'}
@@ -110,8 +113,8 @@ const Input: FC<InputProps> = (props) => {
 
         {props.id === 'password' && (
           <TouchableOpacity
-            onPress={() => setIsPasswordVisible(!isPasswordVisible)} // Toggle password visibility
-            style={styles.iconContainer} // Added iconContainer for the icon
+            onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+            style={styles.iconContainer}
           >
             <Image
               source={isPasswordVisible ? icons.eye : icons.eyeCloseUp}
@@ -155,7 +158,6 @@ const Input: FC<InputProps> = (props) => {
     </View>
   );
 };
-// console.log(errorText)
 
 const styles = StyleSheet.create({
   container: {
@@ -181,15 +183,11 @@ const styles = StyleSheet.create({
     position: 'relative',
     borderRadius: SIZES.padding,
   },
-  inputText: {
-    fontSize: SIZES.body4,
-  },
   iconContainer: {
     position: 'absolute',
     right: 10,
     top: '35%',
   },
-
   icon: {
     width: 20,
     height: 20,
@@ -203,30 +201,6 @@ const styles = StyleSheet.create({
     transitionProperty: 'all',
     transitionDuration: '0.3s',
     transitionTimingFunction: 'ease-in-out',
-  },
-  labelFocused: {
-    top: -10,
-    fontSize: 12,
-  },
-  checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 15,
-  },
-  checkbox: {
-    marginRight: 10,
-  },
-  errorLabel: {
-    color: COLORS.red,
-  },
-  checkboxLabel: {
-    fontSize: SIZES.body4,
-    color: COLORS.black,
-    fontWeight: '400',
-  },
-  errorContainer: {
-    marginTop: 5,
-    marginLeft: 5,
   },
   errorText: {
     fontSize: 12,

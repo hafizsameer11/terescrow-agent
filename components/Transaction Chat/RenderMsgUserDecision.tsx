@@ -6,6 +6,8 @@ const RenderMsgUserDecision: React.FC<{
   icon: string;
   bgColor: string;
   isProcess: boolean;
+  textColor?: string;
+  subText?: string;
   OnCancel: () => void;
 }> = (props) => {
   return (
@@ -41,7 +43,16 @@ const RenderMsgUserDecision: React.FC<{
             ]}
           />
         </View>
-        <Text>{props.text}</Text>
+        <View style={{ display: 'flex', flexDirection: 'column' }}>
+          <Text style={{ color: props.textColor }}>{props.text}</Text>
+          <Text style={{ color: props.textColor }}>{props.subText}</Text>
+        </View>
+
+        <View style={{ height: 10 }}></View>
+
+        <View>
+        </View>
+
         {props.isProcess && (
           <Pressable onPress={props.OnCancel} style={{ marginLeft: 10 }}>
             <Text>CANCEL</Text>

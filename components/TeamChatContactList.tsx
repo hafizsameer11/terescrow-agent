@@ -3,10 +3,11 @@ import { Image } from 'expo-image';
 import { COLORS } from '@/constants';
 import { Colors } from '@/constants/Colors';
 import { Route, useRouter } from 'expo-router';
-import { timeFormatter } from '@/utils/helpers';
+import { getImageUrl, timeFormatter } from '@/utils/helpers';
+import { API_BASE_URL } from '@/utils/apiConfig';
 
 const TeamChatContactList: React.FC<{
-  pfp: string;
+  pfp: string | null;
   name: string;
   date?: Date;
   recentMsg: string;
@@ -14,6 +15,7 @@ const TeamChatContactList: React.FC<{
   msgCount: number;
   id: string;
 }> = (props) => {
+  console.log("profile image", props.pfp)
   const router = useRouter();
   return (
     <Pressable
@@ -21,7 +23,9 @@ const TeamChatContactList: React.FC<{
       style={styles.container}
     >
       {/* Profile Image */}
-      <Image source={props.pfp} style={styles.profileImage} />
+      <Image source={{
+        uri:  getImageUrl(props?.pfp)
+      }} style={styles.profileImage} />
 
       {/* Right Section */}
       <View style={styles.rightContainer}>

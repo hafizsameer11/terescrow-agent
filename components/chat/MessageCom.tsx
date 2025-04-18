@@ -8,15 +8,18 @@ import { getImageUrl } from '@/utils/helpers';
 type PropTypes = {
   messageData: IRenderMessage;
   setImagePreview: (image: string) => void;
+  isAdmin?: boolean;
+  // role?:string
+  customerId?: string | number;
 };
 
-const MessageCom = ({ messageData, setImagePreview }: PropTypes) => {
+const MessageCom = ({ messageData, setImagePreview,isAdmin,customerId }: PropTypes) => {
   console.log("Message Data", messageData);
   return (
     <View
       style={[
         styles.messageContainer,
-        messageData.isUser ? styles.userMessage : styles.otherMessage,
+        messageData.senderId===customerId ? styles.otherMessage : styles.userMessage,
       ]}
     >
       {messageData.image && (
@@ -30,9 +33,9 @@ const MessageCom = ({ messageData, setImagePreview }: PropTypes) => {
         <Text
           style={[
             styles.messageText,
-            messageData.isUser
-              ? styles.userMessageTextColor
-              : styles.otherMessageTextColor,
+            messageData.senderId===customerId
+              ? styles.otherMessage
+              : styles.userMessage,
           ]}
         >
           {messageData.text}
@@ -44,7 +47,8 @@ const MessageCom = ({ messageData, setImagePreview }: PropTypes) => {
           { alignSelf: messageData.isUser ? 'flex-end' : 'flex-start' },
         ]}
       >
-        {new Date().toLocaleTimeString()}
+    {messageData?.timestampt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+
       </Text>
     </View>
   );
@@ -59,12 +63,14 @@ const styles = StyleSheet.create({
     marginVertical: 5,
     paddingVertical: 10,
   },
-  userMessage: { alignSelf: 'flex-end' },
-  otherMessage: { alignSelf: 'flex-start' },
-  userMessageTextColor: { backgroundColor: '#DCF8C6' },
-  otherMessageTextColor: { backgroundColor: '#E5E5E5' },
+  userMessage: { alignSelf: 'flex-end',
+    backgroundColor: '#E1FFEF' 
+   },
+  otherMessage: { alignSelf: 'flex-start',backgroundColor: '#EFEFEF' },
+  userMessageTextColor: { backgroundColor: '#E1FFEF' },
+  otherMessageTextColor: { backgroundColor: '#EFEFEF' },
   messageText: { fontSize: 16, padding: 15, borderRadius: 8 },
-  dynamicImage: { width: '100%', height: undefined, aspectRatio: 1 },
+  dynamicImage: { width: '100%', height: undefined, aspectRatio: 1, },
 
   timestamp: { fontSize: 12, marginTop: 5, color: COLORS.grayscale400 },
 });

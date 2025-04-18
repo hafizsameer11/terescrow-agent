@@ -33,29 +33,52 @@ const FullTransactionModal: React.FC<KYCModalProps> = ({
   };
 
   const [formData, setFormData] = useState({
-    Amount: "",
+    AmountDollar: "",
+    AmountNaira: "",
     Department: "",
-    ServiceType: "",
-    SubService: "",
+    Category: "",
+    SubCategory: "",
+    Type: "",
+    GiftCardType: "",
+    GiftCardNumber: "",
     TransactionId: "",
     Customer: "",
     Status: "",
+    FromAddress: "",
+    ToAddress: "",
+    niche: "",
+    profit: "",
   });
 
+  const formatLabel = (key: string) => {
+    return key
+      .replace(/([A-Z])/g, " $1") // Add space before uppercase letters
+      .replace(/^./, (str) => str.toUpperCase()); // Capitalize the first letter
+  };
+
   useEffect(() => {
+    console.log("transactionData updated:", transactionData);
 
-    console.log('transactionData', transactionData)
-      setFormData({
-        Amount: transactionData?.amount.toString() || "",
-        Department: transactionData?.department?.title || "",
-        ServiceType: transactionData?.department?.Type || "",
-        SubService: transactionData?.category?.title || "",
-        TransactionId: transactionData?.id.toString() || "",
-        Customer: transactionData?.customer?.username || "",
-        Status: transactionData?.status || "",
-      });
+    const isCrypto = transactionData?.department?.niche === "crypto";
 
-  }, []);
+    setFormData({
+      AmountDollar: transactionData?.amount?.toString() || "",
+      AmountNaira: transactionData?.amountNaira?.toString() || "",
+      Category: transactionData?.category?.title || "",
+      SubCategory: transactionData?.subCategory?.title || "",
+      niche: transactionData?.department?.niche || "",
+      GiftCardType: isCrypto ? "" : transactionData?.cardType || "",
+      GiftCardNumber: isCrypto ? "" : transactionData?.cardNumber || "",
+      FromAddress: isCrypto ? transactionData?.fromAddress || "" : "",
+      ToAddress: isCrypto ? transactionData?.toAddress || "" : "",
+      Type: transactionData?.department?.Type || "",
+      Department: transactionData?.department?.title || "",
+      TransactionId: transactionData?.id?.toString() || "",
+      Customer: transactionData?.customer?.username || "",
+      Status: transactionData?.status || "",
+      profit: transactionData?.profit?.toString() || "",
+    });
+  }, [transactionData]);
 
   return (
     <Modal visible={visible} transparent animationType="slide">
@@ -75,21 +98,33 @@ const FullTransactionModal: React.FC<KYCModalProps> = ({
             >
               Full Transaction Details
             </Text>
-            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <Image
-                source={icons.close2}
-                style={styles.closeIcon}
-              />
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={onClose}
+              accessibilityLabel="Close Modal"
+            >
+              <Image source={icons.close2} style={styles.closeIcon} />
             </TouchableOpacity>
           </View>
 
           <ScrollView contentContainerStyle={styles.scrollViewContent}>
-            {Object.entries(formData).map(([label, value]) => (
-              <View key={label} style={styles.dataRow}>
-                <Text style={[styles.fieldLabel, textColor]}>{label}</Text>
-                <Text style={[styles.fieldValue, textColor]}>{value}</Text>
-              </View>
-            ))}
+            {Object.entries(formData)
+              .filter(([label]) => {
+                const isCrypto = formData.niche === "crypto";
+                if (isCrypto) {
+                  return !["GiftCardType", "GiftCardNumber"].includes(label);
+                } else {
+                  return !["FromAddress", "ToAddress"].includes(label);
+                }
+              })
+              .map(([label, value]) => (
+                <View key={label} style={styles.dataRow}>
+                  <Text style={[styles.fieldLabel, textColor]}>
+                    {formatLabel(label)}
+                  </Text>
+                  <Text style={[styles.fieldValue, textColor]}>{value}</Text>
+                </View>
+              ))}
           </ScrollView>
         </View>
       </View>
@@ -141,7 +176,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 18,
     paddingHorizontal: 10,
-    borderWidth: .5,
+    borderWidth: 0.5,
     borderColor: "#ccc",
   },
   fieldLabel: {

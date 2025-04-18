@@ -18,8 +18,15 @@ export interface Customer {
   updatedAt: string;
   password?: string;
   agent?: Agent;
+  AccountActivity?: AccountActivity[];
 }
 
+export interface AccountActivity {
+  id: number
+  userId: number
+  description: string
+  createdAt: string
+}
 // export intergac
 export interface Department {
   id?: number;
@@ -93,12 +100,16 @@ export interface Transaction {
   status: string;
   createdAt: string;
   updatedAt: string;
-
-  // References
   department?: Department;
   category?: Category;
-  agent?: Agent;
+  agent?: Customer;
+  subCategory: {
+    id: number;
+    title: string;
+  }
   customer?: Customer;
+  profit?: number;
+
 }
 
 export interface Rate {
@@ -109,6 +120,7 @@ export interface Rate {
   amountNaira?: number; // Equivalent amount in Naira (optional)
   chatId?: number; // Associated chat ID (optional)
   createdAt?: string; // Date and time of creation (optional)
+  exchangeRate?: number; // Exchange rate (optional)
 }
 
 export interface AllCustomerResponse extends ApiResponse {
@@ -242,4 +254,16 @@ export interface NotificationsResponse {
   status: string;
   message: string;
   data: Notification[];
+}
+
+
+export interface AllCustomerRespone {
+  status: string
+  message: string
+  data: Customer[]
+}
+export interface CustomDetialResponse {
+  status: string
+  message: string
+  data: Customer
 }

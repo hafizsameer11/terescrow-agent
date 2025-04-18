@@ -5,7 +5,7 @@ import { Colors } from '@/constants/Colors';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/contexts/themeContext';
 import { ChatStatus } from '@/utils/queries/agentQueries';
-import { timeFormatter } from '@/utils/helpers';
+import { getImageUrl, timeFormatter } from '@/utils/helpers';
 
 const ChatContactList: React.FC<{
   pfp: string | null;
@@ -18,17 +18,19 @@ const ChatContactList: React.FC<{
   messageCount?: number;
   isdefault?: boolean;
   iswhiteBg?: boolean;
+  isAdmin?: boolean; 
 }> = (props) => {
   console.log(props.pfp);
   const router = useRouter();
   const { dark } = useTheme();
+  console.log("prfoile", props.pfp);
   return (
     <Pressable
       onPress={() => router.push(`/transactionchat?id=${props.id} ${props.isdefault ? '&default="true"' : ''}`)}
       style={[styles.container, { backgroundColor: props.iswhiteBg ? COLORS.white : COLORS.grayscale100 }]}
     >
       {/* Profile Image */}
-      <Image source={props.pfp || icons.profile} style={styles.profileImage} />
+      <Image source={getImageUrl(props.pfp || '')} style={styles.profileImage} />
 
       <View style={styles.rightContainer}>
         <View style={styles.nameTimeRow}>
@@ -59,7 +61,8 @@ const ChatContactList: React.FC<{
                     ? "green"
                     : props.status === "declined"
                       ? "red"
-                      : "yellow", // Default to yellow for "pending"
+                      : props.status == "unsucessful"
+                        ? "black" : "yellow", // Default to yellow for "pending"
                 color: COLORS.white,
               },
             ]}

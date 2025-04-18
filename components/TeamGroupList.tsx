@@ -2,6 +2,7 @@ import { COLORS, icons } from '@/constants';
 import { Colors } from '@/constants/Colors';
 import { useSocket } from '@/contexts/socketContext';
 import { useTheme } from '@/contexts/themeContext';
+import { getImageUrl } from '@/utils/helpers';
 import { Image } from 'expo-image';
 import { useEffect, useState } from 'react';
 import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
@@ -40,7 +41,7 @@ const TeamGroupList: React.FC<{
   return (
     <View style={styles.container}>
       {/* Profile Image */}
-      <Image source={props.pfp} style={styles.profileImage} />
+      <Image source={{uri:getImageUrl(props.pfp)}} style={styles.profileImage} />
       {/* Right Section */}
       <View style={styles.rightContainer}>
         {/* Name and Date Row */}

@@ -43,28 +43,28 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
   const { data: customerTransactions, isLoading: loadingTransactions } = useQuery({
     queryKey: ["customerDetails"],
     queryFn: () => getTransactions({ token }),
-    enabled: indexChats && !!token, // Only enabled if indexChats is true
+    enabled: indexChats && !!token,
   });
   const { data: getAllCustomerss, isLoading: loadingCustomers } = useQuery({
     queryKey: ["getCustomers"],
     queryFn: () => gettAllCustomerss({ token }),
     enabled: !indexChats && !!token, // Only enabled if indexChats is false
   });
-  
+
   // Loading Placeholder
   if (loadingTransactions || loadingCustomers) {
     return <Text>Loading...</Text>;
   }
-  
+
   // Data to Display
   const dataToRender = indexChats ? customerTransactions?.data : getAllCustomerss?.data;
-  
+
   console.log("gettAllCustomerss", dataToRender);
 
   const handleSearch = (text: string) => {
     setQuery(text);
     if (text === "") {
-      setFilteredData(usersData);
+      setFilteredData(getAllCustomerss?.data || []);
     } else {
       const filterData = usersData.filter((item) =>
         item.name.toLowerCase().includes(text.toLowerCase())
@@ -107,18 +107,18 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
       customerTransactions?.data.find(
         (item: Transaction) => item.customer?.id === customerId
       )?.customer;
-  
+
     console.log("The Details", customer);
     setMenuVisible(null);
-  
+
     if (customer) {
-      push(`/profile?id=${customer.id}`);
+    push(`/profile?id=${customer.id}`);
     } else {
       console.error("Customer not found");
     }
   };
-  
-  
+
+
 
   const textColor = {
     color: dark ? COLORS.white : COLORS.black,
@@ -166,7 +166,7 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
           />
         </View>
 
-        <View
+        {/* <View
           style={[
             styles.filterIconContainer,
             {
@@ -184,7 +184,7 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
               ]}
             />
           </TouchableOpacity>
-        </View>
+        </View> */}
       </View>
       <FlatList
         data={dataToRender}
@@ -276,13 +276,7 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
                         </Text>
                       </TouchableOpacity>
 
-                      <TouchableOpacity
-                        onPress={() => handleTransactionModal(item.id)}
-                      >
-                        <Text style={[styles.dropdownItem, textColor]}>
-                          View Transaction Details
-                        </Text>
-                      </TouchableOpacity>
+                    
                     </View>
                   )}
                 </View>
@@ -313,18 +307,7 @@ const RecentChats: React.FC<{ indexChats: boolean }> = ({ indexChats }) => {
                         View Customer Details
                       </Text>
                     </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => handleTransactionModal(item.id)}
-                    >
-                      <Text style={[styles.dropdownItem, textColor]}>
-                        View Transaction Details
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={handleModalVisible}>
-                      <Text style={[styles.dropdownItem, textColor]}>
-                        Notifications
-                      </Text>
-                    </TouchableOpacity>
+                  
                   </View>
                 )}
               </View>
@@ -366,7 +349,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 10,
     marginBottom: 15,
-    width: "85%",
+    width: "100%",
   },
   searchBar: {
     height: 40,

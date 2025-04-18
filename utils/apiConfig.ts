@@ -9,16 +9,19 @@ const API_DOMAIN = "https://46.202.154.203/api";
 export const API_ENDPOINTS = {
   COMMON: {
     login: API_TEMPLATE_URL + 'public/login',
+    AgntLogin: API_TEMPLATE_URL + 'agent/auth/login',
     GetActionCatagories: API_TEMPLATE_URL + 'public/categories',
     GetActionSubacategories: API_TEMPLATE_URL + 'public/subcategories',
     GetActionDepartments: API_TEMPLATE_URL + 'public/departments',
     GetAllTeamChats: API_TEMPLATE_URL + 'get-all-teams-chats',
     SendMessageToTeam: API_TEMPLATE_URL + 'send-message-to-team',
     GetTeamChatDetails: API_TEMPLATE_URL + 'get-team-chat-details',
+    GetUnreadMessageCount: API_DOMAIN + '/public/get-unread-count',
     GetAllChatsWithTeam: API_TEMPLATE_URL + 'get-all-chats-with-team',
     MarkAllAsRead: API_TEMPLATE_URL + '/public/read-all-messages',
     GetAgentStats: API_TEMPLATE_URL + 'agent/utilities/get-agent-stats',
     EditAgentProfile: API_TEMPLATE_URL + 'agent/utilities/edit-agent-profile',
+    UpdateCustomer: API_DOMAIN + '/admin/operations/update-customer',
   },
   AGENT: {
     GetAllChatsWithCustomer:
@@ -33,8 +36,16 @@ export const API_ENDPOINTS = {
     GetAllNotifications: API_TEMPLATE_URL + 'agent/utilities/get-all-notifications',
     GetCustomerNotifications: API_TEMPLATE_URL + 'agent/utilities/get-customer-notifications',
     GetTransactionForAgent: API_TEMPLATE_URL + 'agent/utilities/get-transactions-for-agent',
+    GetTransactionStats: API_TEMPLATE_URL + 'admin/operations/get-transaction-stats',
     GetPendingChats: API_TEMPLATE_URL + 'agent/utilities/get-all-default-chats',
     TakeOverDefaultChat: API_TEMPLATE_URL + 'agent/utilities/take-over-chat',
+    CreateNoteForCustomer: API_TEMPLATE_URL + 'agent/utilities/create-note',
+    GetNotesForCustomer: API_TEMPLATE_URL + 'agent/utilities/get-notes',
+    DeleteNote: API_TEMPLATE_URL + 'agent/utilities/delete-note',
+    CreateQuickReplies: API_DOMAIN + '/agent/utilities/create-quick-reply',
+    GetQuickReplies: API_DOMAIN + '/agent/utilities/get-all-quick-replies',
+    DeleteQuickReply: API_DOMAIN + '/agent/utilities/delete-quick-reply',
+    UpdateQuickReply: API_DOMAIN + '/agent/utilities/update-quick-reply',
   },
   ADMIN: {
     CreateChatGroup: API_DOMAIN + '/admin/create-chat-group',
@@ -48,7 +59,10 @@ const OUR_ENDPOINT = {
     CustomerTransactions: API_DOMAIN + "/admin/operations/get-customer-transactions",
   },
   OPERATIONS: {
-    Traansactions: API_DOMAIN + '/get-admin-transaction',
+    DashBoardStats: API_DOMAIN + '/admin/operations/get-dashboard-stats',
+    CustomerStats: API_DOMAIN + '/admin/operations/get-customer-stats',
+    DepartmentStats: API_DOMAIN + '/admin/operations/get-department-transaction',
+    Traansactions: API_DOMAIN + '/admin/operations/get-all-transactions',
     Departments: API_DOMAIN + '/admin/operations/get-all-department',
     AgentByDepartment: API_DOMAIN + '/admin/operations/get-agent-by-department',
     GetRate: API_DOMAIN + '/admin/operations/get-rate',

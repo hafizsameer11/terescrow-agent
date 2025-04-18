@@ -5,7 +5,7 @@ import { Image } from 'expo-image';
 import { useAuth } from '@/contexts/authContext';
 import { COLORS } from '@/constants';
 import { ITeamChatDetailsResponse } from '@/utils/queries/commonQueries';
-import { timeFormatter } from '@/utils/helpers';
+import { getImageUrl, timeFormatter } from '@/utils/helpers';
 import { API_BASE_URL } from '@/utils/apiConfig';
 
 const TeamMessageCom = ({
@@ -19,11 +19,9 @@ const TeamMessageCom = ({
   const sender = participants?.find(
     (participant) => participant.user.id === messageData.senderId
   )?.user;
-  const profilePictureUri = `${API_BASE_URL}:8000/uploads/${
-    messageData.senderId === userData?.id
-      ? userData?.profilePicture
-      : sender?.profilePicture
-  }`;
+  const profilePictureUri = messageData.senderId === userData?.id
+    ? sender?.profilePicture
+    : sender?.profilePicture;
   
   console.log('Profile Picture URI:', profilePictureUri);
   return (
@@ -40,10 +38,7 @@ const TeamMessageCom = ({
 
       <Image
         source={{
-          uri: `${API_BASE_URL}/uploads/${messageData.senderId === userData?.id
-              ? userData?.profilePicture
-              : sender?.profilePicture
-            }`,
+          uri: getImageUrl(profilePictureUri || ''),
         }}
         style={styles.profilePicture}
       />
@@ -56,14 +51,14 @@ const TeamMessageCom = ({
             : styles.otherMessage,
         ]}
       >
-        {/* {messageData.image && (
+        {messageData.image && (
           <TouchableOpacity
-            onPress={() => setImagePreview(messageData.image as string)}
+            onPress={() => {console.log(` ${API_BASE_URL}/uploads/${messageData.image}`)}}
           >
-            <Image source={{ uri: messageData.image }} style={styles.dynamicImage} />
+            <Image source={{ uri:getImageUrl(messageData?.image || '') }} style={styles.dynamicImage} />
           </TouchableOpacity>
-        )} */}
-        {/* {!messageData.image && ( */}
+        )}
+        {!messageData.image && (
         <View style={styles.messageWithTimestamp}>
           <Text style={styles.messageText}>{messageData.message}</Text>
           <Text
@@ -80,7 +75,7 @@ const TeamMessageCom = ({
             {timeFormatter(messageData.createdAt)}
           </Text>
         </View>
-        {/* )}  */}
+         )}  
       </View>
     </View>
   );
@@ -113,8 +108,8 @@ const styles = StyleSheet.create({
     paddingRight: 14,
     paddingBottom: 5,
   },
-  userMessage: { alignSelf: 'flex-end', backgroundColor: '#DCF8C6' },
-  otherMessage: { alignSelf: 'flex-start', backgroundColor: '#E5E5E5' },
+  userMessage: { alignSelf: 'flex-end', backgroundColor: '#E1FFEF' },
+  otherMessage: { alignSelf: 'flex-start', backgroundColor: '#EFEFEF' },
   messageText: { fontSize: 16, borderRadius: 8 },
   groupMessage: {
     borderColor: COLORS.primary,

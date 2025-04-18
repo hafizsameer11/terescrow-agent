@@ -12,20 +12,20 @@ const TeamChatSearch: React.FC<{
         styles.searchBarContainer,
         isDarkMode
           ? { backgroundColor: Colors.dark.background }
-          : { backgroundColor: COLORS.greyscale500 },
+          : { backgroundColor: COLORS.primary },
       ]}
     >
       <Image
         source={icons.search}
         style={[
           styles.searchIcon,
-          isDarkMode && { tintColor: Colors.dark.tint },
+          { tintColor: COLORS.white },
         ]}
       />
       <TextInput
-        style={[styles.searchInput, isDarkMode && { color: Colors.dark.text }]}
+        style={[styles.searchInput, isDarkMode && { color: COLORS.white }]}
         placeholder="Search Chat"
-        placeholderTextColor="#9E9E9E"
+        placeholderTextColor={COLORS.white}
         onChangeText={onSearchChange}
       />
     </View>
@@ -38,8 +38,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginVertical: 12,
     borderRadius: 10,
-    borderBottomWidth: 1,
-    borderColor: COLORS.grayscale400,
+    paddingVertical: 10,
+    // borderBottomWidth: 1,
+    // borderColor: COLORS.grayscale400,
   },
   searchIcon: {
     width: 16,
@@ -52,8 +53,10 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     paddingLeft: 63,
-    color: COLORS.black,
+    paddingVertical: 10,
+    color: COLORS.white,
     backgroundColor: "transparent",
+    
   },
 });
 

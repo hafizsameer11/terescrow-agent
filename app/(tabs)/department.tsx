@@ -15,11 +15,12 @@ import { useTheme } from '@/contexts/themeContext';
 import Box from '@/components/DashboardBox';
 import RecentChats from '@/components/RecentChats';
 import Button from '@/components/Button';
-import { getDepartments } from '@/utils/queries/adminQueries';
+import { getDepartments, getDepartmentStats } from '@/utils/queries/adminQueries';
 import { useQuery } from '@tanstack/react-query';
 import { token } from '@/utils/apiConfig';
 import { DepartmentResponse } from '@/utils/queries/datainterfaces';
-
+import { DataTable } from 'react-native-paper';
+import { useAuth } from '@/contexts/authContext';
 export interface Department {
   id: number;
   title: string;
@@ -30,12 +31,10 @@ export interface Department {
   createdAt?: string;
   updatedAt?: string;
 }
-
 const getRandomStatus = () => {
   const statuses = ['active', 'offline'];
   return statuses[Math.floor(Math.random() * statuses.length)];
 };
-
 export default function Department() {
   const [query, setQuery] = useState('');
   const { dark } = useTheme();
@@ -45,8 +44,9 @@ export default function Department() {
   const textColor = {
     color: dark ? COLORS.white : COLORS.black,
   };
+  const { token, userData } = useAuth();
 
-  // API Fetching with React Query
+
   const {
     data: departmentsData,
     isLoading,
@@ -57,15 +57,33 @@ export default function Department() {
     queryFn: () => getDepartments({ token }),
     enabled: !!token,
   });
-
-  // Effect to initialize filtered data on load
   useEffect(() => {
     if (departmentsData?.data) {
       setFilteredData(departmentsData.data);
     }
   }, [departmentsData]);
   console.log('Inside the Deaprtment', departmentsData);
-  // Search Filter
+
+  const {
+    data: departmentStats,
+    isLoading: customerStatsLoading,
+    isError: isCustomerStatsError,
+    error: customerStatsError,
+  } = useQuery({
+    queryKey: ['departmentStats'],
+    refetchInterval: 30000,
+    queryFn: () => getDepartmentStats(token),
+    enabled: !!token && userData?.role === 'admin',
+  });
+  useEffect(() => {
+    console.log('customerStats', departmentStats);
+  }, [departmentStats]);
+    const getStatusBgColor = (status: string) => {
+      if (!status) return COLORS.transparentWhite;
+      if (status === 'active') return COLORS.primary;
+      if (status === 'inactive') return COLORS.warning;
+      return COLORS.transparentWhite;
+    };
   const handleSearch = (text: string) => {
     setQuery(text);
     if (text === '') {
@@ -77,82 +95,50 @@ export default function Department() {
       setFilteredData(filterData || []);
     }
   };
-
-  // Renders Table Row
-  const renderRow = (
-    item: DepartmentResponse['data'][number],
-    index: number
-  ) => {
-    const getStatusBgColor = (status: string) => {
-      if (!status) return COLORS.transparentWhite;
-      if (status === 'active') return COLORS.primary;
-      if (status === 'inactive') return COLORS.warning;
-      return COLORS.transparentWhite;
-    };
-
-    return (
-      <View style={tableHeader.row} key={index}>
-        <View style={[tableHeader.cell, tableHeader.nameCell]}>
-          <Image
-            source={icons.bitCoin}
-            style={{
-              width: 20,
-              height: 20,
-              tintColor: dark ? COLORS.white : COLORS.black,
-            }}
-          />
-          <Text style={[{ marginLeft: 8 }, textColor]}>{item.title}</Text>
-        </View>
-        <Text
-          style={[
-            tableHeader.cell,
-            {
-              backgroundColor: getStatusBgColor(item?.status!),
-              borderRadius: 5,
-              color: COLORS.white,
-              paddingVertical: 5,
-              paddingHorizontal: 1,
-            },
-          ]}
-        >
-          {item.status}
-        </Text>
-        <Text style={[tableHeader.cell, textColor]}>{item.noOfAgents}</Text>
-        <Text style={[tableHeader.cell, textColor]}>{item.description}</Text>
-        <View style={[tableHeader.actionCell, tableHeader.nameCell]}>
-          {/* <Button
-            title="Assign Agents"
-            fontSize={12}
-            style={{
-              height: 35,
-              borderRadius: 10,
-              backgroundColor: 'transparent',
-              borderWidth: 1,
-              borderColor: COLORS.primary,
-            }}
-            textColor={COLORS.primary}
-          /> */}
-          {/* <TouchableOpacity style={styles.iconButton}>
-            <Image source={icons.eye2} style={[styles.icon]} />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.iconButton}>
-            <Image source={icons.edit} style={styles.icon} />
-          </TouchableOpacity> */}
-
-          {/* <TouchableOpacity>
-            <Image
-              source={icons.trash}
-              style={[
-                styles.icon,
-                { tintColor: COLORS.red, width: 25, height: 25 },
-              ]}
-            />
-          </TouchableOpacity> */}
-        </View>
-      </View>
-    );
-  };
+  // const renderRow = (
+  //   item: DepartmentResponse['data'][number],
+  //   index: number
+  // ) => {
+  //   const getStatusBgColor = (status: string) => {
+  //     if (!status) return COLORS.transparentWhite;
+  //     if (status === 'active') return COLORS.primary;
+  //     if (status === 'inactive') return COLORS.warning;
+  //     return COLORS.transparentWhite;
+  //   };
+  //   return (
+  //     <View style={tableHeader.row} key={index}>
+  //       <View style={[tableHeader.cell, tableHeader.nameCell]}>
+  //         <Image
+  //           source={icons.bitCoin}
+  //           style={{
+  //             width: 20,
+  //             height: 20,
+  //             tintColor: dark ? COLORS.white : COLORS.black,
+  //           }}
+  //         />
+  //         <Text style={[{ marginLeft: 8 }, textColor]}>{item.title}</Text>
+  //       </View>
+  //       <Text
+  //         style={[
+  //           tableHeader.cell,
+  //           {
+  //             backgroundColor: getStatusBgColor(item?.status!),
+  //             borderRadius: 5,
+  //             color: COLORS.white,
+  //             paddingVertical: 5,
+  //             paddingHorizontal: 1,
+  //           },
+  //         ]}
+  //       >
+  //         {item.status}
+  //       </Text>
+  //       <Text style={[tableHeader.cell, textColor]}>{item.noOfAgents}</Text>
+  //       <Text style={[tableHeader.cell, textColor]}>{item.description}</Text>
+  //       <View style={[tableHeader.actionCell, tableHeader.nameCell]}>
+  //       </View>
+  //     </View>
+  //   );
+  // };
 
   return (
     <View
@@ -171,27 +157,36 @@ export default function Department() {
           >
             Department
           </Text>
-          {/* <Button
-            title="Add new department"
-            style={{ borderRadius: 10, height: 40 }}
-            fontSize={12}
-          /> */}
         </View>
-
-        <View style={{ padding: 10 }}>
-          <View style={styles.row}>
-            <Box title="Total Income" value="$1,000" percentage={7} condition />
-            <Box title="Total Inflow" value="$500" percentage={5} condition />
-          </View>
-          <View style={styles.row}>
-            <Box
-              title="Total Expense"
-              value="$1,000"
-              percentage={8}
-              condition
-            />
-            <Box title="Total Outflow" value="$500" percentage={4} condition />
-          </View>
+        <View>
+          {departmentStats?.data &&
+            departmentStats.data.map((item, index) => {
+              // Check if it's the start of a new row (every 2 items)
+              if (index % 2 === 0) {
+                return (
+                  <View style={styles.row} key={`row-${index}`}>
+                    <Box
+                      title={departmentStats.data[index]?.departmentName || 'Unknown'}
+                      value={`$${departmentStats.data[index]?.amount || 0}`}
+                      percentage={7} // Replace with actual percentage if needed
+                      condition
+                    />
+                    {/* Render second item in the same row if it exists */}
+                    {departmentStats.data[index + 1] && (
+                      <Box
+                        title={
+                          departmentStats.data[index + 1]?.departmentName || 'Unknown'
+                        }
+                        value={`$${departmentStats.data[index + 1]?.amount || 0}`}
+                        percentage={5} // Replace with actual percentage if needed
+                        condition
+                      />
+                    )}
+                  </View>
+                );
+              }
+              return null; // Skip rendering for odd indices as they are handled in the row
+            })}
         </View>
 
         <View
@@ -223,8 +218,7 @@ export default function Department() {
             onChangeText={handleSearch}
           />
         </View>
-
-        <ScrollView horizontal>
+        {/* <ScrollView horizontal>
           <View>
             <View
               style={[
@@ -255,15 +249,87 @@ export default function Department() {
               {filteredData.map((item, index) => renderRow(item, index))}
             </ScrollView>
           </View>
+        </ScrollView> */}
+        <ScrollView horizontal>
+          <DataTable style={styles.table}>
+            {/* Table Header */}
+            <DataTable.Header style={[styles.tableHeader, dark && styles.darkHeader]}>
+              <DataTable.Title style={[styles.headerCell, { width: 120 }]}>
+                Name
+              </DataTable.Title>
+              <DataTable.Title style={[styles.headerCell, { width: 100 }]}>
+                Status
+              </DataTable.Title>
+              <DataTable.Title style={[styles.headerCell, { width: 150 }]}>
+                No of Agents
+              </DataTable.Title>
+              <DataTable.Title style={[styles.headerCell, { width: 100 }]}>
+                Type
+              </DataTable.Title>
+
+            </DataTable.Header>
+
+            {/* Table Rows */}
+            {/* {!isLoading && } */}
+            {!isLoading && filteredData && filteredData?.map((item, index) => (
+              <DataTable.Row key={index} style={[styles.tableRow, { position: "relative" }]}>
+                <DataTable.Cell style={{ width: 120 }}>
+                  {item.title}
+                </DataTable.Cell>
+                <DataTable.Cell style={{ width: 100 }}>
+                  <Text
+                    style={{
+                      backgroundColor:
+                      getStatusBgColor(item?.status!),
+                      color: COLORS.white,
+                      textAlign: "center",
+                      borderRadius: 5,
+                      padding: 4,
+                    }}
+                  >
+                    {item.status}
+                  </Text>
+                </DataTable.Cell>
+                <DataTable.Cell style={{ width: 150 }}>
+                  {item.noOfAgents}
+                </DataTable.Cell>
+                <DataTable.Cell style={{ width: 100 }}>
+                  {item.Type}
+                </DataTable.Cell>
+
+              </DataTable.Row>
+            ))}
+          </DataTable>
         </ScrollView>
+
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+
+  table: {
+    marginTop: 20,
+  },
+  tableHeader: {
+    backgroundColor: COLORS.grayscale200,
+  },
   safeArea: {
     flex: 1,
+  },
+  darkHeader: {
+    backgroundColor: COLORS.dark2,
+  },
+  headerCell: {
+    // fontWeight: "bold",
+  },
+  tableRow: {
+    borderBottomWidth: 1,
+    borderColor: "#ccc",
+    position: 'relative',
+    overflow: 'visible',
+    zIndex: 1,
   },
   iconContainer: {
     position: 'absolute',

@@ -62,7 +62,9 @@ export const getTeamChatDetails = async (
     token
   );
 };
-
+export const getunreadMessageCount = async (token: string): Promise<ApiResponse> => {
+  return await apiCall(API_ENDPOINTS.COMMON.GetUnreadMessageCount, 'GET', undefined, token)
+}
 // department quick actions
 export interface IDepartmentResponse extends ApiResponse {
   data: {

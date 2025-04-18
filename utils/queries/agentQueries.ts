@@ -82,9 +82,68 @@ export const getTransactionForAgent = async (token: string): Promise<CustomerTra
     token
   );
 }
+export const getTransactionStatsForAgent = async (token: string): Promise<TransactionStateResponse> => {
+  return await apiCall(
+    API_ENDPOINTS.AGENT.GetTransactionStats,
+    'GET',
+    undefined,
+    token
+  );
+}
+export const getNotesForCustomer = async (token: string, id: string): Promise<any> => {
+  return await apiCall(
+    ` ${API_ENDPOINTS.AGENT.GetNotesForCustomer}/${id}`,
+    'GET',
+    undefined,
+    token
+  );
+}
+
+export const getAllQuickReplies = async (token: string): Promise<QuickReplyResponse> => {
+  return await apiCall(API_ENDPOINTS.AGENT.GetQuickReplies, 'GET', undefined, token)
+}
+export const deleteQuickReply = async (id: number, token: string): Promise<ApiResponse> => {
+  return await apiCall(`${API_ENDPOINTS.AGENT.DeleteQuickReply}/${id}`, 'GET', undefined, token)
+}
+export interface QuickReply {
+  id: number
+  message: string
+  userId: number
+  createdAt: string
+}
+export interface QuickReplyResponse extends ApiResponse {
+  data: QuickReply[]
+}
 
 export interface IInAppNotificationResponse extends ApiResponse {
   data: InAppNotifications[]
+}
+interface TransactionStateResponse {
+  status: string;
+  message: string;
+  data: {
+    totalTransactions: number; // Total number of transactions
+    totaltransactionAmountSum: {
+      _sum: {
+        amount: number; // Sum of all transaction amounts
+        amountNaira: number; // Sum of transaction amounts in Naira
+      };
+    };
+    cryptoTransactions: {
+      _count: number; // Total number of crypto transactions
+      _sum: {
+        amount: number | null; // Sum of crypto transaction amounts
+        amountNaira: number | null; // Sum of crypto transaction amounts in Naira
+      };
+    };
+    giftCardTransactions: {
+      _count: number; // Total number of gift card transactions
+      _sum: {
+        amount: number; // Sum of gift card transaction amounts
+        amountNaira: number; // Sum of gift card transaction amounts in Naira
+      };
+    };
+  };
 }
 export interface InAppNotifications {
   id: number,
@@ -189,6 +248,7 @@ export enum ChatStatus {
   pending = 'pending',
   successful = 'successful',
   declined = 'declined',
+  unsucessful = 'unsucessful',
 }
 
 export enum ChatType {

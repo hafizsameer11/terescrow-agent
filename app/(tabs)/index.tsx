@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Text, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaFrame } from 'react-native-safe-area-context';
 import RNPickerSelect from 'react-native-picker-select';
 import { COLORS, icons } from '@/constants';
 import { Image } from 'expo-image';
@@ -11,16 +11,23 @@ import Header from '@/components/Header';
 import { usersData } from '@/utils/usersData';
 import { useAuth } from '@/contexts/authContext';
 import { useQuery } from '@tanstack/react-query';
-import { ChatStatus, getAgentStats, getAllChatsWithCustomer } from '@/utils/queries/agentQueries';
+import { ChatStatus, getAgentStats, getAllChatsWithCustomer, getTransactionForAgent, IAllCustomerChatsRes } from '@/utils/queries/agentQueries';
 import { FlatList } from 'react-native-gesture-handler';
 import ChatContactList from '@/components/ChatContactList';
+import { getAdminDashboardStats, getAllTransactions } from '@/utils/queries/adminQueries';
+import TransactionTable from '@/components/TrsansactionTable';
+import { Transaction } from '@/utils/queries/datainterfaces';
+import FullTransactionModal from '@/components/TransactionDetailModal';
 
 export default function HomeScreen() {
   const [selectedOption, setSelectedOption] = useState('Year');
   const [menuVisible, setMenuVisible] = useState<number | null>(null);
   const { dark } = useTheme();
+  const [transactionModalVisible, setTransactionModalVisible] = useState(false);
   const { userData } = useAuth();
   const { token } = useAuth();
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [limitedChats, setLimitedChats] = useState<any>([]);
   const {
     data: agtenStatsData,
     isLoading: agentStatsLoading,
@@ -30,10 +37,35 @@ export default function HomeScreen() {
     queryKey: ['agentStats'],
     refetchInterval: 30000,
     queryFn: () => getAgentStats(token),
+    enabled: !!token && userData?.role === 'agent',
+  });
+  const {
+    data: adminstatsData,
+    isLoading: adminStatsLoading,
+    isError: isAdminStatsError,
+    error: adminStatsError,
+  } = useQuery({
+    queryKey: ['adminStats'],
+    refetchInterval: 30000,
+    queryFn: () => getAdminDashboardStats(token),
+    enabled: !!token && userData?.role === 'admin',
   });
   const handleMenuToggle = (index: number) => {
     setMenuVisible(menuVisible === index ? null : index);
   };
+
+  const {
+    data: allTransactionsData,
+  } = useQuery({
+    queryKey: ['all-transactions'],
+    queryFn: () => getAllTransactions(token),
+    enabled: !!token && userData?.role === 'admin',
+  });
+  useEffect(() => {
+
+    console.log("admin statas", adminstatsData?.data)
+    // console.log("allttransaction data", allTransactionsData);
+  }, [adminstatsData])
   const {
     data: allChatsData,
     isLoading: allChatsLoading,
@@ -45,6 +77,24 @@ export default function HomeScreen() {
     refetchInterval: 30000,
 
   });
+  const handleTransactionModal = (transactionId: string) => {
+    setTransactionModalVisible(!transactionModalVisible);
+    setMenuVisible(null)
+  };
+  const handleTransactionDetails = (
+    id: number, item: Transaction
+  ) => {
+    setSelectedTransaction(item);
+    handleTransactionModal(id.toString());
+    setMenuVisible(null);
+    console.log("selected transaction", selectedTransaction);
+  }
+  useEffect(() => {
+    if (allChatsData) {
+      setLimitedChats(allChatsData?.data?.slice(0, 5));
+    }
+  }, [allChatsData]);
+
 
   return (
     <View
@@ -64,90 +114,64 @@ export default function HomeScreen() {
           >
             Dashboard
           </Text>
-          {/* <View
-            style={[
-              styles.pickerContainer,
-              { backgroundColor: dark ? COLORS.dark2 : COLORS.white },
-            ]}
-          >
-            <RNPickerSelect
-              onValueChange={(value) => setSelectedOption(value)}
-              value={selectedOption}
-              items={[
-                { label: 'Year', value: 'Year' },
-                { label: 'Month', value: 'Month' },
-                { label: 'Day', value: 'Day' },
-              ]}
-              style={pickerSelectStyles}
-              useNativeAndroidPickerStyle={false}
-              Icon={() => (
-                <Image
-                  source={icons.arrowDown}
-                  style={{
-                    width: 20,
-                    height: 20,
-                    padding: 10,
-                    position: 'absolute',
-                    right: -5,
-                    top: 8,
-                    tintColor: dark ? COLORS.white : COLORS.black,
-                  }}
-                />
-              )}
-            />
-          </View> */}
         </View>
-        {/* {u} */}
         {userData?.role === 'admin' ? (
 
           <View style={{ padding: 10 }}>
-            <View style={styles.row}>
-              <Box title="Total Income" value="$1,000" percentage={7} condition />
-              <Box title="Total Inflow" value="$500" percentage={5} condition />
-            </View>
+
             <View style={styles.row}>
               <Box
-                title="Total Expense"
-                value="$1,000"
-                percentage={8}
-                condition
-              />
-              <Box title="Total Outflow" value="$500" percentage={4} condition />
-            </View>
-            <Text
-              style={{
-                fontSize: 18,
-                fontWeight: 'bold',
-                marginVertical: 15,
-                color: dark ? COLORS.white : COLORS.black,
-              }}
-            >
-              Rates
-            </Text>
-            <View style={styles.row}>
-              <Box
-                title="Crypto buy"
-                value="$1,000"
+                title="Total Users"
+                value={adminstatsData?.data.totalUsers.count?.toString() || '0'}
                 simpleText="Edit"
                 condition={false}
               />
               <Box
-                title="Crypto sell"
-                value="$1,000"
+                title="Total Agents"
+                value={adminstatsData?.data.totalAgents.count?.toString() || '0'}
                 simpleText="Edit"
                 condition={false}
               />
             </View>
             <View style={styles.row}>
               <Box
-                title="Crypto buy"
-                value="$1,000"
+                title="Total Transactions"
+                value={adminstatsData?.data.totalTransactions.count?.toString() || '0'}
                 simpleText="Edit"
                 condition={false}
               />
               <Box
-                title="Gift card sell"
-                value="$1,000"
+                title="Active User"
+                value={adminstatsData?.data.totalUsers.count || '0'}
+                simpleText="Edit"
+                condition={false}
+              />
+
+            </View>
+            <View style={styles.row}>
+              <Box
+                title="Verified Users"
+                value={adminstatsData?.data.totalVerifiedUsers.count?.toString() || '0'}
+                simpleText="Edit"
+                condition={false}
+              />
+              <Box
+                title="Total OutFlow"
+                value={'₦' + adminstatsData?.data.totalOutflow.current?.toString() || '0'}
+                simpleText="Edit"
+                condition={false}
+              />
+            </View>
+            <View style={styles.row}>
+              <Box
+                title="Total Revenue"
+                value={'₦' + adminstatsData?.data.totalRevenue.current?.toString() || '0'}
+                simpleText="Edit"
+                condition={false}
+              />
+              <Box
+                title="Total Profit"
+                value={'₦' + adminstatsData?.data.totalInflow.current?.toString() || '0'}
                 simpleText="Edit"
                 condition={false}
               />
@@ -156,15 +180,14 @@ export default function HomeScreen() {
         ) :
           (<View style={{ padding: 10 }}>
             <View style={styles.row}>
-              <Box title="Total Chats" value={agtenStatsData?.data.totalChats.toString() || '0'} percentage={7} condition />
-              <Box title="SuccessFull Transactions" value={agtenStatsData?.data.successfulllTransactions.toString() || '0'} percentage={5} condition />
+              <Box title="Total Chats" value={agtenStatsData?.data.totalChats.toString() || '0'} />
+              <Box title="SuccessFull Transactions" value={agtenStatsData?.data.successfulllTransactions.toString() || '0'} />
             </View>
             <View style={styles.row}>
               <Box
                 title="Pending Chats"
                 value={agtenStatsData?.data.pendingChats.toString() || '0'}
-                percentage={8}
-                condition
+
               />
               <Box title="Declined Chats" value={agtenStatsData?.data.declinedChats.toString() || '0'} percentage={0} condition />
             </View>
@@ -173,15 +196,44 @@ export default function HomeScreen() {
 
           )}
         {userData?.role === 'admin' ? (
-          <View>
-            <RecentChats indexChats />
+          <View style={{ padding: 10, marginBottom: 20 }}>
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: "bold",
+                marginVertical: 15,
+                color: dark ? COLORS.white : COLORS.black,
+                marginLeft: 10
+              }}
+            >
+              All Transactions
+            </Text>
+            {allTransactionsData?.data && (
+              <TransactionTable
+                data={allTransactionsData.data}
+                darkMode={dark}
+                isShown={true}
+                userRole={userData?.role || ""}
+                onMenuToggle={handleMenuToggle}
+                onTransactionDetails={(id, item) =>
+                  handleTransactionDetails(id, item)
+                }
+                menuVisible={menuVisible}
+              />
+            )}
+            <FullTransactionModal
+              transactionId=""
+              visible={transactionModalVisible}
+              onClose={() => setTransactionModalVisible(false)}
+              transactionData={selectedTransaction}
+            />
           </View>
         ) :
           (
             <View style={{ padding: 10 }}>
               <Text>Recent Chats</Text>
               <FlatList
-                data={allChatsData?.data}
+                data={limitedChats}
                 style={styles.chatList}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => (

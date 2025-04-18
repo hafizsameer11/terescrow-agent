@@ -74,8 +74,8 @@ const search = require('../assets/icons/search.png') as string;
 const sendOutline = require('../assets/icons/send-outline.png') as string;
 const send = require('../assets/icons/send.png') as string;
 const settingOutline = require('../assets/icons/setting-outline.png') as string;
-const setting2Outline =
-  require('../assets/icons/setting2-outline.png') as string;
+// const setting2Outline =
+//   require('../assets/icons/setting2-outline.png') as string;
 const settings = require('../assets/icons/settings.png') as string;
 const shieldOutline = require('../assets/icons/shield-outline.png') as string;
 const shield = require('../assets/icons/shield.png') as string;
@@ -424,10 +424,12 @@ require('../assets/icons/map_location.png') as ImageURISource;
 const threeDots = require('../assets/icons/bi_three-dots.png') as string;
 const gallery = require('../assets/icons/gallery.png') as string;
 const bitCoin = require('../assets/icons/bitCoin.png') as string;
-// const eyeFill = require('../assets/icons/eyefill.png') as string;
-
+const error = require('../assets/icons/error.png') as string;
+const quickreply = require('../assets/icons/quickreply.png') as string;
 const icons = {
+  quickreply,
   gallery,
+  error,
   hourGlass,
   noVol,
   report,
@@ -502,7 +504,7 @@ const icons = {
   sendOutline,
   send,
   settingOutline,
-  setting2Outline,
+  // setting2Outline,
   settings,
   shieldOutline,
   shield,

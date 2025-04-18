@@ -7,6 +7,8 @@ import { useTheme } from '@/contexts/themeContext';
 import { Colors } from '@/constants/Colors';
 import { ChatStatus } from '@/utils/queries/agentQueries';
 import { useEffect } from 'react';
+import { getImageUrl } from '@/utils/helpers';
+import { useAuth } from '@/contexts/authContext';
 
 const TransChatNav: React.FC<{
   image: string;
@@ -18,6 +20,7 @@ const TransChatNav: React.FC<{
   changeChatStatus: (state: ChatStatus) => void;
 }> = (props) => {
   const { dark } = useTheme();
+  const { token, userData } = useAuth();
   const router = useRouter();
   useEffect(() => {
     console.log('TransChatNav checking default ', props.isdefault);
@@ -59,7 +62,7 @@ const TransChatNav: React.FC<{
         </View>
         <View>
           <Image
-            source={props.image}
+            source={{ uri: getImageUrl(props.image) }}
             style={{ width: 50, height: 50, borderRadius: 50 }}
           />
         </View>
@@ -74,7 +77,7 @@ const TransChatNav: React.FC<{
           </Text>
           <Text style={[styles.agentUserName]}>{props.userName}</Text>
         </View>
-        {props.currentState &&
+        {props.currentState && userData?.role == 'agent' &&
           props.currentState == ChatStatus.pending &&
           !props.isdefault && ( // Add the condition to hide if isdefault exists
             <View style={styles.iconsContainer}>
@@ -87,10 +90,11 @@ const TransChatNav: React.FC<{
                 </Pressable>
               </View>
               <View style={styles.iconContainer}>
-                <Pressable style={styles.pressIcon} onPress={props.showNotes}>
-                  <Image source={icons.notification2} style={styles.iconStyle} />
+                <Pressable style={styles.pressIcon} onPress={() => props.changeChatStatus(ChatStatus.unsucessful)}>
+                  <Image source={icons.error} style={styles.iconStyle} />
                 </Pressable>
               </View>
+
               <View style={styles.iconContainer}>
                 <Pressable
                   style={styles.pressIcon}
@@ -99,21 +103,15 @@ const TransChatNav: React.FC<{
                   <Image source={icons.check2} style={styles.iconStyle} />
                 </Pressable>
               </View>
+              <View style={styles.iconContainer}>
+                <Pressable style={styles.pressIcon} onPress={props.showNotes}>
+                  <Image source={icons.notification2} style={styles.iconStyle} />
+                </Pressable>
+              </View>
+
             </View>
           )}
-        {/* {props.isdefault && (
-          <View style={styles.iconsContainer}>
-            <View style={styles.iconContainer}>
-              <Pressable
-                style={[styles.pressIcon, { borderRadius: 10, }]}
-                onPress={() => console.log("overtake clicked")}
-              >
-                <Text style={{ color: COLORS.black }}>Overtake</Text>
-              </Pressable>
-            </View>
-           
-          </View>
-        )} */}
+
 
       </View>
     </View>
@@ -170,7 +168,7 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     justifyContent: 'center',
-    marginLeft: 16,
+    marginLeft: 5,
   },
   iconStyle: {
     width: 12,

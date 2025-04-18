@@ -28,6 +28,7 @@ import { useAuth } from '@/contexts/authContext';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ChatStatus,
+  getAllQuickReplies,
   getCustomerChatDetails,
   IResMessage,
 } from '@/utils/queries/agentQueries';
@@ -50,6 +51,8 @@ export type IRenderMessage = {
   isUser: boolean;
   image?: string;
   timestampt: Date;
+  senderId?: number;
+  receiverId?: number;
 };
 
 const TransactionChat = () => {
@@ -60,11 +63,31 @@ const TransactionChat = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [modalVisibility, setmodalVisibility] = useState(false);
   const [isShowNotes, setIsShowNotes] = useState(false);
+  const [quickReplies, setQuickReplies] = useState<string[]>([]);
   const [messages, setMessages] = useState<IRenderMessage[]>([]);
   const currCustomerId = useRef<number | null>(null);
   const queryClient = useQueryClient();
   const { token, userData } = useAuth();
+  const [showQuickReplies, setShowQuickReplies] = useState(false);
+
   const { socket } = useSocket();
+  const [inputValue, setInputValue] = useState('');
+  const { data: quickRepliesData } = useQuery({
+
+    queryKey: ['quickReplies'],
+    queryFn: () => getAllQuickReplies(token),
+    enabled: !!token,
+  });
+  useEffect(() => {
+    if (quickRepliesData?.data) {
+      setQuickReplies(quickRepliesData?.data);
+    }
+  }, [quickRepliesData]);
+
+  const handleQuickReplySelect = (message: string) => {
+    setInputValue((prev) => (prev ? `${prev} ${message}` : message));
+    setShowQuickReplies(false);
+  };
   const {
     data: chatDetailsData,
     isLoading: chatDetailsLoading,
@@ -73,6 +96,8 @@ const TransactionChat = () => {
   } = useQuery({
     queryKey: ['customer-chat-details'],
     queryFn: () => getCustomerChatDetails(chatId, token),
+    refetchInterval: 1500,
+    enabled: !!token && !!chatId,
   });
   const { mutate: overTakeChatData, isPending: overtakeChatPending } = useMutation({
     mutationFn: (chatId: string) => overTakeChat(chatId, token),
@@ -118,7 +143,7 @@ const TransactionChat = () => {
   });
 
   const { mutate: postMessage, isPending: messsageSending } = useMutation({
-    mutationFn: (data: { chatId: string; message: string }) =>
+    mutationFn: (data: FormData) =>
       sendMessageToCustomer(data, token),
     mutationKey: ['send-message-to-customer'],
     onSuccess: (data) => {
@@ -127,12 +152,14 @@ const TransactionChat = () => {
         text: data.data.message,
         isUser: true,
         timestampt: new Date(data.data.createdAt),
+        image: data.data?.image,
       };
       setMessages((prev) => [...prev, newMessage]);
       setTimeout(() => {
         scrollToBottom();
       }, 400);
     },
+
     onError: (error: ApiError) => {
       showTopToast({
         type: 'error',
@@ -151,16 +178,22 @@ const TransactionChat = () => {
           isUser: userData?.id ? item.senderId === userData?.id : false,
           timestampt: new Date(item.createdAt),
           image: item.image,
+          senderId: item.senderId,
+          receiverId: item.receiverId,
 
         }));
         return [...prev, ...newMesssages];
       });
     }
-    console.log("default checking", isDefault);
+    // console.log("default checking", isDefault);
 
+    if (userData?.role === 'adnmin') {
+      //
+    }
     return () => {
       setMessages([]);
     };
+
   }, [chatDetailsData]);
   useEffect(() => {
     if (socket) {
@@ -196,12 +229,12 @@ const TransactionChat = () => {
   }, [socket]);
   useEffect(() => {
     if (chatDetailsData) {
-      console.log("chatcategoryu", chatDetailsData.data.chatDetails);
+      // console.log("chatcategoryu", chatDetailsData.data.chatDetails);
     }
   })
   const handleChangeStatus = (status: ChatStatus) => {
     if (changeStatusPending) return;
-    if (status == ChatStatus.declined) {
+    if (status == ChatStatus.declined || status == ChatStatus.unsucessful) {
       changeStatus({ chatId, setStatus: status });
     }
     if (status == ChatStatus.successful) {
@@ -224,21 +257,34 @@ const TransactionChat = () => {
   };
 
   const sendMessage = (message?: string, image?: any) => {
-    if (!message) return;
+    if (!image && !message?.trim()) return;
+    const formData = new FormData();
+    formData.append("chatId", chatId.toString());
 
-    if (message) {
-      postMessage({
-        chatId,
-        message,
-      });
+    if (message?.trim()) {
+      formData.append("message", message);
     }
+    if (image) {
+      formData.append("image", {
+        uri: image,
+        type: "image/jpeg",
+        name: "chat-image.jpg",
+      } as unknown as Blob);
+    }
+    postMessage(formData);
+    // if (!message) return;
+
+    // if (message) {
+    //   postMessage({
+    //     chatId,
+    //     message,
+    //   });
+    // }
   };
   const handleOverTake = () => {
     console.log("Over take");
     overTakeChatData(chatId);
   }
-
-  //this event listener scrolls to bottom to view full content
   useEffect(() => {
     Keyboard.addListener('keyboardDidShow', () => {
       console.log('ok');
@@ -249,9 +295,6 @@ const TransactionChat = () => {
       Keyboard.removeAllListeners;
     };
   }, []);
-
-  // console.log(ChatStatus.successful);
-  // messages.map((item) => console.log(item.text));
   const renderAgentChat = () => {
     return (
       <KeyboardAvoidingView
@@ -268,14 +311,15 @@ const TransactionChat = () => {
           data={messages}
           keyExtractor={(item) => Math.random().toString()}
           renderItem={({ item }) => (
-            <MessageCom messageData={item} setImagePreview={setImagePreview} />
+            <MessageCom messageData={item} setImagePreview={setImagePreview} isAdmin={userData?.role === 'admin'} customerId={chatDetailsData?.data.customer.id} />
           )}
           contentContainerStyle={styles.chatContainer}
           onContentSizeChange={scrollToBottom}
         />
         {/* {isAccepted && !isConfirmed && ( */}
-        {chatDetailsData?.data.chatDetails.status == ChatStatus.pending && !isDefault && (
+        {chatDetailsData?.data.chatDetails.status == ChatStatus.pending && !isDefault && userData?.role == 'agent' && (
           <MessageInput
+            quickReplies={quickRepliesData?.data}
             sendMessage={sendMessage}
             sendingMessage={messsageSending}
           />
@@ -286,7 +330,7 @@ const TransactionChat = () => {
               style={styles.overtakeButton}
               onPress={() => handleOverTake()} // Define this function for handling the button press
             >
-              <Text style={styles.overtakeButtonText}>Overtake this chat</Text>
+              <Text style={styles.overtakeButtonText}>Take Over Chat</Text>
             </TouchableOpacity>
           )
         }
@@ -310,7 +354,7 @@ const TransactionChat = () => {
     );
   };
 
-  console.log(chatDetailsData?.data.chatDetails.status);
+  // console.log(chatDetailsData?.data.chatDetails.status);
 
   return (
     <SafeAreaView
@@ -336,6 +380,7 @@ const TransactionChat = () => {
               showNotes={showNotesHandler}
               isdefault={isDefault}
               currentState={chatDetailsData.data.chatDetails.status}
+
             />
           );
         })()}
@@ -348,28 +393,51 @@ const TransactionChat = () => {
         currDepartment={chatDetailsData?.data?.chatDetails?.department}
       />
 
-      {chatDetailsData?.data?.chatDetails?.status &&
-        (chatDetailsData.data.chatDetails.status === ChatStatus.declined ||
+      {chatDetailsData?.data?.chatDetails?.status && (
+        chatDetailsData.data.chatDetails.status === ChatStatus.declined ||
+          chatDetailsData.data.chatDetails.status === "unsucessful" ||
           chatDetailsData.data.chatDetails.status === ChatStatus.successful ? (
           <RenderMsgUserDecision
-            text={`This trade is ${chatDetailsData.data.chatDetails.status === ChatStatus.successful
+            text={`This trade was ${chatDetailsData.data.chatDetails.status === ChatStatus.successful
               ? 'completed'
-              : 'declined'
-              } by you`}
-            icon={icons.close2}
+              : chatDetailsData.data.chatDetails.status === "unsucessful"
+                ? 'unsuccessful'
+                : 'declined'
+              }`}
+            subText={
+              chatDetailsData.data.chatDetails.status === ChatStatus.declined
+                ? 'Reason: Invalid, unactivated or code has already been redeemed'
+                : chatDetailsData.data.chatDetails.status === "unsucessful"
+                  ? 'Abandoned Trade.'
+                  : 'Your account has been credited'
+            }
+            icon={
+              chatDetailsData.data.chatDetails.status === ChatStatus.successful
+                ? icons.check3
+                : icons.close2
+            }
             bgColor={
               chatDetailsData.data.chatDetails.status === ChatStatus.declined
                 ? '#FFD7D7'
-                : '#EBFFF3'
+                : chatDetailsData.data.chatDetails.status === "unsucessful"
+                  ? 'black'
+                  : '#EBFFF3'
+            }
+            textColor={
+              chatDetailsData.data.chatDetails.status === "unsucessful"
+                ? 'white'
+                : 'black'
             }
             isProcess={false}
             OnCancel={() => null}
           />
-        ) : null)}
+        ) : null
+      )}
+
 
 
       {isShowNotes && (
-        <ChatNotes closeNotes={closeNotesHandler} showNotesSate={isShowNotes} />
+        <ChatNotes userId={chatDetailsData?.data.customer.id} closeNotes={closeNotesHandler} showNotesSate={isShowNotes} />
       )}
       {renderAgentChat()}
     </SafeAreaView>

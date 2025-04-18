@@ -5,7 +5,7 @@ export const topMenuItems = [
     title: "Dashboard",
     name: "index",
     icon: icons.dashboard,
-    roles: ["admin","agent"],
+    roles: ["admin", "agent"],
   },
   {
     title: "Customer",
@@ -22,8 +22,14 @@ export const topMenuItems = [
   {
     title: "Pending Chat",
     name: "pendingchat",
-    icon: icons.chat,
-    roles: ["admin", "agent"],
+    icon: icons.chatBubble,
+    roles: ["agent"],
+  },
+  {
+    title: "Quick Replies",
+    name: "quickreplies",
+    icon: icons.quickreply,
+    roles: ["agent"],
   },
   {
     title: "Transactions",
@@ -42,25 +48,7 @@ export const topMenuItems = [
     name: "log",
     icon: icons.document,
     roles: ["admin"],
-  },
-  {
-    title: "Department",
-    name: "department",
-    icon: icons.rating,
-    roles: ["admin"],
-  },
-  {
-    title: "Teams",
-    name: "teams",
-    icon: icons.people2,
-    roles: ["admin"],
-  },
-  {
-    title: "Users",
-    name: "users",
-    icon: icons.people7,
-    roles: ["admin"],
-  },
+  }
 ];
 
 export const bottomMenuItems = [
@@ -75,13 +63,15 @@ export const bottomMenuItems = [
     icon: icons.settings,
   },
   {
-    title: "Team Communication",
+    title: "Team Chat",
     name: "teamcommunication",
     icon: icons.people5,
   },
-  //   {
-  //     title: 'Log Out',
-  //     name: 'logout',
-  //     icon: icons.logout,
-  //   },
+  {
+    title: "Logout",
+    name: "logout",
+    icon: icons.logout,
+  }
+
+
 ];

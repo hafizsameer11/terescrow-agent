@@ -26,11 +26,21 @@ import { bottomMenuItems, topMenuItems } from '@/utils/data';
 import Header from '@/components/Header';
 import { useTheme } from '@/contexts/themeContext';
 import { useAuth } from '@/contexts/authContext';
+import { getImageUrl } from '@/utils/helpers';
 
 export default function TabLayout() {
   const { dark } = useTheme();
+  const { logout } = useAuth();
   const { userData } = useAuth();
+  const handleLogout = async () => {
 
+    try {
+      await logout(); // Clear user session
+      router.replace('/login'); // Navigate to the login page
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
+  };
   const Separater = () => {
     return (
       <View
@@ -59,7 +69,7 @@ export default function TabLayout() {
         >
           <TouchableOpacity>
             <Image
-              source={userData?.profilePicture || images.avatar}
+              source={getImageUrl(userData?.profilePicture)}
               style={{ width: 74, height: 74, borderRadius: 50 }}
               contentFit="contain"
             />
@@ -109,7 +119,13 @@ export default function TabLayout() {
             label={item.title}
             key={item.name}
             onPress={() => {
-              props.navigation.navigate(item.name);
+              if (item.name === 'logout') {
+                // Handle logout logic
+                handleLogout(); // Call your logout function
+              } else {
+                // Navigate to other routes
+                props.navigation.navigate(item.name);
+              }
             }}
             icon={({ size, color }) => (
               <Image
@@ -126,6 +142,7 @@ export default function TabLayout() {
           />
         ))}
         <Separater />
+
       </DrawerContentScrollView>
     );
   };
@@ -136,7 +153,6 @@ export default function TabLayout() {
         screenOptions={{
           drawerActiveTintColor: COLORS.primary,
           drawerActiveBackgroundColor: COLORS.white,
-   
           header: (props) => (
             <Header onPress={() => props.navigation.openDrawer()} />
           ),

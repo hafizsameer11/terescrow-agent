@@ -28,9 +28,10 @@ const chatLogo2 = require("../assets/images/chat-logo2.png");
 const chatLogo3 = require("../assets/images/chat-logo3.png");
 const mashGroup = require("../assets/images/mask-group.png");
 const tereSecrow = require('../assets/images/teresecrow.png');
-
+const logo1 = require('../assets/images/logo1.png');
 const images = {
   mashGroup,
+  logo1,
   chatLogo,
   chatLogo2,
   chatLogo3,

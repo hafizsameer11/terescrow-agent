@@ -19,32 +19,28 @@ import Box from "@/components/DashboardBox";
 import { Route, router } from "expo-router";
 import FullTransactionModal from "@/components/TransactionDetailModal";
 import { useQuery } from "@tanstack/react-query";
-import { getTransactions, getCustomerTransactions } from "@/utils/queries/adminQueries";
-
-import { token } from "@/utils/apiConfig";
+import { getTransactions, getCustomerTransactions, getAllTransactions } from "@/utils/queries/adminQueries";
 import { useAuth } from "@/contexts/authContext";
-import { getTransactionForAgent } from "@/utils/queries/agentQueries";
+import { getTransactionForAgent, getTransactionStatsForAgent } from "@/utils/queries/agentQueries";
 import { Transaction } from "@/utils/queries/datainterfaces";
+import { DataTable } from "react-native-paper";
 const getRandomStatus = () => {
   const statuses = ["successfull", "failed", "pending"];
   return statuses[Math.floor(Math.random() * statuses.length)];
 };
 
-
 const Transactions: React.FC<{ isShown: boolean, customerId?: string }> = ({ isShown = true, customerId }) => {
-
-
   const { dark } = useTheme();
   const [activeBtn, setActiveBtn] = useState("All");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [filteredData, setFilteredData] = useState<Transaction[]>([]);
 
   const [selectedOption, setSelectedOption] = useState("Last 30 days");
-  const [selectedTransaction,setSelectedTransaction] = useState<Transaction | null>(null);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [query, setQuery] = useState("");
   const [menuVisible, setMenuVisible] = useState<number | null>(null);
   const [transactionModalVisible, setTransactionModalVisible] = useState(false);
-const {userData,token}=useAuth();
+  const { userData, token } = useAuth();
   const textColor = {
     color: dark ? COLORS.white : COLORS.black,
   };
@@ -53,45 +49,49 @@ const {userData,token}=useAuth();
     isLoading,
     isError,
   } = useQuery({
-    queryKey: customerId ? ["customerDetails", customerId] : ["customerTransactions"],
+    queryKey: customerId ? ["customerTransactions", customerId] : ["customerTransactions"],
     queryFn: () =>
       customerId
         ? getCustomerTransactions({ token, id: customerId })
-        : getTransactions({ token }),
-    enabled: !!token && (!!customerId || !customerId),
+        : getAllTransactions(token),
+    enabled: !!token,
   });
   const {
     data: agentTransactions,
-    isLoadingAgentTransactions,
-    isErrorAgentTransactions,
   } = useQuery({
     queryKey: ['agentTransactions'],
     queryFn: () => getTransactionForAgent(token),
+    enabled: !!token && userData?.role === 'agent',
+  });
+  const {
+    data: agentTransactionsStats,
+  } = useQuery({
+    queryKey: ['agentTransactionStats'],
+    queryFn: () => getTransactionStatsForAgent(token),
+    refetchInterval: 3000,
     enabled: !!token
   });
-
-  // Update State on Data Fetch
   useEffect(() => {
-    if(userData?.role=='admin'){
+    if (userData?.role == 'admin') {
       setFilteredData(customerTransactions?.data || []);
-    }else{
-      setFilteredData(agentTransactions?.data || [] );
-      console.log("agentTransactions",agentTransactions?.data);
+      console.log("customerTransactions", customerTransactions?.data);
+    } else {
+      setFilteredData(agentTransactions?.data || []);
+      console.log("agentTransactions", agentTransactions?.data);
+      console.log("agentTransactions", agentTransactions?.data);
     }
-   
-  }, [agentTransactions]);
 
-  // Search Filter Function
+  }, [agentTransactions || customerTransactions]);
   const handleSearch = (text: string) => {
     setQuery(text);
-  
+
     if (text.trim() === "") {
       // Reset to the full list when search query is empty
       if (activeBtn === "All") {
         if (userData?.role === 'admin') {
           setFilteredData(customerTransactions?.data || []);
         } else {
-          setFilteredData(agentTransactions?.data|| []);
+          setFilteredData(agentTransactions?.data || []);
         }
       } else {
         const filtered = (userData?.role === 'admin' ? customerTransactions?.data : agentTransactions?.data)?.filter(
@@ -101,22 +101,18 @@ const {userData,token}=useAuth();
       }
       return;
     }
-  
     const filtered = filteredData?.filter((item) =>
       item.customer.username.toLowerCase().includes(text.toLowerCase())
     );
     setFilteredData(filtered || []);
   };
-  const handlePressModal = () => {
-    setIsModalVisible(!isModalVisible);
-    setMenuVisible(null);
-  };
 
- 
+
+
 
   const handlePress = (btn: string) => {
     setActiveBtn(btn);
-  
+
     if (btn === "All") {
       if (userData?.role === 'admin') {
         setFilteredData(customerTransactions?.data || []);
@@ -130,119 +126,34 @@ const {userData,token}=useAuth();
       setFilteredData(filtered || []);
     }
   };
-  
+
 
   const handleMenuToggle = (index: number) => {
     setMenuVisible(menuVisible === index ? null : index);
   };
 
+
   const handleTransactionModal = (transactionId: string) => {
     setTransactionModalVisible(!transactionModalVisible);
-
     setMenuVisible(null)
   };
-
-  // Render Each Row
-  const renderRow = ({ item, index }: { item: Transaction; index: number }) => {
-    const getStatusBgColor = (status: string) => {
-      if (status === "pending") return COLORS.warning;
-      if (status === "successfull") return COLORS.primary;
-      if (status === "failed") return COLORS.red;
-      return COLORS.transparentWhite;
-    };
-
-    const handleCustomerDetails = () => {
-      router.push(`/profile?id=${item.customer?.id.toString()}`);
-      setMenuVisible(null);
-    }
-
-    const handleTransactionDetails = (
-      id:number,item: Transaction
-    ) => {
-      setSelectedTransaction(item);
-      handleTransactionModal(id.toString());
-      setMenuVisible(null);
-      console.log("selected transaction",selectedTransaction);
-    }
-    return (
-      <View style={tableHeader.row} key={index}>
-        <View style={tableHeader.nameLocationCell}>
-          <Text style={[tableHeader.cell, textColor]}>
-            {item.customer?.username}
-          </Text>
-        </View>
-
-        <Text
-          style={[
-            {
-              backgroundColor: getStatusBgColor(item.status),
-              borderRadius: 5,
-              color: COLORS.white,
-              padding: 4,
-              height: 30,
-            },
-          ]}
-        >
-          {item.status}
-        </Text>
-        <Text style={[tableHeader.cell, textColor,{textTransform:"capitalize"}]}> {item.department?.niche} {item.department?.Type}</Text>
-        <Text style={[tableHeader.cell, textColor]}>{item.amount}</Text>
-        <Text style={[tableHeader.cell, textColor]}>
-          {new Date(item.createdAt).toLocaleDateString()}
-        </Text>
-
-        <View style={tableHeader.actionCell}>
-          <TouchableOpacity onPress={() => handleMenuToggle(index)}>
-            <Image
-              source={icons.threeDots}
-              style={{
-                width: 20,
-                height: 20,
-                marginBottom: 17,
-                marginRight: 13,
-                tintColor: dark ? COLORS.white : COLORS.black,
-              }}
-            />
-          </TouchableOpacity>
-          {menuVisible === index && (
-            <View
-              style={[
-                tableHeader.dropdownMenu,
-                { backgroundColor: dark ? COLORS.dark2 : COLORS.white },
-              ]}
-            >
-              {isShown && userData?.role === "admin"  && (
-                
-                <TouchableOpacity style={[tableHeader.dropdownItem]}>
-                  <Text
-                    style={textColor}
-                    onPress={handleCustomerDetails}
-                  >
-                    View Customer Details
-                  </Text>
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity
-                style={[tableHeader.dropdownItem]}
-                onPress={()=>handleTransactionDetails(item.id,item)}
-              >
-                <Text style={textColor}>View Transaction Details</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-      </View>
-    );
-  };
+  const handleTransactionDetails = (
+    id: number, item: Transaction
+  ) => {
+    setSelectedTransaction(item);
+    handleTransactionModal(id.toString());
+    setMenuVisible(null);
+    console.log("selected transaction", selectedTransaction);
+  }
 
   return (
     <SafeAreaView
       style={[
         styles.safeArea,
-        { backgroundColor: dark ? COLORS.dark1 : COLORS.transparentWhite },
+        { backgroundColor: dark ? COLORS.dark1 : COLORS.transparentWhite, },
       ]}
     >
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <ScrollView contentContainerStyle={[styles.scrollContainer, { paddingHorizontal: 10 }]}>
         <View style={styles.headerContainer}>
           <Text
             style={[
@@ -252,46 +163,21 @@ const {userData,token}=useAuth();
           >
             Transactions
           </Text>
-          {/* <View
-            style={[
-              styles.pickerContainer,
-              { backgroundColor: dark ? COLORS.dark2 : COLORS.white },
-            ]}
-          >
-            <RNPickerSelect
-              onValueChange={(value) => setSelectedOption(value)}
-              value={selectedOption}
-              items={[
-                { label: "Last 30 days", value: "Last 30 days" },
-                { label: "Last 60 days", value: "Last 60 days" },
-                { label: "Last 90 days", value: "Last 90 days" },
-              ]}
-              style={pickerSelectStyles}
-              useNativeAndroidPickerStyle={false}
-              placeholder={{ label: "Role", value: null }}
-              Icon={() => (
-                <Image
-                  source={icons.arrowDown}
-                  style={{
-                    width: 20,
-                    height: 20,
-                    padding: 10,
-                    position: "absolute",
-                    right: -5,
-                    top: 8,
-                    tintColor: dark ? COLORS.white : COLORS.black,
-                  }}
-                />
-              )}
-            />
-          </View> */}
         </View>
-        <View style={{ padding: 10 }}>
-          <View style={styles.row}>
-            <Box title="Total Income" value="$1,000" percentage={7} condition />
-            <Box title="Total Inflow" value="$500" percentage={5} condition />
+        {!customerId &&
+
+
+          <View >
+            <View style={styles.row}>
+              <Box title="Total Transactions" value={(agentTransactionsStats?.data.totalTransactions.count || 0).toString()} condition />
+              <Box title="Crypto Transaction" value={'$' + (agentTransactionsStats?.data.cryptoTransactions._sum.amount)?.toString()} condition />
+
+            </View>
+            <View>
+              <Box title="Gift Card Transaction" value={'$' + (agentTransactionsStats?.data.giftCardTransactions._sum.amount)?.toString()} condition />
+            </View>
           </View>
-        </View>
+        }
         <View
           style={[
             styles.headerButtonsContainer,
@@ -398,38 +284,104 @@ const {userData,token}=useAuth();
           visible={isModalVisible}
           onClose={() => setIsModalVisible(false)}
         />
-
-        <ScrollView horizontal style={{ minHeight: 300 }}>
-          <View>
-            <View
-              style={[
-                tableHeader.headerRow,
-                {
-                  backgroundColor: dark ? COLORS.dark2 : COLORS.grayscale200,
-                  borderColor: dark ? COLORS.dark2 : "#ccc",
-                },
-              ]}
-            >
-              <Text style={[tableHeader.headerCell, textColor]}>
+        <ScrollView horizontal>
+          <DataTable style={styles.table}>
+            {/* Table Header */}
+            <DataTable.Header style={[styles.tableHeader, dark && styles.darkHeader]}>
+              <DataTable.Title style={[styles.headerCell, { width: 120 }]}>
                 Name
-              </Text>
-              <Text style={[tableHeader.headerCell, textColor]}>Status</Text>
-              <Text style={[tableHeader.headerCell, textColor]}>
+              </DataTable.Title>
+              <DataTable.Title style={[styles.headerCell, { width: 100 }]}>
+                Status
+              </DataTable.Title>
+              <DataTable.Title style={[styles.headerCell, { width: 150 }]}>
                 Department
-              </Text>
-              <Text style={[tableHeader.headerCell, textColor]}>
-                Amount (₦)
-              </Text>
-              <Text style={[tableHeader.headerCell, textColor]}>Date</Text>
-              <Text style={[tableHeader.headerCell, textColor]}></Text>
-            </View>
-            <FlatList
-              data={filteredData}
-              renderItem={renderRow}
-              keyExtractor={(_, index) => index.toString()}
-              style={{ maxHeight: 300 }}
-            />
-          </View>
+              </DataTable.Title>
+              <DataTable.Title style={[styles.headerCell, { width: 100 }]}>
+                Amount
+              </DataTable.Title>
+              <DataTable.Title style={[styles.headerCell, { width: 120 }]}>
+                Date
+              </DataTable.Title>
+            </DataTable.Header>
+
+            {/* Table Rows */}
+            {/* {!isLoading && } */}
+            {!isLoading && filteredData && filteredData?.map((item, index) => (
+              <DataTable.Row key={index} style={[styles.tableRow, { position: "relative" }]}>
+                <DataTable.Cell style={{ width: 120 }}>
+                  {item.customer?.username}
+                </DataTable.Cell>
+                <DataTable.Cell style={{ width: 100 }}>
+                  <Text
+                    style={{
+
+                      backgroundColor: COLORS.primary,
+                      color: COLORS.white,
+                      textAlign: "center",
+                      borderRadius: 5,
+                      padding: 4,
+                    }}
+                  >
+                    {item.status}
+                  </Text>
+                </DataTable.Cell>
+                <DataTable.Cell style={{ width: 150 }}>
+                  {item.department?.niche} {item.department?.Type}
+                </DataTable.Cell>
+                <DataTable.Cell style={{ width: 100 }}>
+                  {item.amount}
+                </DataTable.Cell>
+                <DataTable.Cell style={{ width: 120 }}>
+                  {new Date(item.createdAt).toLocaleDateString()}
+                </DataTable.Cell>
+                <DataTable.Cell >
+
+
+                  <View style={tableHeader.actionCell}>
+                    <TouchableOpacity onPress={() => handleMenuToggle(index)}>
+                      <Image
+                        source={icons.threeDots}
+                        style={{
+                          width: 20,
+                          height: 20,
+                          marginBottom: 17,
+                          marginRight: 13,
+                          tintColor: dark ? COLORS.white : COLORS.black,
+                        }}
+                      />
+                    </TouchableOpacity>
+                    {menuVisible === index && (
+                      <View
+                        style={[
+                          tableHeader.dropdownMenu,
+                          { backgroundColor: dark ? COLORS.dark2 : COLORS.white },
+                        ]}
+                      >
+                        {/* {isShown && userData?.role === "admin" && (
+
+                          <TouchableOpacity style={[tableHeader.dropdownItem]}>
+                            <Text
+                              style={textColor}
+                              onPress={()=>console.log(item)}
+                            >
+                              View Customer Details
+                            </Text>
+                          </TouchableOpacity>
+                        )} */}
+                        <TouchableOpacity
+                          style={[tableHeader.dropdownItem]}
+                          onPress={() => handleTransactionDetails(item.id, item)}
+                        >
+                          <Text style={textColor}>View Transaction Details</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </View>
+                </DataTable.Cell>
+              </DataTable.Row>
+            ))}
+          </DataTable>
         </ScrollView>
 
         <FullTransactionModal
@@ -439,13 +391,34 @@ const {userData,token}=useAuth();
           transactionData={selectedTransaction}
         />
       </ScrollView>
-    </SafeAreaView>
+    </SafeAreaView >
   );
 };
 
 export default Transactions;
 
 const styles = StyleSheet.create({
+
+
+  table: {
+    marginTop: 20,
+  },
+  tableHeader: {
+    backgroundColor: COLORS.grayscale200,
+  },
+  darkHeader: {
+    backgroundColor: COLORS.dark2,
+  },
+  headerCell: {
+    // fontWeight: "bold",
+  },
+  tableRow: {
+    borderBottomWidth: 1,
+    borderColor: "#ccc",
+    position: 'relative',
+    overflow: 'visible',
+    zIndex: 1,
+  },
   safeArea: {
     flex: 1,
   },
@@ -462,7 +435,7 @@ const styles = StyleSheet.create({
     width: "80%",
   },
   scrollContainer: {
-    paddingHorizontal: 13,
+    // paddingHorizontal: 13,
     marginBottom: 40,
   },
   iconContainer: {
@@ -517,7 +490,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 20,
-    paddingHorizontal: 10,
+    // paddingHorizontal: 10,
   },
   headerText: {
     fontSize: 20,
@@ -532,6 +505,20 @@ const styles = StyleSheet.create({
   filterIcon: {
     width: 20,
     height: 20,
+  },
+  actionButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 10,
+  },
+  actionButton: {
+    borderRadius: 5,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  actionButtonText: {
+    color: COLORS.white,
+    fontWeight: "bold",
   },
 });
 
@@ -550,7 +537,7 @@ const tableHeader = StyleSheet.create({
     fontWeight: "bold",
     flex: 1,
     paddingHorizontal: 10,
-    textAlign: "center",
+    // textAlign: "center",
   },
   tableBody: {
     maxHeight: "85%",
@@ -561,16 +548,19 @@ const tableHeader = StyleSheet.create({
     paddingVertical: 15,
     borderBottomWidth: 1,
     borderColor: "#ccc",
+    position: 'relative',
+    overflow: 'visible'
   },
   cell: {
     flex: 1,
     paddingHorizontal: 10,
-    textAlign: "center",
+    // textAlign: "center",
   },
   actionCell: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    position: 'relative'
   },
   location: {
     fontSize: 12,
@@ -582,6 +572,7 @@ const tableHeader = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "flex-start"
   },
 
   userInitialContainer: {
@@ -600,8 +591,8 @@ const tableHeader = StyleSheet.create({
 
   dropdownMenu: {
     position: "absolute",
-    top: 30,
-    right: 20,
+    top: -20,
+    right: 40,
     elevation: 5,
     borderRadius: 5,
     padding: 10,

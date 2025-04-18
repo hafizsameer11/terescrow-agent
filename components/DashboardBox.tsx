@@ -18,16 +18,21 @@ const Box: React.FC<BoxProps> = ({ title, value, percentage, condition, simpleTe
     <View style={[styles.container, { backgroundColor: dark ? COLORS.dark2 : COLORS.white }]}>
       <View style={styles.header}>
         <Text style={[styles.title, { color: dark ? COLORS.white : COLORS.gray }]}>{title}</Text>
-        <View style={styles.percentageContainer}>
-          {condition && <Image source={icons.arrowUpSquare} style={styles.icon} />}
-          {percentage !== undefined ? (
-            <Text style={styles.percentage}>
-              {percentage > 0 ? `${percentage}%` : `${percentage}%`}
-            </Text>
-          ) : (
-            simpleText && <Text style={styles.percentage}>{simpleText}</Text>  
-          )}
-        </View>
+        {
+          percentage && (
+            <View style={styles.percentageContainer}>
+              {condition && <Image source={icons.arrowUpSquare} style={styles.icon} />}
+              {percentage !== undefined ? (
+                <Text style={styles.percentage}>
+                  {percentage > 0 ? `${percentage}%` : `${percentage}%`}
+                </Text>
+              ) : (
+                simpleText && <Text style={styles.percentage}>{simpleText}</Text>
+              )}
+            </View>
+
+          )
+        }
       </View>
       <Text style={[styles.value, { color: dark ? COLORS.white : COLORS.black }]}>{value}</Text>
     </View>
@@ -52,7 +57,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   title: {
-    fontSize: 12,
+    fontSize: 10,
   },
   percentageContainer: {
     flexDirection: "row",
@@ -64,9 +69,9 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   value: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginVertical: 4,
+    fontSize: 16,
+    fontWeight: "semibold",
+    marginVertical: 6,
   },
   percentage: {
     fontSize: 12,

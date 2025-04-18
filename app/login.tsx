@@ -9,12 +9,16 @@ import { validationSignIn } from '@/components/Validation';
 import Input from '@/components/CustomInput';
 import { router, useNavigation } from 'expo-router';
 import { useMutation } from '@tanstack/react-query';
-import { loginUser } from '@/utils/mutations/commonMutations';
+import { loginAgent, loginUser } from '@/utils/mutations/commonMutations';
 import { useAuth } from '@/contexts/authContext';
 import { NavigationProp } from '@react-navigation/native';
 import { ApiError } from '@/utils/customApiCalls';
 import { showTopToast } from '@/utils/helpers';
 
+export const handleLogout = () => {
+  console.log("handleLogout")
+  router.replace('/'); // Navigate to login or the root screen
+};
 const Login = () => {
   const { dark } = useTheme();
   const { setToken, setUserData } = useAuth();
@@ -22,18 +26,19 @@ const Login = () => {
 
   const { mutate, isPending } = useMutation({
     mutationKey: ['login'],
-    mutationFn: loginUser,
+    mutationFn: loginAgent,
     onSuccess: async (data) => {
-      console.log("login:",data)
+      console.log("login:", data)
+      console.log("assigned department:", data?.data?.assignedDepartments)
       try {
         await setToken(data.token);  // Correctly await setToken
         await setUserData(data?.data);  // Correctly await setUserData
-  
+
         reset({
           index: 0,
           routes: [{ name: '(tabs)' }],
         });
-  
+
         navigate('(tabs)');  // Navigate after resetting the stack
       } catch (error: any) {
         console.error('Error logging in:', data);
@@ -52,7 +57,7 @@ const Login = () => {
       });
     },
   });
-  
+
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -62,10 +67,12 @@ const Login = () => {
           backgroundColor: dark ? COLORS.dark1 : COLORS.transparentWhite,
         }}
       >
-        <View>
+        <View style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: -90, marginTop: 60 }}>
           <Image
-            source={images.tereSecrow}
-            style={{ width: 90, height: 90 }}
+            source={images.logo1}
+            style={{
+              width: 90, height: 90, alignItems: 'center'
+            }}
             contentFit="contain"
           />
         </View>

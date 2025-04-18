@@ -39,18 +39,7 @@ const TeamChatHeader: React.FC<{
             />
           </Pressable>
         )}
-        <Pressable
-          style={[
-            styles.iconContainer,
-            dark && { backgroundColor: COLORS.primary },
-          ]}
-          onPress={() => router.push('/editteamchat')}
-        >
-          <Image
-            source={icons.edit}
-            style={[styles.icons, dark && { tintColor: Colors.dark.tint }]}
-          />
-        </Pressable>
+
       </View>
     </View>
   );
@@ -63,8 +52,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 29,
     paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderColor: COLORS.grayscale400,
+    // borderBottomWidth: 1,
+    // borderColor: COLORS.grayscale400,
   },
   mainHeading: {
     fontSize: 20,

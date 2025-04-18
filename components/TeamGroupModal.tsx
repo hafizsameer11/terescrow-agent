@@ -220,7 +220,7 @@ const TeamGroupModal: React.FC<Proptypes> = ({
                 return (
                   <TeamGroupList
                     name={firstname + ' ' + lastname}
-                    pfp={profilePicture || icons.profile}
+                    pfp={profilePicture }
                     username={username}
                     isSelectable={true}
                     userId={item.id.toString()}
